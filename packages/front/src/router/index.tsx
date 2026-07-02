@@ -6,6 +6,15 @@ import { MainLayout } from '../layouts/MainLayout/MainLayout';
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage/DashboardPage';
 import { UsuariosListPage } from '../modules/usuarios/pages/UsuariosListPage/UsuariosListPage';
 import { UsuarioFormPage } from '../modules/usuarios/pages/UsuarioFormPage/UsuarioFormPage';
+import { GruposLayout } from '../modules/grupos/layouts/GruposLayout/GruposLayout';
+import { GruposListPage } from '../modules/grupos/pages/GruposListPage/GruposListPage';
+import { CiclosListPage } from '../modules/grupos/pages/CiclosListPage/CiclosListPage';
+import { NivelesListPage } from '../modules/grupos/pages/NivelesListPage/NivelesListPage';
+import { MateriasListPage } from '../modules/grupos/pages/MateriasListPage/MateriasListPage';
+import { InscripcionesLayout } from '../modules/inscripciones/layouts/InscripcionesLayout/InscripcionesLayout';
+import { InscripcionesListPage } from '../modules/inscripciones/pages/InscripcionesListPage/InscripcionesListPage';
+import { PlanesPagoListPage } from '../modules/inscripciones/pages/PlanesPagoListPage/PlanesPagoListPage';
+import { VentanasListPage } from '../modules/inscripciones/pages/VentanasListPage/VentanasListPage';
 import { useAuth } from '../hooks/useAuth';
 
 // HOC para proteger rutas
@@ -63,7 +72,26 @@ export const router = createBrowserRouter([
           { index: true, element: <UsuariosListPage /> },
           { path: 'nuevo', element: <UsuarioFormPage /> },
           { path: ':id/editar', element: <UsuarioFormPage /> },
-          { path: ':id', element: <UsuarioFormPage /> } // Reusaremos el form en modo solo-lectura si es necesario
+          { path: ':id', element: <UsuarioFormPage /> }
+        ]
+      },
+      {
+        path: 'grupos',
+        element: <GruposLayout />,
+        children: [
+          { index: true, element: <GruposListPage /> },
+          { path: 'ciclos', element: <CiclosListPage /> },
+          { path: 'niveles', element: <NivelesListPage /> },
+          { path: 'materias', element: <MateriasListPage /> }
+        ]
+      },
+      {
+        path: 'inscripciones',
+        element: <InscripcionesLayout />,
+        children: [
+          { index: true, element: <InscripcionesListPage /> },
+          { path: 'planes-pago', element: <PlanesPagoListPage /> },
+          { path: 'ventanas', element: <VentanasListPage /> }
         ]
       }
     ]

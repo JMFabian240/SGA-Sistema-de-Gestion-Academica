@@ -3,59 +3,46 @@ import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { trpc } from '../../../../lib/trpc';
 import { Button } from '../../../../components/ui/Button/Button';
 import { Table, type Column } from '../../../../components/ui/Table/Table';
-
 import { Spinner } from '../../../../components/ui/Spinner/Spinner';
-import { GrupoFormModal } from '../../components/GrupoFormModal/GrupoFormModal';
+import { MateriaFormModal } from '../../components/MateriaFormModal/MateriaFormModal';
 import styles from '../NivelesListPage/NivelesListPage.module.css';
 
-type GrupoRow = {
-  grupoId: number;
+type MateriaRow = {
+  materiaId: number;
   nombre: string;
-  grado: number;
-  letra: string;
-  turno: string;
-  capacidadMax: number;
-  cicloId: number;
-  nivelId: number;
-  ciclo: { nombre: string };
-  nivel: { nombre: string };
+  clave: string;
 };
 
-export function GruposListPage() {
-  // Por simplicidad, no pasamos cicloId filtro a menos que queramos
-  const { data: grupos, isLoading } = trpc.grupos.getGrupos.useQuery({});
+export function MateriasListPage() {
+  const { data: materias, isLoading } = trpc.grupos.getMaterias.useQuery();
   const utils = trpc.useUtils();
-  const deleteMutation = trpc.grupos.deleteGrupo.useMutation({
-    onSuccess: () => utils.grupos.getGrupos.invalidate()
+  const deleteMutation = trpc.grupos.deleteMateria.useMutation({
+    onSuccess: () => utils.grupos.getMaterias.invalidate()
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingGrupo, setEditingGrupo] = useState<GrupoRow | null>(null);
+  const [editingMateria, setEditingMateria] = useState<MateriaRow | null>(null);
 
   const handleOpenNew = () => {
-    setEditingGrupo(null);
+    setEditingMateria(null);
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (row: GrupoRow) => {
-    setEditingGrupo(row);
+  const handleOpenEdit = (row: MateriaRow) => {
+    setEditingMateria(row);
     setIsModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('¿Seguro que deseas eliminar este grupo? Se perderán las inscripciones asociadas.')) {
+    if (confirm('¿Seguro que deseas eliminar esta materia?')) {
       deleteMutation.mutate(id);
     }
   };
 
-  const columns: Column<GrupoRow>[] = [
-    { header: 'ID', accessor: 'grupoId' },
+  const columns: Column<MateriaRow>[] = [
+    { header: 'ID', accessor: 'materiaId' },
+    { header: 'Clave', accessor: 'clave' },
     { header: 'Nombre', accessor: 'nombre' },
-    { header: 'Grado y Letra', accessor: (row) => `${row.grado}° ${row.letra}` },
-    { header: 'Nivel', accessor: (row) => row.nivel?.nombre },
-    { header: 'Ciclo', accessor: (row) => row.ciclo?.nombre },
-    { header: 'Turno', accessor: 'turno' },
-    { header: 'Capacidad', accessor: 'capacidadMax' },
     {
       header: 'Acciones',
       accessor: (row) => (
@@ -63,7 +50,7 @@ export function GruposListPage() {
           <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(row)}>
             <Edit2 size={16} />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => handleDelete(row.grupoId)}>
+          <Button variant="ghost" size="sm" onClick={() => handleDelete(row.materiaId)}>
             <Trash2 size={16} color="var(--color-danger-600)" />
           </Button>
         </div>
@@ -75,7 +62,7 @@ export function GruposListPage() {
     <div className={styles.container}>
       <div className={styles.toolbar}>
         <Button onClick={handleOpenNew} leftIcon={<Plus size={18} />}>
-          Nuevo Grupo
+          Nueva Materia
         </Button>
       </div>
 
@@ -83,19 +70,22 @@ export function GruposListPage() {
         {isLoading ? (
           <Spinner centered size={32} />
         ) : (
-          <Table<GrupoRow>
+          <Table<MateriaRow>
             columns={columns}
-            data={(grupos as unknown as GrupoRow[]) || []}
-            keyExtractor={(row) => row.grupoId}
+            data={materias || []}
+            keyExtractor={(row) => row.materiaId}
           />
         )}
       </div>
 
-      <GrupoFormModal 
+      <MateriaFormModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        grupoId={editingGrupo?.grupoId}
-        initialData={editingGrupo}
+        materiaId={editingMateria?.materiaId}
+        initialData={editingMateria ? { 
+          nombre: editingMateria.nombre, 
+          clave: editingMateria.clave,
+        } : undefined}
       />
     </div>
   );

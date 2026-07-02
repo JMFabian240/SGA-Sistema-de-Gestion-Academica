@@ -1,9 +1,8 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, Users, UserSquare2, Users2, Library, 
-  GraduationCap, ClipboardList, WalletCards, BadgePercent, 
-  LineChart, ShieldAlert, Settings 
+import {
+  LayoutDashboard, UserSquare2, Users2, Library,
+  GraduationCap, ClipboardList, WalletCards, BadgePercent,
+  LineChart, ShieldAlert, Settings, BookOpen
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 import { clsx } from 'clsx';
@@ -14,6 +13,7 @@ const NAVIGATION = [
   { name: 'Tutores', to: '/tutores', icon: Users2 },
   { name: 'Inscripciones', to: '/inscripciones', icon: ClipboardList },
   { name: 'Grupos y Catálogos', to: '/grupos', icon: Library },
+  { name: 'Catálogo de Grupos', to: '/catalogos/grupos', icon: BookOpen },
   { name: 'Pagos', to: '/pagos', icon: WalletCards },
   { name: 'Becas', to: '/becas', icon: BadgePercent },
   { name: 'Calificaciones', to: '/calificaciones', icon: LineChart },
@@ -36,7 +36,7 @@ export function Sidebar() {
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) => 
+              className={({ isActive }) =>
                 clsx(styles.navItem, isActive && styles.navItemActive)
               }
             >
