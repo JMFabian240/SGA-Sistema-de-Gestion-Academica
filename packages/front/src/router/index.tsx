@@ -23,6 +23,10 @@ import { BecasLayout } from '../modules/becas/layouts/BecasLayout/BecasLayout';
 import { BecasListPage } from '../modules/becas/pages/BecasListPage/BecasListPage';
 import { SolicitudesListPage } from '../modules/becas/pages/SolicitudesListPage/SolicitudesListPage';
 import { AsignadasListPage } from '../modules/becas/pages/AsignadasListPage/AsignadasListPage';
+import { ReportesLayout } from '../modules/reportes/layouts/ReportesLayout/ReportesLayout';
+import { IngresosReportePage } from '../modules/reportes/pages/IngresosReportePage/IngresosReportePage';
+import { DeudoresReportePage } from '../modules/reportes/pages/DeudoresReportePage/DeudoresReportePage';
+import { AsistenciaReportePage } from '../modules/reportes/pages/AsistenciaReportePage/AsistenciaReportePage';
 import { useAuth } from '../hooks/useAuth';
 
 // HOC para proteger rutas
@@ -118,6 +122,15 @@ export const router = createBrowserRouter([
           { index: true, element: <BecasListPage /> },
           { path: 'solicitudes', element: <SolicitudesListPage /> },
           { path: 'asignadas', element: <AsignadasListPage /> }
+        ]
+      },
+      {
+        path: 'reportes',
+        element: <ReportesLayout />,
+        children: [
+          { index: true, element: <IngresosReportePage /> },
+          { path: 'deudores', element: <DeudoresReportePage /> },
+          { path: 'asistencia', element: <AsistenciaReportePage /> }
         ]
       }
     ]
