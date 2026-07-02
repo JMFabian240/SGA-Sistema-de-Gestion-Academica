@@ -19,6 +19,10 @@ import { PagosLayout } from '../modules/pagos/layouts/PagosLayout/PagosLayout';
 import { RegistroPagoPage } from '../modules/pagos/pages/RegistroPagoPage/RegistroPagoPage';
 import { AdeudosListPage } from '../modules/pagos/pages/AdeudosListPage/AdeudosListPage';
 import { TarifasListPage } from '../modules/pagos/pages/TarifasListPage/TarifasListPage';
+import { BecasLayout } from '../modules/becas/layouts/BecasLayout/BecasLayout';
+import { BecasListPage } from '../modules/becas/pages/BecasListPage/BecasListPage';
+import { SolicitudesListPage } from '../modules/becas/pages/SolicitudesListPage/SolicitudesListPage';
+import { AsignadasListPage } from '../modules/becas/pages/AsignadasListPage/AsignadasListPage';
 import { useAuth } from '../hooks/useAuth';
 
 // HOC para proteger rutas
@@ -105,6 +109,15 @@ export const router = createBrowserRouter([
           { index: true, element: <RegistroPagoPage /> },
           { path: 'adeudos', element: <AdeudosListPage /> },
           { path: 'tarifas', element: <TarifasListPage /> }
+        ]
+      },
+      {
+        path: 'becas',
+        element: <BecasLayout />,
+        children: [
+          { index: true, element: <BecasListPage /> },
+          { path: 'solicitudes', element: <SolicitudesListPage /> },
+          { path: 'asignadas', element: <AsignadasListPage /> }
         ]
       }
     ]
