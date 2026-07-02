@@ -62,6 +62,15 @@ Usuario → React (TanStack Query)
 - Al introducir un nuevo patrón, actualizar el SKILL.md
   del paquete correspondiente
 
+### Pruebas de Backend
+El backend utiliza la siguiente configuración para las pruebas:
+1. `npm run test`: Pruebas unitarias que utilizan el mock de Prisma (`tests/setup/prisma-mock.ts`).
+2. `npm run test:integration`: Pruebas de integración E2E que se ejecutan directamente contra la base de datos de pruebas local de PostgreSQL (`sga_test`).
+
+### Reportes de Pruebas
+- Todos los reportes generados como artefactos después de correr o documentar las suites de pruebas (unitarias o de integración) deben guardarse bajo el directorio: `docs/generated/test-reports/`
+- Si hay varios reportes de un mismo tipo (ej. múltiples reportes unitarios o de integración), se debe crear un subdirectorio correspondiente para ese tipo de pruebas (ej. `docs/generated/test-reports/unit/` o `docs/generated/test-reports/integration/`).
+
 ## Uso de Skills
 - Consultar .agents/skills/[paquete]/SKILL.md antes
   de tocar archivos de ese paquete

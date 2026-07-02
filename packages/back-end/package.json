@@ -8,6 +8,7 @@
     "build": "tsc",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:integration": "vitest --config vitest.integration.config.ts",
     "build:sidecar": "pkg . --targets node18-win-x64 --output ../app-tauri/src-tauri/binaries/back-x86_64-pc-windows-msvc.exe"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.0.0",
     "@types/supertest": "^7.2.0",
+    "dotenv": "^16.4.5",
     "pkg": "^5.8.1",
     "supertest": "^7.2.2",
     "ts-node": "^10.9.1",
