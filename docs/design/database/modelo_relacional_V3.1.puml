@@ -1,0 +1,568 @@
+@startuml modelo_relacional_colegio_san_diego
+!define PK(x) <b><color:#b8860b><&key></color> x</b>
+!define FK(x) <color:#4682b4><&link></color> x
+
+skinparam linetype ortho
+skinparam roundcorner 6
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #FEFEFE
+    BorderColor #555555
+    ArrowColor #555555
+    FontSize 12
+    HeaderBackgroundColor #E8EEF7
+}
+skinparam package {
+    BackgroundColor #F8F9FA
+    BorderColor #999999
+    FontStyle bold
+}
+hide circle
+hide methods
+
+title Modelo Relacional — Base de Datos "Colegio San Diego" (PostgreSQL)
+
+' =====================================================================
+' 1. SEGURIDAD Y AUTENTICACIÓN
+' =====================================================================
+
+  entity rol {
+    PK(rol_id) : SERIAL
+    --
+    codigo : VARCHAR(20) <<UQ>>
+    nombre : VARCHAR(60)
+    descripcion : TEXT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity usuario {
+    PK(usuario_id) : SERIAL
+    --
+    nombre_usuario : VARCHAR(80) <<UQ>>
+    nombre_completo : VARCHAR(120)
+    correo : VARCHAR(255) <<UQ>>
+    telefono : VARCHAR(15)
+    password_hash : VARCHAR(255)
+    activo : BOOLEAN
+    intentos_fallidos : INT
+    bloqueado_hasta : TIMESTAMPTZ
+    ultimo_acceso : TIMESTAMPTZ
+    debe_cambiar_pwd : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity usuario_rol {
+    PK(usuario_rol_id) : SERIAL
+    --
+    FK(usuario_id) : INT
+    FK(rol_id) : INT
+    asignado_en : TIMESTAMPTZ
+    FK(asignado_por) : INT
+    activo : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+    ..
+    UQ(usuario_id, rol_id)
+  }
+
+  entity usuario_permiso_modulo {
+    PK(permiso_id) : SERIAL
+    --
+    FK(usuario_id) : INT
+    modulo : VARCHAR(30)
+    nivel : VARCHAR(25)
+    activo : BOOLEAN
+    creado_en / actualizado_en : TIMESTAMPTZ
+    ..
+    UQ(usuario_id, modulo)
+  }
+
+  entity intento_login {
+    PK(intento_id) : SERIAL
+    --
+    FK(usuario_id) : INT
+    nombre_usuario_intentado : VARCHAR(80)
+    exitoso : BOOLEAN
+    direccion_ip : VARCHAR(45)
+    user_agent : TEXT
+    creado_en : TIMESTAMPTZ
+  }
+
+  entity token_revocado {
+    PK(id) : BIGSERIAL
+    --
+    jti : VARCHAR(36) <<UQ>>
+    FK(usuario_id) : INT
+    revocado_en : TIMESTAMPTZ
+    expira_en : TIMESTAMPTZ
+  }
+
+
+' =====================================================================
+' 2. CONFIGURACIÓN Y AUDITORÍA
+' =====================================================================
+
+  entity configuracion_global {
+    PK(configuracion_id) : INT
+    --
+    monto_recargo_defecto : NUMERIC(12,2)
+    dias_gracia_recargo : INT
+    plazo_inscripcion_dias : INT
+    umbrales_smtp_dias : JSONB
+    actualizado_en : TIMESTAMPTZ
+  }
+
+  entity log_auditoria {
+    PK(log_id) : BIGSERIAL
+    --
+    FK(usuario_id) : INT
+    accion : VARCHAR(10)
+    tabla_afectada : VARCHAR(60)
+    registro_id : VARCHAR(50)
+    valores_antes : JSONB
+    valores_despues : JSONB
+    fecha_hora : TIMESTAMPTZ
+    direccion_ip : VARCHAR(45)
+    descripcion : TEXT
+  }
+
+' =====================================================================
+' 3. ESTRUCTURA ACADÉMICA
+' =====================================================================
+
+  entity nivel_educativo {
+    PK(nivel_id) : SERIAL
+    --
+    codigo : VARCHAR(15) <<UQ>>
+    nombre : VARCHAR(60)
+    rvoe : VARCHAR(40)
+    orden : INT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity ciclo_escolar {
+    PK(ciclo_id) : SERIAL
+    --
+    nombre : VARCHAR(20)
+    fecha_inicio : DATE
+    fecha_fin : DATE
+    activo : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity grupo {
+    PK(grupo_id) : SERIAL
+    --
+    FK(nivel_id) : INT
+    FK(ciclo_id) : INT
+    nombre : VARCHAR(10)
+    cupo_maximo : INT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity materia {
+    PK(materia_id) : SERIAL
+    --
+    nombre : VARCHAR(80)
+    clave : VARCHAR(20) <<UQ>>
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity grupo_materia {
+    PK(grupo_materia_id) : SERIAL
+    --
+    FK(grupo_id) : INT
+    FK(materia_id) : INT
+    FK(docente_id) : INT
+    ..
+    UQ(grupo_id, materia_id)
+  }
+
+' =====================================================================
+' 4. ALUMNOS Y TUTORES
+' =====================================================================
+
+  entity tutor {
+    PK(tutor_id) : SERIAL
+    --
+    nombre_completo : VARCHAR(120)
+    correo_electronico : VARCHAR(255)
+    telefono : VARCHAR(15)
+    direccion : TEXT
+    curp : VARCHAR(18)
+    requiere_factura : BOOLEAN
+    tipo_pago_habitual : VARCHAR(15)
+    saldo_a_favor : NUMERIC(12,2)
+    activo : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity datos_fiscales {
+    PK(fiscal_id) : SERIAL
+    --
+    FK(tutor_id) : INT <<UQ>>
+    rfc : VARCHAR(13)
+    razon_social : VARCHAR(120)
+    regimen_fiscal : VARCHAR(10)
+    uso_cfdi : VARCHAR(10)
+    direccion_fiscal : TEXT
+    codigo_postal : VARCHAR(10)
+    correo_facturacion : VARCHAR(255)
+    creado_en / actualizado_en : TIMESTAMPTZ
+  }
+
+  entity alumno {
+    PK(alumno_id) : SERIAL
+    --
+    matricula : VARCHAR(30) <<UQ>>
+    curp : VARCHAR(18) <<UQ>>
+    nombre_completo : VARCHAR(120)
+    fecha_nacimiento : DATE
+    sexo : CHAR(1)
+    FK(nivel_id) : INT
+    estado : VARCHAR(20)
+    fecha_baja : DATE
+    motivo_baja : TEXT
+    dia_limite_pago : INT
+    personas_autorizadas : JSONB
+    tipo_sangre : VARCHAR(10)
+    alergias : TEXT
+    padecimientos : TEXT
+    observaciones : TEXT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity tutor_alumno {
+    PK(tutor_alumno_id) : SERIAL
+    --
+    FK(tutor_id) : INT
+    FK(alumno_id) : INT
+    es_principal : BOOLEAN
+    parentesco : VARCHAR(20)
+    creado_en : TIMESTAMPTZ
+    ..
+    UQ(tutor_id, alumno_id)
+  }
+
+' =====================================================================
+' 5. FINANZAS Y PAGOS
+' =====================================================================
+
+  entity tarifa {
+    PK(tarifa_id) : SERIAL
+    --
+    FK(ciclo_id) : INT
+    FK(nivel_id) : INT
+    concepto : VARCHAR(15)
+    monto : NUMERIC(12,2)
+    descripcion : TEXT
+    activa : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity plan_pago {
+    PK(plan_pago_id) : SERIAL
+    --
+    nombre : VARCHAR(40)
+    meses : INT
+    monto_mensual : NUMERIC(12,2)
+    monto_diciembre : NUMERIC(12,2)
+    descripcion : TEXT
+    activo : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity inscripcion_ciclo {
+    PK(inscripcion_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(ciclo_id) : INT
+    FK(grupo_id) : INT
+    FK(plan_pago_id) : INT
+    fecha_ingreso : DATE
+    es_ingreso_tardio : BOOLEAN
+    estado_en_ciclo : VARCHAR(20)
+    estado_financiero : VARCHAR(20)
+    meses_adeudo : INT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+    ..
+    UQ(alumno_id, ciclo_id)
+  }
+
+  entity calendario_pago {
+    PK(calendario_pago_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(ciclo_id) : INT
+    concepto : VARCHAR(25)
+    mes : VARCHAR(15)
+    fecha_vencimiento : DATE
+    monto_original : NUMERIC(12,2)
+    monto_pagado : NUMERIC(12,2)
+    monto_recargo : NUMERIC(12,2)
+    saldo_pendiente : NUMERIC(12,2)
+    estado_cobro : VARCHAR(15)
+    liquidado_at : TIMESTAMPTZ
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity pago {
+    PK(pago_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(tutor_id) : INT
+    fecha_pago : DATE
+    monto_total : NUMERIC(12,2)
+    metodo_pago : VARCHAR(20)
+    aplicado_a_saldo : BOOLEAN
+    observaciones : TEXT
+    FK(registrado_por) : INT
+    registrado_en / actualizado_en : TIMESTAMPTZ
+  }
+
+  entity aplicacion_pago {
+    PK(aplicacion_id) : SERIAL
+    --
+    FK(pago_id) : INT
+    FK(calendario_pago_id) : INT
+    monto_aplicado : NUMERIC(12,2)
+    aplicado_a : VARCHAR(15)
+    creado_en / actualizado_en : TIMESTAMPTZ
+  }
+
+  entity recargo {
+    PK(recargo_id) : SERIAL
+    --
+    FK(calendario_pago_id) : INT
+    monto_original : NUMERIC(12,2)
+    monto_actual : NUMERIC(12,2)
+    estado : VARCHAR(15)
+    motivo_modificacion : TEXT
+    aplicado_en : DATE
+    FK(modificado_por) : INT
+    modificado_en : TIMESTAMPTZ
+    actualizado_en : TIMESTAMPTZ
+  }
+
+  entity movimiento_saldo {
+    PK(movimiento_id) : SERIAL
+    --
+    FK(tutor_id) : INT
+    tipo : VARCHAR(15)
+    monto : NUMERIC(12,2)
+    FK(pago_id) : INT
+    FK(aplicacion_id) : INT
+    descripcion : TEXT
+    FK(creado_por) : INT
+    creado_en / actualizado_en : TIMESTAMPTZ
+  }
+
+' =====================================================================
+' 6. BECAS Y DESCUENTOS
+' =====================================================================
+
+  entity beca {
+    PK(beca_id) : SERIAL
+    --
+    nombre_beca : VARCHAR(60)
+    criterio : VARCHAR(25)
+    porcentaje : NUMERIC(5,2)
+    descripcion : TEXT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity solicitud_beca {
+    PK(solicitud_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(beca_id) : INT
+    FK(ciclo_id) : INT
+    motivo : TEXT
+    estado : VARCHAR(15)
+    FK(solicitada_por) : INT
+    FK(resuelta_por) : INT
+    observaciones : TEXT
+    fecha_solicitud : TIMESTAMPTZ
+    fecha_resolucion : TIMESTAMPTZ
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity asignacion_beca {
+    PK(asignacion_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(beca_id) : INT
+    FK(ciclo_id) : INT
+    FK(solicitud_id) : INT
+    estado : VARCHAR(15)
+    fecha_asignacion : DATE
+    fecha_retiro : DATE
+    motivo_retiro : TEXT
+    FK(asignada_por) : INT
+    FK(retirada_por) : INT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity ventana_inscripcion_temprana {
+    PK(ventana_id) : SERIAL
+    --
+    FK(ciclo_id) : INT
+    fecha_inicio : DATE
+    fecha_fin : DATE
+    FK(beca_id) : INT
+    activa : BOOLEAN
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+' =====================================================================
+' 7. EVALUACIÓN Y DOCUMENTOS
+' =====================================================================
+
+  entity calificacion {
+    PK(calificacion_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(grupo_materia_id) : INT
+    periodo_id : INT
+    tipo_evaluacion : VARCHAR(15)
+    valor_numerico : NUMERIC(4,2)
+    valor_cualitativo : VARCHAR(5)
+    texto_observacion : TEXT
+    texto_recomendacion : TEXT
+    cuenta_para_promedio : BOOLEAN
+    FK(registrada_por) : INT
+    registrada_en / actualizado_en : TIMESTAMPTZ
+  }
+
+  entity asistencia {
+    PK(asistencia_id) : SERIAL
+    --
+    FK(alumno_id) : INT
+    FK(grupo_materia_id) : INT
+    fecha : DATE
+    estado : VARCHAR(10)
+    justificacion : TEXT
+    FK(registrada_por) : INT
+    registrada_en / actualizado_en : TIMESTAMPTZ
+  }
+
+  entity documento {
+    PK(documento_id) : SERIAL
+    --
+    tipo_documento : VARCHAR(25)
+    nombre_original : VARCHAR(255)
+    ruta_almacen : TEXT
+    mime_type : VARCHAR(100)
+    tamano_bytes : BIGINT
+    hash_sha256 : CHAR(64)
+    FK(alumno_id) : INT
+    FK(tutor_id) : INT
+    FK(pago_id) : INT
+    FK(subido_por) : INT
+    subido_en / actualizado_en : TIMESTAMPTZ
+  }
+
+  entity notificacion {
+    PK(notificacion_id) : SERIAL
+    --
+    tipo : VARCHAR(30)
+    canal : VARCHAR(10)
+    FK(destinatario_tutor_id) : INT
+    destinatario_email : VARCHAR(255)
+    asunto : VARCHAR(160)
+    cuerpo : TEXT
+    estado : VARCHAR(15)
+    intentos : INT
+    error_ultimo : TEXT
+    programada_para : TIMESTAMPTZ
+    enviada_en : TIMESTAMPTZ
+    FK(alumno_id) : INT
+    FK(calendario_pago_id) : INT
+    creada_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+' =====================================================================
+' RELACIONES — 1. Seguridad y Autenticación
+' =====================================================================
+rol ||--o{ usuario_rol
+usuario ||--o{ usuario_rol
+usuario ||..o{ usuario_rol : asignado_por
+usuario ||--o{ usuario_permiso_modulo
+usuario |o..o{ intento_login
+usuario ||--o{ token_revocado
+usuario |o..o{ log_auditoria
+
+' =====================================================================
+' RELACIONES — 3. Estructura Académica
+' =====================================================================
+nivel_educativo ||--o{ grupo
+ciclo_escolar ||--o{ grupo
+grupo ||--o{ grupo_materia
+materia ||--o{ grupo_materia
+usuario |o..o{ grupo_materia : docente_id
+
+' =====================================================================
+' RELACIONES — 4. Alumnos y Tutores
+' =====================================================================
+tutor ||--|| datos_fiscales
+nivel_educativo ||--o{ alumno
+tutor ||--o{ tutor_alumno
+alumno ||--o{ tutor_alumno
+
+' =====================================================================
+' RELACIONES — 5. Finanzas y Pagos
+' =====================================================================
+ciclo_escolar ||--o{ tarifa
+nivel_educativo ||--o{ tarifa
+alumno ||--o{ inscripcion_ciclo
+ciclo_escolar ||--o{ inscripcion_ciclo
+grupo |o..o{ inscripcion_ciclo
+plan_pago ||--o{ inscripcion_ciclo
+alumno ||--o{ calendario_pago
+ciclo_escolar ||--o{ calendario_pago
+alumno ||--o{ pago
+tutor ||--o{ pago
+usuario ||--o{ pago : registrado_por
+pago ||--o{ aplicacion_pago
+calendario_pago ||--o{ aplicacion_pago
+calendario_pago ||--o{ recargo
+usuario |o..o{ recargo : modificado_por
+tutor ||--o{ movimiento_saldo
+pago |o..o{ movimiento_saldo
+aplicacion_pago |o..o{ movimiento_saldo
+usuario ||--o{ movimiento_saldo : creado_por
+
+' =====================================================================
+' RELACIONES — 6. Becas y Descuentos
+' =====================================================================
+alumno ||--o{ solicitud_beca
+beca ||--o{ solicitud_beca
+ciclo_escolar ||--o{ solicitud_beca
+usuario ||--o{ solicitud_beca : solicitada_por
+usuario |o..o{ solicitud_beca : resuelta_por
+alumno ||--o{ asignacion_beca
+beca ||--o{ asignacion_beca
+ciclo_escolar ||--o{ asignacion_beca
+solicitud_beca |o..o{ asignacion_beca
+usuario ||--o{ asignacion_beca : asignada_por
+usuario |o..o{ asignacion_beca : retirada_por
+ciclo_escolar ||--o{ ventana_inscripcion_temprana
+beca ||--o{ ventana_inscripcion_temprana
+
+' =====================================================================
+' RELACIONES — 7. Evaluación y Documentos
+' =====================================================================
+alumno ||--o{ calificacion
+grupo_materia ||--o{ calificacion
+usuario ||--o{ calificacion : registrada_por
+alumno ||--o{ asistencia
+grupo_materia ||--o{ asistencia
+usuario ||--o{ asistencia : registrada_por
+alumno |o..o{ documento
+tutor |o..o{ documento
+pago |o..o{ documento
+usuario ||--o{ documento : subido_por
+tutor |o..o{ notificacion : destinatario_tutor_id
+alumno |o..o{ notificacion
+calendario_pago |o..o{ notificacion
+
+@enduml
