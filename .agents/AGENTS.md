@@ -29,6 +29,7 @@ Usuario → React (TanStack Query)
 ## Convenciones de Código
 - TypeScript estricto en todos los paquetes (strict: true)
 - Nunca usar 'any' como tipo
+- En archivos de prueba (tests), al definir objetos literales con campos restringidos (ej. uniones literales o enums en Zod), usa siempre "Cast a Constante" (`as const`) para indicar al compilador que el string no va a cambiar y evitar errores de inferencia.
 - Archivos en kebab-case: mi-componente.tsx
 - Componentes React en PascalCase: MiComponente
 - Funciones y variables en camelCase: miVariable
