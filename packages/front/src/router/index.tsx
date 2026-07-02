@@ -2,6 +2,8 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AuthLayout } from '../layouts/AuthLayout/AuthLayout';
 import { LoginPage } from '../modules/auth/pages/LoginPage/LoginPage';
+import { MainLayout } from '../layouts/MainLayout/MainLayout';
+import { DashboardPage } from '../modules/dashboard/pages/DashboardPage/DashboardPage';
 import { useAuth } from '../hooks/useAuth';
 
 // HOC para proteger rutas
@@ -42,12 +44,17 @@ export const router = createBrowserRouter([
     ]
   },
   {
-    path: '/dashboard',
+    path: '/',
     element: (
       <ProtectedRoute>
-        {/* Aquí irá el MainLayout después */}
-        <div>Dashboard Placeholder</div>
+        <MainLayout />
       </ProtectedRoute>
-    )
+    ),
+    children: [
+      {
+        path: 'dashboard',
+        element: <DashboardPage />
+      }
+    ]
   }
 ]);
