@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
-import { Input } from '../../../components/ui/Input/Input';
-import { Button } from '../../../components/ui/Button/Button';
-import { useAuth } from '../../../hooks/useAuth';
-import { trpc } from '../../../lib/trpc';
+import { Input } from '../../../../components/ui/Input/Input';
+import { Button } from '../../../../components/ui/Button/Button';
+import { useAuth } from '../../../../hooks/useAuth';
+import { trpc } from '../../../../lib/trpc';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
@@ -36,7 +36,7 @@ export function LoginPage() {
       return;
     }
     
-    loginMutation.mutate({ correo: email, password });
+    loginMutation.mutate({ correo: email, contrasena: password });
   };
 
   return (

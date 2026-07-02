@@ -1,9 +1,9 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import { 
-  CreateTarifaInput, UpdateTarifaInput, 
-  CreateCalendarioPagoInput, UpdateCalendarioPagoInput, 
-  RegistrarPagoInput 
+  type CreateTarifaInput, type UpdateTarifaInput, 
+  type CreateCalendarioPagoInput, type UpdateCalendarioPagoInput, 
+  type RegistrarPagoInput 
 } from './pagos.schema';
 
 export class PagosService {

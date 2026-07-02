@@ -1,10 +1,10 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import { 
-  GetCalificacionesGrupoInput, 
-  GetCalificacionesAlumnoInput, 
-  UpsertCalificacionInput, 
-  DeleteCalificacionInput 
+  type GetCalificacionesGrupoInput, 
+  type GetCalificacionesAlumnoInput, 
+  type UpsertCalificacionInput, 
+  type DeleteCalificacionInput 
 } from './calificaciones.schema';
 
 export class CalificacionesService {

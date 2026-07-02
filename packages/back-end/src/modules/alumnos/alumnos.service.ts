@@ -1,6 +1,9 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
-import { CreateAlumnoInput, UpdateAlumnoInput, LinkTutorInput, UnlinkTutorInput } from './alumnos.schema';
+import { 
+  type CreateAlumnoInput, type UpdateAlumnoInput, 
+  type LinkTutorInput, type UnlinkTutorInput 
+} from './alumnos.schema';
 
 export class AlumnosService {
   /**

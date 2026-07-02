@@ -1,9 +1,9 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import { 
-  CreateBecaInput, UpdateBecaInput, 
-  CreateSolicitudBecaInput, ResolverSolicitudBecaInput, 
-  AssignBecaInput 
+  type CreateBecaInput, type UpdateBecaInput, 
+  type CreateSolicitudBecaInput, type ResolverSolicitudBecaInput, 
+  type AssignBecaInput 
 } from './becas.schema';
 
 export class BecasService {

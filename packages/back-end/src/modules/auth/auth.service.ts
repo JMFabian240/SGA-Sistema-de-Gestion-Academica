@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { TRPCError } from '@trpc/server';
-import { LoginInput } from './auth.schema';
+import { type LoginInput } from './auth.schema';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
 

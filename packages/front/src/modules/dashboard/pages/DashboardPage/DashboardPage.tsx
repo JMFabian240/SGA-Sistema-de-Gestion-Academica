@@ -1,7 +1,7 @@
 import React from 'react';
-import { trpc } from '../../../lib/trpc';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card/Card';
-import { Spinner } from '../../../components/ui/Spinner/Spinner';
+import { trpc } from '../../../../lib/trpc';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card/Card';
+import { Spinner } from '../../../../components/ui/Spinner/Spinner';
 import { Users, AlertCircle, WalletCards, GraduationCap } from 'lucide-react';
 import styles from './DashboardPage.module.css';
 

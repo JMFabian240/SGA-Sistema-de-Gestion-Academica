@@ -1,6 +1,6 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
-import { UpdateConfigInput } from './configuracion.schema';
+import { type UpdateConfigInput } from './configuracion.schema';
 
 export class ConfiguracionService {
   // Siempre asumiremos que la configuración global tiene el ID 1 (Single Row)

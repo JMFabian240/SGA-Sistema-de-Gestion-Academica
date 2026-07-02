@@ -1,11 +1,11 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import {
-  CreateNivelEducativoInput, UpdateNivelEducativoInput,
-  CreateCicloEscolarInput, UpdateCicloEscolarInput,
-  CreateMateriaInput, UpdateMateriaInput,
-  CreateGrupoInput, UpdateGrupoInput,
-  AssignMateriaGrupoInput, UnassignMateriaGrupoInput
+  type CreateNivelEducativoInput, type UpdateNivelEducativoInput,
+  type CreateCicloEscolarInput, type UpdateCicloEscolarInput,
+  type CreateMateriaInput, type UpdateMateriaInput,
+  type CreateGrupoInput, type UpdateGrupoInput,
+  type AssignMateriaGrupoInput, type UnassignMateriaGrupoInput
 } from './grupos.schema';
 
 export class GruposService {

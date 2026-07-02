@@ -1,5 +1,4 @@
 import { router, protectedProcedure } from '../../trpc';
-import { Prisma } from '@prisma/client';
 
 export const dashboardRouter = router({
   obtenerMetricasInscripcion: protectedProcedure

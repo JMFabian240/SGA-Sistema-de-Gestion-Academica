@@ -1,9 +1,9 @@
 import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import { 
-  CreatePlanPagoInput, UpdatePlanPagoInput, 
-  CreateVentanaInscripcionInput, UpdateVentanaInscripcionInput, 
-  CreateInscripcionInput, UpdateInscripcionInput 
+  type CreatePlanPagoInput, type UpdatePlanPagoInput, 
+  type CreateVentanaInscripcionInput, type UpdateVentanaInscripcionInput, 
+  type CreateInscripcionInput, type UpdateInscripcionInput 
 } from './inscripciones.schema';
 
 export class InscripcionesService {

@@ -4,6 +4,8 @@ import { AuthLayout } from '../layouts/AuthLayout/AuthLayout';
 import { LoginPage } from '../modules/auth/pages/LoginPage/LoginPage';
 import { MainLayout } from '../layouts/MainLayout/MainLayout';
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage/DashboardPage';
+import { UsuariosListPage } from '../modules/usuarios/pages/UsuariosListPage/UsuariosListPage';
+import { UsuarioFormPage } from '../modules/usuarios/pages/UsuarioFormPage/UsuarioFormPage';
 import { useAuth } from '../hooks/useAuth';
 
 // HOC para proteger rutas
@@ -54,6 +56,15 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <DashboardPage />
+      },
+      {
+        path: 'usuarios',
+        children: [
+          { index: true, element: <UsuariosListPage /> },
+          { path: 'nuevo', element: <UsuarioFormPage /> },
+          { path: ':id/editar', element: <UsuarioFormPage /> },
+          { path: ':id', element: <UsuarioFormPage /> } // Reusaremos el form en modo solo-lectura si es necesario
+        ]
       }
     ]
   }

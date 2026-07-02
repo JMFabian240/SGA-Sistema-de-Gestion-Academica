@@ -1,5 +1,9 @@
 import { prisma } from '@sga/data-access';
-import { CreateTutorInput, UpdateTutorInput, UpsertDatosFiscalesInput } from './tutores.schema';
+import { 
+  type CreateTutorInput, 
+  type UpdateTutorInput, 
+  type UpsertDatosFiscalesInput 
+} from './tutores.schema';
 import { TRPCError } from '@trpc/server';
 
 export class TutoresService {

@@ -19,7 +19,6 @@ export const authRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
       
-      const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
       const decoded = jwt.decode(ctx.token) as { jti: string, usuarioId: number, exp: number };
       
       if (!decoded || !decoded.jti) {
