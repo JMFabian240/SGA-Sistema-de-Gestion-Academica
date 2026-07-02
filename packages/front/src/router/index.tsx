@@ -15,6 +15,10 @@ import { InscripcionesLayout } from '../modules/inscripciones/layouts/Inscripcio
 import { InscripcionesListPage } from '../modules/inscripciones/pages/InscripcionesListPage/InscripcionesListPage';
 import { PlanesPagoListPage } from '../modules/inscripciones/pages/PlanesPagoListPage/PlanesPagoListPage';
 import { VentanasListPage } from '../modules/inscripciones/pages/VentanasListPage/VentanasListPage';
+import { PagosLayout } from '../modules/pagos/layouts/PagosLayout/PagosLayout';
+import { RegistroPagoPage } from '../modules/pagos/pages/RegistroPagoPage/RegistroPagoPage';
+import { AdeudosListPage } from '../modules/pagos/pages/AdeudosListPage/AdeudosListPage';
+import { TarifasListPage } from '../modules/pagos/pages/TarifasListPage/TarifasListPage';
 import { useAuth } from '../hooks/useAuth';
 
 // HOC para proteger rutas
@@ -92,6 +96,15 @@ export const router = createBrowserRouter([
           { index: true, element: <InscripcionesListPage /> },
           { path: 'planes-pago', element: <PlanesPagoListPage /> },
           { path: 'ventanas', element: <VentanasListPage /> }
+        ]
+      },
+      {
+        path: 'pagos',
+        element: <PagosLayout />,
+        children: [
+          { index: true, element: <RegistroPagoPage /> },
+          { path: 'adeudos', element: <AdeudosListPage /> },
+          { path: 'tarifas', element: <TarifasListPage /> }
         ]
       }
     ]

@@ -1,0 +1,106 @@
+.container {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.leftPanel {
+  flex: 2;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--color-gray-200);
+  padding: 24px;
+}
+
+.rightPanel {
+  flex: 1;
+  position: sticky;
+  top: 24px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-gray-200);
+  padding-bottom: 8px;
+}
+
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--color-gray-900);
+  background-color: white;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.select:focus {
+  border-color: var(--color-primary-500);
+}
+
+.adeudosList {
+  margin-top: 24px;
+}
+
+/* Summary Card */
+.summaryCard {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--color-gray-200);
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.summaryLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--color-gray-600);
+  margin-bottom: 12px;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--color-gray-200);
+}
+
+.formGroup {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.payButton {
+  width: 100%;
+  margin-top: 24px;
+  background-color: var(--color-success-600);
+  color: white;
+  border: none;
+}
+
+.payButton:hover {
+  background-color: var(--color-success-700);
+}
+
+.payButton:disabled {
+  background-color: var(--color-gray-300);
+  cursor: not-allowed;
+}
