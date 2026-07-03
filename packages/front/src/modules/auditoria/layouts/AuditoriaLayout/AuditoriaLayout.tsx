@@ -1,31 +1,29 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { ClipboardList, WalletCards, Clock } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import clsx from 'clsx';
-import styles from '../../../grupos/layouts/GruposLayout/GruposLayout.module.css'; // Reutilizamos los estilos del layout de pestañas
+import styles from '../../../grupos/layouts/GruposLayout/GruposLayout.module.css';
 
-export function InscripcionesLayout() {
+export function AuditoriaLayout() {
   const location = useLocation();
-
+  
   const tabs = [
-    { name: 'Inscripciones Activas', path: '/inscripciones', icon: <ClipboardList size={18} />, exact: true },
-    { name: 'Planes de Pago', path: '/inscripciones/planes-pago', icon: <WalletCards size={18} />, exact: false },
-    { name: 'Ventanas Tempranas', path: '/inscripciones/ventanas', icon: <Clock size={18} />, exact: false },
+    { name: 'Bitácora de Eventos', path: '/auditoria', icon: <ShieldAlert size={18} />, exact: true },
   ];
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Inscripciones y Cobranza</h1>
-          <p className={styles.subtitle}>Gestiona las inscripciones de alumnos, planes de pago y periodos de beca temprana.</p>
+          <h1 className={styles.title}>Auditoría y Seguridad</h1>
+          <p className={styles.subtitle}>Supervisa los cambios y modificaciones realizadas por los usuarios en el sistema.</p>
         </div>
       </div>
 
       <div className={styles.tabsContainer}>
         <div className={styles.tabsList}>
           {tabs.map((tab) => {
-            const isActive = tab.exact
-              ? location.pathname === tab.path
+            const isActive = tab.exact 
+              ? location.pathname === tab.path 
               : location.pathname.startsWith(tab.path);
 
             return (
