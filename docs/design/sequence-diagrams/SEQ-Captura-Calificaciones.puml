@@ -1,4 +1,4 @@
-@startuml
+@startuml name
 actor "Admin/Docente" as Actor
 participant "CapturaCalificacionesPage\n(UI Grid)" as UI
 participant "CalificacionesController\n(tRPC Router)" as Router

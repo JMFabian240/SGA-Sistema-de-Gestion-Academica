@@ -1,4 +1,4 @@
-@startuml
+@startuml name
 actor Administrador
 participant "UsuariosListPage\n(Tabla)" as List
 participant "RolesModal" as Modal

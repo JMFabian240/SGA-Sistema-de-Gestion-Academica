@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { trpc } from '../../../../lib/trpc';
 import { Button } from '../../../../components/ui/Button/Button';
 import { Shield, X, Save } from 'lucide-react';
@@ -35,8 +35,8 @@ export function RolesModal({ isOpen, onClose, usuarioId, nombreUsuario, rolesAct
   });
 
   const toggleRol = (rolId: number) => {
-    setSelectedRoles(prev => 
-      prev.includes(rolId) 
+    setSelectedRoles(prev =>
+      prev.includes(rolId)
         ? prev.filter(id => id !== rolId)
         : [...prev, rolId]
     );
@@ -64,7 +64,7 @@ export function RolesModal({ isOpen, onClose, usuarioId, nombreUsuario, rolesAct
             <X size={20} />
           </button>
         </div>
-        
+
         <div className={styles.body}>
           <p className={styles.subtitle}>
             Gestionando roles para el usuario: <strong>{nombreUsuario}</strong>
@@ -75,8 +75,8 @@ export function RolesModal({ isOpen, onClose, usuarioId, nombreUsuario, rolesAct
           ) : (
             <div className={styles.rolesList}>
               {roles?.map((rol: any) => (
-                <label 
-                  key={rol.rolId} 
+                <label
+                  key={rol.rolId}
                   className={clsx(styles.rolItem, selectedRoles.includes(rol.rolId) && styles.rolItemSelected)}
                 >
                   <input
