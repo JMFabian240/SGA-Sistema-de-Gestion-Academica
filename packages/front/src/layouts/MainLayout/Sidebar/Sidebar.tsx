@@ -1,89 +1,101 @@
 import { NavLink } from 'react-router-dom';
 import {
-  Home, Users, Heart, Book, GraduationCap, FileText, FileSignature,
-  CreditCard, Star, BarChart3, Settings, UserCog, History, Shield, LogOut
+  Home, Users, Heart, BookOpen, Award, FileText, FileDown,
+  CreditCard, Star, BarChart3, Calendar, Shield, History, LogOut
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 import { clsx } from 'clsx';
+import { useAuth } from '../../../hooks/useAuth';
 
 const NAVIGATION = [
   {
     category: 'PRINCIPAL',
     items: [
-      { name: 'Dashboard', to: '/dashboard', icon: Home },
+      { name: 'Dashboard', to: '/dashboard', icon: Home, roles: ['ADMIN', 'DIRECTOR', 'GESTOR', 'DOCENTE', 'MAESTRA'] },
     ]
   },
   {
     category: 'ACADÉMICO',
     items: [
-      { name: 'Alumnos', to: '/alumnos', icon: Users },
-      { name: 'Padres & Tutores', to: '/tutores', icon: Heart },
-      { name: 'Grupos & Materias', to: '/grupos', icon: Book },
-      { name: 'Calificaciones', to: '/calificaciones', icon: GraduationCap },
-      { name: 'Historial Académico', to: '/historial', icon: FileText },
-      { name: 'Boletas', to: '/boletas', icon: FileSignature },
+      { name: 'Directorio Escolar', to: '/alumnos', icon: Users, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
+      { name: 'Padres & Tutores', to: '/tutores', icon: Heart, roles: ['ADMIN', 'GESTOR'] },
+      { name: 'Grupos & Materias', to: '/grupos', icon: BookOpen, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
+      { name: 'Calificaciones', to: '/calificaciones', icon: Award, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
+      { name: 'Historial Académico', to: '/historial-academico', icon: FileText, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
+      { name: 'Boletas', to: '/boleta', icon: FileDown, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
     ]
   },
   {
     category: 'FINANZAS',
     items: [
-      { name: 'Registro de Pagos', to: '/pagos', icon: CreditCard },
-      { name: 'Gestión de Becas', to: '/becas', icon: Star },
-      { name: 'Reportes', to: '/reportes', icon: BarChart3 },
+      { name: 'Registro de Pagos', to: '/pagos', icon: CreditCard, roles: ['ADMIN', 'GESTOR'] },
+      { name: 'Gestión de Becas', to: '/becas', icon: Star, roles: ['ADMIN', 'GESTOR'] },
+      { name: 'Reportes Financieros', to: '/reportes', icon: BarChart3, roles: ['ADMIN', 'DIRECTOR'] },
     ]
   },
   {
     category: 'SISTEMA',
     items: [
-      { name: 'Configuración', to: '/configuracion', icon: Settings },
-      { name: 'Usuarios', to: '/usuarios', icon: UserCog },
-      { name: 'Bitácora', to: '/bitacora', icon: History },
+      { name: 'Ciclo Escolar', to: '/ciclo-escolar', icon: Calendar, roles: ['ADMIN'] },
+      { name: 'Usuarios', to: '/usuarios', icon: Shield, roles: ['ADMIN'] },
+      { name: 'Bitácora', to: '/bitacora', icon: History, roles: ['ADMIN'] },
     ]
   }
 ];
 
 export function Sidebar() {
+  const { usuario, logout } = useAuth();
+  const userRole = usuario?.rol || 'ADMIN'; // Default to ADMIN if no user for testing, or could be empty
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logoContainer}>
         <div className={styles.logoAvatar}>
-          <Shield size={24} className={styles.logoIcon} />
+          <img src="/logo.png" alt="Logo" className={styles.logoImage} />
         </div>
         <div className={styles.logoText}>
-          <span className={styles.logoTitle}>San Diego</span>
-          <span className={styles.logoSubtitle}>Colegio Privado</span>
+          <span className={styles.logoTitle}>COLEGIO</span>
+          <span className={styles.logoSubtitle}>San Diego</span>
         </div>
       </div>
       <nav className={styles.nav}>
-        {NAVIGATION.map((group) => (
-          <div key={group.category} className={styles.navGroup}>
-            <div className={styles.navCategory}>{group.category}</div>
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    clsx(styles.navItem, isActive && styles.navItemActive)
-                  }
-                >
-                  <Icon size={18} className={styles.icon} />
-                  <span className={styles.label}>{item.name}</span>
-                </NavLink>
-              );
-            })}
-          </div>
-        ))}
+        {NAVIGATION.map((group) => {
+          const visibleItems = group.items.filter(item => !item.roles || item.roles.includes(userRole));
+
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <div key={group.category} className={styles.navGroup}>
+              <div className={styles.navCategory}>{group.category}</div>
+              {visibleItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      clsx(styles.navItem, isActive && styles.navItemActive)
+                    }
+                  >
+                    <Icon size={18} className={styles.icon} />
+                    <span className={styles.label}>{item.name}</span>
+                  </NavLink>
+                );
+              })}
+            </div>
+          );
+        })}
       </nav>
 
       <div className={styles.userProfile}>
-        <div className={styles.avatar}>E</div>
-        <div className={styles.userInfo}>
-          <span className={styles.userName}>Elizabeth Mendoz...</span>
-          <span className={styles.userRole}>ADMIN</span>
+        <div className={styles.avatar}>
+          {usuario?.nombre?.charAt(0) || 'U'}
         </div>
-        <button className={styles.logoutBtn} title="Cerrar sesión">
+        <div className={styles.userInfo}>
+          <span className={styles.userName} title={usuario?.nombre || 'Usuario'}>{usuario?.nombre || 'Usuario'}</span>
+          <span className={styles.userRole}>{usuario?.rol || 'Rol'}</span>
+        </div>
+        <button onClick={logout} className={styles.logoutBtn} title="Cerrar sesión">
           <LogOut size={18} />
         </button>
       </div>
