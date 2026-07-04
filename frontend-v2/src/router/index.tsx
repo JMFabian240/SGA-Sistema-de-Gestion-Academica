@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { MainLayout } from '../layouts/MainLayout/MainLayout';
-import { AuthLayout } from '../layouts/AuthLayout/AuthLayout';
+import { Layout } from '../components/layout/Layout';
+import { AuthLayout } from '../components/layout/AuthLayout/AuthLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage';
@@ -21,7 +21,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <ProtectedRoute>
-        <MainLayout />
+        <Layout />
       </ProtectedRoute>
     ),
     children: [

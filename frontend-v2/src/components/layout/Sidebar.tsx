@@ -1,111 +1,91 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, BookOpen, Shield, LogOut, Calendar, Award, BarChart3, History, Star, CreditCard, Heart, FileText, FileDown } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
+import { LayoutDashboard, Users, UserSquare2, CreditCard, LogOut, Settings } from 'lucide-react';
 
 export function Sidebar() {
-  const location = useLocation();
   const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
 
-  const navCategories = [
-    {
-      title: 'Principal',
-      items: [
-        { name: 'Dashboard', path: '/', icon: Home, roles: ['ADMIN', 'DIRECTOR', 'GESTOR', 'DOCENTE', 'MAESTRA'] },
-      ]
-    },
-    {
-      title: 'Académico',
-      items: [
-        { name: 'Directorio Escolar', path: '/alumnos', icon: Users, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
-        { name: 'Padres & Tutores', path: '/tutores', icon: Heart, roles: ['ADMIN', 'GESTOR'] },
-        { name: 'Grupos & Materias', path: '/grupos', icon: BookOpen, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
-        { name: 'Calificaciones', path: '/calificaciones', icon: Award, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
-        { name: 'Historial Académico', path: '/historial-academico', icon: FileText, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
-        { name: 'Boletas', path: '/boleta', icon: FileDown, roles: ['ADMIN', 'GESTOR', 'DOCENTE'] },
-      ]
-    },
-    {
-      title: 'Finanzas',
-      items: [
-        { name: 'Registro de Pagos', path: '/pagos', icon: CreditCard, roles: ['ADMIN', 'GESTOR'] },
-        { name: 'Gestión de Becas', path: '/becas', icon: Star, roles: ['ADMIN', 'GESTOR'] },
-        { name: 'Reportes Financieros', path: '/reportes', icon: BarChart3, roles: ['ADMIN', 'DIRECTOR'] },
-      ]
-    },
-    {
-      title: 'Sistema',
-      items: [
-        { name: 'Ciclo Escolar', path: '/ciclo-escolar', icon: Calendar, roles: ['ADMIN'] },
-        { name: 'Usuarios', path: '/usuarios', icon: Shield, roles: ['ADMIN'] },
-        { name: 'Bitácora', path: '/bitacora', icon: History, roles: ['ADMIN'] },
-      ]
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/auth/login');
+  };
+
+  const navItems = [
+    { to: '/', icon: LayoutDashboard, label: 'Panel Administrativo' },
+    { to: '/alumnos', icon: Users, label: 'Alumnos' },
+    { to: '/tutores', icon: UserSquare2, label: 'Tutores' },
+    { to: '/pagos', icon: CreditCard, label: 'Pagos' },
   ];
 
-  const userRole = user?.rol?.toUpperCase() || '';
-
   return (
-    <aside className="w-[260px] bg-gradient-to-b from-navy-500 to-navy-700 text-white flex flex-col h-screen">
-      <div className="p-6 flex items-center gap-3 border-b border-white/10">
-        <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1 overflow-hidden">
-          <img src="/logo.png" alt="Colegio San Diego Logo" className="w-full h-full object-contain" />
+    <aside className="w-64 bg-[#001429] text-slate-300 flex flex-col transition-all duration-300 relative z-20 shadow-xl h-full">
+      {/* Logo Section */}
+      <div className="p-6 pb-2 border-b border-slate-700/50 flex flex-col items-center justify-center">
+        <div className="w-16 h-16 bg-white rounded-2xl p-2 mb-3 shadow-sm flex items-center justify-center overflow-hidden">
+          <img src="/logo.png" alt="SGA Logo" className="w-full h-full object-contain" />
         </div>
-        <div>
-          <h2 className="font-bold tracking-wide">COLEGIO</h2>
-          <p className="text-xs text-white/60">San Diego</p>
-        </div>
+        <h1 className="text-white font-bold text-lg tracking-wide">SGA</h1>
+        <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Colegio San Diego</p>
       </div>
 
-      <nav className="flex-1 py-4 overflow-y-auto">
-        {navCategories.map((category, idx) => {
-          const visibleItems = category.items.filter(item => !item.roles || item.roles.includes(userRole));
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Principal</div>
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                ? 'bg-blue-600/10 text-blue-400'
+                : 'hover:bg-slate-800/50 hover:text-white'
+              }`
+            }
+          >
+            <item.icon size={18} strokeWidth={2.5} />
+            {item.label}
+          </NavLink>
+        ))}
 
-          if (visibleItems.length === 0) return null;
-
-          return (
-            <div key={idx} className="mb-4">
-              <div className="text-[0.7rem] font-semibold tracking-wider text-white/40 px-5 pb-2 uppercase">
-                {category.title}
-              </div>
-
-              {visibleItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center gap-3 px-4 py-2 mx-3 my-1 rounded-xl text-sm font-medium transition-all ${isActive
-                      ? 'bg-white/10 text-white shadow-[inset_3px_0_0_#CC0000]'
-                      : 'text-white/75 hover:bg-white/5 hover:text-white'
-                      }`}
-                  >
-                    <Icon size={18} className={isActive ? 'text-crimson-400' : 'opacity-70'} />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </div>
-          );
-        })}
+        <div className="mt-8 mb-4 px-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Configuración</div>
+        </div>
+        <NavLink
+          to="/configuracion"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+              ? 'bg-blue-600/10 text-blue-400'
+              : 'hover:bg-slate-800/50 hover:text-white'
+            }`
+          }
+        >
+          <Settings size={18} strokeWidth={2.5} />
+          Ajustes Generales
+        </NavLink>
       </nav>
 
-      <div className="p-4 border-t border-white/10 flex items-center gap-3 bg-navy-800/50 relative group">
-        <div className="w-9 h-9 rounded-full bg-crimson-500 flex items-center justify-center font-bold flex-shrink-0">
-          {user?.nombre?.charAt(0) || 'U'}
+      {/* User Footer */}
+      <div className="p-4 border-t border-slate-700/50 bg-[#000f20]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shrink-0 shadow-inner">
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-sm font-bold text-white truncate w-32">{user?.name || 'Usuario'}</span>
+              <span className="text-xs font-medium text-slate-400 capitalize">{user?.role?.toLowerCase() || 'Personal'}</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            title="Cerrar sesión"
+            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            <LogOut size={18} strokeWidth={2.5} />
+          </button>
         </div>
-        <div className="flex-1 overflow-hidden">
-          <p className="text-sm font-semibold truncate">{user?.nombre || 'Usuario'}</p>
-          <p className="text-xs text-white/50 truncate">{user?.rol || 'Rol'}</p>
-        </div>
-        <button
-          onClick={logout}
-          title="Cerrar sesión"
-          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-        >
-          <LogOut size={16} />
-        </button>
       </div>
     </aside>
   );

@@ -94,3 +94,6 @@ Las skills de diseño han sido analizadas y están diseñadas para complementars
 - No conectar @sga/front-end directamente a PostgreSQL
 - No subir archivos .env ni binarios .exe al repositorio
 - No modificar más de un paquete a la vez sin avisar
+
+## Reglas de Git y Commits
+- **CRÍTICO - MENSAJES DE COMMIT:** Al momento de realizar un commit, el agente **TIENE** la obligación de que el mensaje sea descriptivo, detallado (explicando el contexto y archivos modificados) y **siempre en español**.

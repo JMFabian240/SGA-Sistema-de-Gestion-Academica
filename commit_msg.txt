@@ -1,0 +1,15 @@
+Refactor: modularización del frontend, corrección de layouts y mejoras de UI
+
+Contexto y propósito de los cambios:
+- Se erradicó la estructura monolítica en el frontend, extrayendo el diseño de "MainLayout.tsx" en componentes independientes ("Layout.tsx" y "Sidebar.tsx") para lograr un código más limpio y escalable, manteniendo el diseño visual.
+- Se repararon las rutas de importación que estaban rompiendo la aplicación debido a los cambios de carpeta.
+- Se agregó un script (iniciar_sistema.bat) en la raíz para facilitar la inicialización simultánea del backend y frontend durante el desarrollo.
+- Se actualizó el archivo de configuración (.agents/AGENTS.md) para cumplir con las normas de control de versiones.
+
+Archivos principales modificados:
+- .agents/AGENTS.md: Se agregó la regla que exige que todos los mensajes de commit sean detallados y en español.
+- frontend-v2/src/components/layout/Layout.tsx y Sidebar.tsx: Se reescribieron para contener la UI y la lógica de navegación oficiales.
+- frontend-v2/src/layouts/MainLayout: Carpeta y archivo eliminados por completo al ser obsoletos.
+- frontend-v2/src/router/index.tsx: Rutas actualizadas para utilizar el nuevo "Layout" y reparar el importe roto de "AuthLayout".
+- frontend-v2/src/modules/dashboard/pages/DashboardPage.tsx: Modificaciones en el dashboard para que coincida con la disposición de KPIs y gráficos del mockup original.
+- iniciar_sistema.bat: Nuevo archivo creado para ejecutar el entorno local con un solo clic.
