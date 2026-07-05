@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { UsuariosRepository } from './usuarios.repository';
 import type { Prisma } from '@sga/data-access';
-import { ListarUsuariosInput, CrearUsuarioInput, ActualizarEstadoUsuarioInput, AsignarRolesInput } from './usuarios.schemas';
+import type { ListarUsuariosInput, CrearUsuarioInput, ActualizarEstadoUsuarioInput, AsignarRolesInput } from './usuarios.schemas';
 
 export class UsuariosService {
   static async getRoles() {

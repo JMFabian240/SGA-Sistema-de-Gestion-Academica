@@ -17,7 +17,7 @@ describe('AuthService (Unit)', () => {
 
   describe('login', () => {
     it('debería rechazar si el usuario no existe', async () => {
-      prismaMock.usuario.findUnique.mockResolvedValue(null);
+      prismaMock.usuario.findFirst.mockResolvedValue(null);
       prismaMock.intentoLogin.create.mockResolvedValue({} as any);
 
       await expect(AuthService.login({ identificador: 'admin@colegio.edu', contrasena: 'badpass' }, '127.0.0.1', 'jest-test'))
@@ -25,7 +25,7 @@ describe('AuthService (Unit)', () => {
     });
 
     it('debería retornar token si el password es correcto', async () => {
-      prismaMock.usuario.findUnique.mockResolvedValue({
+      prismaMock.usuario.findFirst.mockResolvedValue({
         usuarioId: 1,
         nombreUsuario: 'testuser',
         nombreCompleto: 'Test User',
@@ -54,7 +54,7 @@ describe('AuthService (Unit)', () => {
       });
     });
     it('debería rechazar si la cuenta está inactiva o eliminada', async () => {
-      prismaMock.usuario.findUnique.mockResolvedValue({
+      prismaMock.usuario.findFirst.mockResolvedValue({
         usuarioId: 1,
         activo: false,
         eliminadoEn: null,
@@ -68,7 +68,7 @@ describe('AuthService (Unit)', () => {
       const futureDate = new Date();
       futureDate.setMinutes(futureDate.getMinutes() + 10);
 
-      prismaMock.usuario.findUnique.mockResolvedValue({
+      prismaMock.usuario.findFirst.mockResolvedValue({
         usuarioId: 1,
         activo: true,
         eliminadoEn: null,
@@ -80,7 +80,7 @@ describe('AuthService (Unit)', () => {
     });
 
     it('debería incrementar intentos fallidos si el password es incorrecto', async () => {
-      prismaMock.usuario.findUnique.mockResolvedValue({
+      prismaMock.usuario.findFirst.mockResolvedValue({
         usuarioId: 1,
         activo: true,
         eliminadoEn: null,
@@ -101,7 +101,7 @@ describe('AuthService (Unit)', () => {
     });
 
     it('debería bloquear la cuenta al llegar a 5 intentos fallidos', async () => {
-      prismaMock.usuario.findUnique.mockResolvedValue({
+      prismaMock.usuario.findFirst.mockResolvedValue({
         usuarioId: 1,
         activo: true,
         eliminadoEn: null,

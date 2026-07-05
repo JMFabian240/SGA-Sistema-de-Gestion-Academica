@@ -1,7 +1,5 @@
 import { prisma, Prisma } from '@sga/data-access';
 import type { 
-  CreateAlumnoInput, 
-  UpdateAlumnoInput, 
   LinkTutorInput 
 } from './alumnos.schema';
 

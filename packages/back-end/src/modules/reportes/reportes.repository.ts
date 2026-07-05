@@ -1,4 +1,4 @@
-import { prisma, Prisma } from '@sga/data-access';
+import { prisma } from '@sga/data-access';
 
 export class ReportesRepository {
   static async getDeudores() {

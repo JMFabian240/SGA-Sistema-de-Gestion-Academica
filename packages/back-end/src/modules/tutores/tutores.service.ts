@@ -1,40 +1,23 @@
-import { prisma } from '@sga/data-access';
-import { 
-  type CreateTutorInput, 
-  type UpdateTutorInput, 
-  type UpsertDatosFiscalesInput 
+import type { 
+  CreateTutorInput, 
+  UpdateTutorInput 
 } from './tutores.schema';
 import { TRPCError } from '@trpc/server';
+import { TutoresRepository } from './tutores.repository';
 
 export class TutoresService {
   /**
    * Obtiene todos los tutores activos.
    */
   static async getTutores() {
-    return prisma.tutor.findMany({
-      where: { eliminadoEn: null },
-      include: {
-        datosFiscales: true
-      },
-      orderBy: { nombreCompleto: 'asc' }
-    });
+    return TutoresRepository.getTutoresActivos();
   }
 
   /**
    * Obtiene el detalle de un tutor por su ID.
    */
   static async getTutorById(tutorId: number) {
-    const tutor = await prisma.tutor.findUnique({
-      where: { tutorId },
-      include: {
-        datosFiscales: true,
-        tutoresAlumnos: {
-          include: {
-            alumno: true
-          }
-        }
-      }
-    });
+    const tutor = await TutoresRepository.findTutorDetail(tutorId);
 
     if (!tutor || tutor.eliminadoEn) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Tutor no encontrado' });
@@ -50,7 +33,6 @@ export class TutoresService {
   static async createTutor(input: CreateTutorInput) {
     const { datosFiscales, ...tutorData } = input;
 
-    // Si se requiere factura pero no hay datos fiscales, marcamos error
     if (tutorData.requiereFactura && !datosFiscales) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -58,18 +40,13 @@ export class TutoresService {
       });
     }
 
-    return prisma.tutor.create({
-      data: {
-        ...tutorData,
-        ...(datosFiscales && {
-          datosFiscales: {
-            create: datosFiscales
-          }
-        })
-      },
-      include: {
-        datosFiscales: true
-      }
+    return TutoresRepository.createTutor({
+      ...tutorData,
+      ...(datosFiscales && {
+        datosFiscales: {
+          create: datosFiscales
+        }
+      })
     });
   }
 
@@ -80,17 +57,15 @@ export class TutoresService {
   static async updateTutor(input: UpdateTutorInput) {
     const { tutorId, datosFiscales, ...tutorData } = input;
 
-    // Validar que el tutor exista
-    const existing = await prisma.tutor.findUnique({ where: { tutorId } });
+    const existing = await TutoresRepository.findTutorById(tutorId);
     if (!existing || existing.eliminadoEn) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Tutor no encontrado' });
     }
 
     const isRequiereFactura = tutorData.requiereFactura ?? existing.requiereFactura;
     
-    // Validar regla de negocio de facturación
     if (isRequiereFactura) {
-      const hasExistingDatos = await prisma.datosFiscales.findUnique({ where: { tutorId } });
+      const hasExistingDatos = await TutoresRepository.findDatosFiscalesUnique(tutorId);
       if (!hasExistingDatos && !datosFiscales) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -99,26 +74,20 @@ export class TutoresService {
       }
     }
 
-    return prisma.tutor.update({
-      where: { tutorId },
-      data: {
-        ...tutorData,
-        actualizadoEn: new Date(),
-        ...(datosFiscales && {
-          datosFiscales: {
-            upsert: {
-              create: datosFiscales,
-              update: {
-                ...datosFiscales,
-                actualizadoEn: new Date()
-              }
+    return TutoresRepository.updateTutor(tutorId, {
+      ...tutorData,
+      actualizadoEn: new Date(),
+      ...(datosFiscales && {
+        datosFiscales: {
+          upsert: {
+            create: datosFiscales,
+            update: {
+              ...datosFiscales,
+              actualizadoEn: new Date()
             }
           }
-        })
-      },
-      include: {
-        datosFiscales: true
-      }
+        }
+      })
     });
   }
 
@@ -126,8 +95,7 @@ export class TutoresService {
    * Realiza un borrado lógico del tutor.
    */
   static async deleteTutor(tutorId: number) {
-    // Podríamos validar si el tutor tiene saldo a favor pendiente
-    const tutor = await prisma.tutor.findUnique({ where: { tutorId } });
+    const tutor = await TutoresRepository.findTutorById(tutorId);
     
     if (tutor && tutor.saldoAFavor && Number(tutor.saldoAFavor) > 0) {
       throw new TRPCError({
@@ -136,12 +104,6 @@ export class TutoresService {
       });
     }
 
-    return prisma.tutor.update({
-      where: { tutorId },
-      data: {
-        eliminadoEn: new Date(),
-        activo: false
-      }
-    });
+    return TutoresRepository.deleteTutor(tutorId);
   }
 }

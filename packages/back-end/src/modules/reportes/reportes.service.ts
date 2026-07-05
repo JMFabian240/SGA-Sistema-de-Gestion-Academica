@@ -1,5 +1,5 @@
 import { ReportesRepository } from './reportes.repository';
-import { ReporteFechasInput, ReporteAsistenciaInput } from './reportes.schemas';
+import type { ReporteFechasInput, ReporteAsistenciaInput } from './reportes.schemas';
 
 export class ReportesService {
   static async getReporteDeudores() {
