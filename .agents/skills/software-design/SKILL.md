@@ -1,5 +1,5 @@
 ---
-name: principios-de-diseno
+name: software-design
 description: >
   Diseña, evalúa o audita la ARQUITECTURA de un sistema completo (capas,
   componentes, microservicios vs. monolito, escalabilidad, seguridad por

@@ -21,12 +21,14 @@ export function Sidebar() {
   return (
     <aside className="w-64 bg-[#001429] text-slate-300 flex flex-col transition-all duration-300 relative z-20 shadow-xl h-full">
       {/* Logo Section */}
-      <div className="p-6 pb-2 border-b border-slate-700/50 flex flex-col items-center justify-center">
-        <div className="w-16 h-16 bg-white rounded-2xl p-2 mb-3 shadow-sm flex items-center justify-center overflow-hidden">
+      <div className="p-6 pb-2 border-b border-slate-700/50 flex items-center gap-5">
+        <div className="w-16 h-16 shrink-0 bg-white rounded-2xl p-2 shadow-sm flex items-center justify-center overflow-hidden">
           <img src="/logo.png" alt="SGA Logo" className="w-full h-full object-contain" />
         </div>
-        <h1 className="text-white font-bold text-lg tracking-wide">SGA</h1>
-        <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Colegio San Diego</p>
+        <div className="flex flex-col justify-center">
+          <h1 className="text-white font-bold text-lg tracking-wide">SGA</h1>
+          <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-semibold">Colegio San Diego</p>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -43,7 +45,7 @@ export function Sidebar() {
               }`
             }
           >
-            <item.icon size={18} strokeWidth={2.5} />
+            <item.icon size={20} strokeWidth={2.5} />
             {item.label}
           </NavLink>
         ))}

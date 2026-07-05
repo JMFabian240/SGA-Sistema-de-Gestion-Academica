@@ -1,5 +1,5 @@
 ---
-name: principios-de-construccion
+name: development-principles
 description: >
   Escribe, revisa y refactoriza CÓDIGO FUENTE listo para producción (clases,
   funciones, queries SQL, repositorios) aplicando los 15 principios de Clean
