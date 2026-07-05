@@ -1,5 +1,5 @@
 ---
-name: arquitectura-limpia
+name: arch-pipeline
 description: >
   Orquesta la implementación completa de una nueva funcionalidad en el SGA
   siguiendo los principios de Arquitectura Limpia (Clean Architecture).
@@ -7,9 +7,9 @@ description: >
   sistema simultáneamente: por ejemplo, cuando se necesite crear o modificar
   tanto el backend (tRPC/BD) como el frontend (React) al mismo tiempo, o
   cuando el usuario pida un módulo, flujo o funcionalidad nueva de extremo
-  a extremo. NO usar para cambios aislados de UI (usa `sga-design` y `front`),
-  ni para cambios aislados de backend (usa `back`), ni solo de base de datos
-  (usa `database-architect`).
+  a extremo. NO usar para cambios aislados de UI (usa `front-sga-design` y `front-react-trpc`),
+  ni para cambios aislados de backend (usa `back-fastify-trpc`), ni solo de base de datos
+  (usa `back-database`).
 ---
 
 # Skill: Arquitectura Limpia — Implementación End-to-End (SGA)
@@ -38,7 +38,7 @@ la anterior o sin aprobación explícita del usuario.
    antes de continuar. No inventes ni asumas.
 
 2. **Generar Requerimiento Funcional (RF)**: Usa el patrón de la skill
-   `req-generator`. Cada acción atómica = un RF separado.
+   `ooad-generador-requisitos`. Cada acción atómica = un RF separado.
    ```
    RF-XX: [Actor] debe poder [Acción] el [Objeto], ingresando [Datos], para [Resultado].
    ```
@@ -54,7 +54,7 @@ la anterior o sin aprobación explícita del usuario.
 
 4. **Definir el Mockup o Wireframe**: Si la funcionalidad tiene interfaz
    de usuario, genera primero un wireframe textual usando la skill
-   `sga-design` antes de tocar React. El wireframe debe describir:
+   `front-sga-design` antes de tocar React. El wireframe debe describir:
    - Distribución de la pantalla conforme al layout oficial (sidebar + contenido).
    - Componentes necesarios (tablas, formularios, cards, modales).
    - Estados de la UI (cargando, vacío, con datos, error).
@@ -68,7 +68,7 @@ la anterior o sin aprobación explícita del usuario.
 ### FASE 2 — Base de Datos
 
 **Objetivo:** Asegurar que el esquema de datos soporte la funcionalidad.
-Usa las reglas de la skill `database-architect`.
+Usa las reglas de la skill `back-database`.
 
 1. Revisar `packages/data-access/prisma/schema.prisma` para identificar
    si los modelos y relaciones necesarios ya existen.
@@ -90,8 +90,8 @@ Usa las reglas de la skill `database-architect`.
 ### FASE 3 — Backend
 
 **Objetivo:** Exponer la funcionalidad como endpoint tRPC.
-Usa las reglas de la skill `back` (Backend tRPC Pattern) y aplica los
-principios de la skill `development-principles` a todo el código generado.
+Usa las reglas de la skill `back-fastify-trpc` (Backend tRPC Pattern) y aplica los
+principios de la skill `arch-clean-code` a todo el código generado.
 
 Crea o modifica los siguientes archivos en `packages/back-end/src/modules/[modulo]/`:
 
@@ -116,7 +116,7 @@ Crea o modifica los siguientes archivos en `packages/back-end/src/modules/[modul
 
 4. **Registrar** el nuevo router en `packages/back-end/src/router.ts`.
 
-**Checklist de calidad de código (obligatorio, basado en `development-principles`):**
+**Checklist de calidad de código (obligatorio, basado en `arch-clean-code`):**
 - [ ] SRP: cada clase/función tiene una única responsabilidad.
 - [ ] No hay lógica de negocio en el router (solo delegar al service).
 - [ ] No hay consultas Prisma en el router (solo en el service).
@@ -128,7 +128,7 @@ Crea o modifica los siguientes archivos en `packages/back-end/src/modules/[modul
 ### FASE 4 — Frontend
 
 **Objetivo:** Construir la interfaz de usuario en el `frontend-v2`.
-Usa las reglas de la skill `front` (Front-End Skill) **y** la skill `sga-design`
+Usa las reglas de la skill `front-react-trpc` (Front-End Skill) **y** la skill `front-sga-design`
 para garantizar la identidad visual del sistema.
 
 Estructura a crear en `frontend-v2/src/modules/[modulo]/`:
@@ -162,7 +162,7 @@ Estructura a crear en `frontend-v2/src/modules/[modulo]/`:
 - Registrar la nueva ruta en `frontend-v2/src/router/index.tsx`.
 - Agregar el enlace al menú lateral en `frontend-v2/src/components/layout/Sidebar.tsx`.
 
-**Checklist de diseño (obligatorio, basado en `sga-design`):**
+**Checklist de diseño (obligatorio, basado en `front-sga-design`):**
 - [ ] Colores: solo de la paleta Navy / Crimson / grises neutros.
 - [ ] Fuente: Inter (`font-sans`), sin otras familias tipográficas.
 - [ ] Tablas: patrón `bg-white rounded-2xl shadow-sm border border-gray-100`.
@@ -175,7 +175,7 @@ Estructura a crear en `frontend-v2/src/modules/[modulo]/`:
 ### FASE 5 — Pruebas
 
 **Objetivo:** Verificar que la funcionalidad funciona correctamente.
-Usa las reglas de la skill `testing`.
+Usa las reglas de la skill `ops-testing`.
 
 - Escribir al menos una prueba unitaria para el **service** del backend,
   usando el mock de Prisma (`vitest-mock-extended`).
@@ -197,11 +197,11 @@ Usa las reglas de la skill `testing`.
 
 | Pregunta | Acción |
 |---|---|
-| ¿El cambio toca solo UI? | **No usar esta skill** → usar `sga-design` + `front` |
-| ¿El cambio toca solo backend? | **No usar esta skill** → usar `back` |
-| ¿El cambio toca solo BD? | **No usar esta skill** → usar `database-architect` |
+| ¿El cambio toca solo UI? | **No usar esta skill** → usar `front-sga-design` + `front-react-trpc` |
+| ¿El cambio toca solo backend? | **No usar esta skill** → usar `back-fastify-trpc` |
+| ¿El cambio toca solo BD? | **No usar esta skill** → usar `back-database` |
 | ¿Toca 2+ capas? | ✅ Usar esta skill, ejecutar todas las fases |
-| ¿Tiene UI? | Wireframe obligatorio en Fase 1 con `sga-design` |
+| ¿Tiene UI? | Wireframe obligatorio en Fase 1 con `front-sga-design` |
 | ¿Requiere nuevos datos en BD? | Fase 2 completa con migración Prisma |
 | ¿Afecta autenticación? | Usar `protectedProcedure` en Fase 3 |
 

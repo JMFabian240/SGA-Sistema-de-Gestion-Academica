@@ -1,5 +1,5 @@
 ---
-name: creator-skill
+name: meta-skill-creator
 description: Guía solo en Markdown para crear, evaluar y mejorar skills; plantillas, preguntas clave y proceso iterativo (sin scripts ni comandos).
 ---
 

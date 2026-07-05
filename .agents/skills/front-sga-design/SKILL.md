@@ -1,5 +1,5 @@
 ---
-name: sga-design
+name: front-sga-design
 description: >
   Sistema de diseño visual oficial del SGA (Colegio San Diego). Usa esta
   skill SIEMPRE que vayas a crear, modificar o revisar cualquier elemento

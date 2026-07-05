@@ -1,5 +1,5 @@
 ---
-name: release-manager
+name: ops-release
 description: Usa esta skill cuando se te pida compilar, construir, empaquetar o lanzar la aplicación (build, tauri, sidecars, instaladores) o manejar versiones semánticas.
 ---
 # Release Manager Skill

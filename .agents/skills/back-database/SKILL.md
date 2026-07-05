@@ -1,5 +1,5 @@
 ---
-name: database-architect
+name: back-database
 description: >
   Usa esta skill cuando se te pida diseñar, modificar, migrar o revisar
   esquemas de base de datos, relaciones de tablas, modelos de Prisma,

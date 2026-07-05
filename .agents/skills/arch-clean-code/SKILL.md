@@ -1,5 +1,5 @@
 ---
-name: development-principles
+name: arch-clean-code
 description: >
   Escribe, revisa y refactoriza CÓDIGO FUENTE listo para producción (clases,
   funciones, queries SQL, repositorios) aplicando los 15 principios de Clean

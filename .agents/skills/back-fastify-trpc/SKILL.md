@@ -1,5 +1,5 @@
 ---
-name: Backend tRPC Pattern (SGA)
+name: back-fastify-trpc
 description: Patrones de arquitectura y reglas base para el desarrollo de módulos en el backend del Colegio San Diego (@sga/back)
 ---
 

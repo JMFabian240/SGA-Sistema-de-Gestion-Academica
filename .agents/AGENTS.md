@@ -97,4 +97,5 @@ Las skills de diseño han sido analizadas y están diseñadas para complementars
 - No modificar más de un paquete a la vez sin avisar
 
 ## Reglas de Git y Commits
-- **CRÍTICO - MENSAJES DE COMMIT:** Al momento de realizar un commit, el agente **TIENE** la obligación de redactar el mensaje explicando **exclusivamente el contexto y propósito de los cambios**, omitiendo por completo la lista de archivos modificados. Todo el mensaje debe estar **siempre en español**.
+- **CRÍTICO - COMMITS MANUALES:** Bajo NINGUNA circunstancia debes hacer `git commit` o `git push` automáticamente al terminar una tarea. Solo debes hacerlo cuando el usuario te lo pida explícitamente.
+- **CRÍTICO - MENSAJES DE COMMIT:** Al momento de realizar un commit (previa autorización), el agente **TIENE** la obligación de redactar el mensaje explicando **exclusivamente el contexto y propósito de los cambios**, omitiendo por completo la lista de archivos modificados. Todo el mensaje debe estar **siempre en español**.

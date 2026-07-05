@@ -1,5 +1,5 @@
 ---
-name: testing
+name: ops-testing
 description: Usa esta skill cuando se te pida escribir, modificar o documentar pruebas unitarias o de integración en el frontend o backend, o configurar mocks (ej. Prisma mock).
 ---
 # Testing Skill

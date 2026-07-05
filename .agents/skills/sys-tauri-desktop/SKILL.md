@@ -1,5 +1,5 @@
 ---
-name: app-tauri
+name: sys-tauri-desktop
 description: Reglas y patrones para desarrollar en el paquete @sga/app-tauri. Activar al modificar la lógica de orquestación de escritorio en Rust.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: front
+name: front-react-trpc
 description: Reglas y patrones para desarrollar en el paquete @sga/front-end. Activar al crear o modificar UI, componentes o consumir la API tRPC.
 ---
 
