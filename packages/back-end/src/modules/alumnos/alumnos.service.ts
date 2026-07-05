@@ -1,8 +1,8 @@
-import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
-import { 
-  type CreateAlumnoInput, type UpdateAlumnoInput, 
-  type LinkTutorInput, type UnlinkTutorInput 
+import { AlumnosRepository } from './alumnos.repository';
+import type { 
+  CreateAlumnoInput, UpdateAlumnoInput, 
+  LinkTutorInput, UnlinkTutorInput 
 } from './alumnos.schema';
 
 export class AlumnosService {
@@ -10,46 +10,14 @@ export class AlumnosService {
    * Obtiene la lista de alumnos activos
    */
   static async getAlumnos() {
-    return prisma.alumno.findMany({
-      where: { eliminadoEn: null },
-      include: {
-        nivel: true,
-        tutoresAlumnos: {
-          include: {
-            tutor: true
-          }
-        }
-      },
-      orderBy: { nombreCompleto: 'asc' }
-    });
+    return AlumnosRepository.getAlumnosActivos();
   }
 
   /**
    * Obtiene los detalles de un alumno específico
    */
   static async getAlumnoById(alumnoId: number) {
-    const alumno = await prisma.alumno.findUnique({
-      where: { alumnoId },
-      include: {
-        nivel: true,
-        tutoresAlumnos: {
-          include: {
-            tutor: {
-              include: {
-                datosFiscales: true
-              }
-            }
-          }
-        },
-        inscripciones: {
-          include: {
-            ciclo: true,
-            grupo: true,
-            planPago: true
-          }
-        }
-      }
-    });
+    const alumno = await AlumnosRepository.getAlumnoDetail(alumnoId);
 
     if (!alumno || alumno.eliminadoEn) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Alumno no encontrado' });
@@ -63,14 +31,7 @@ export class AlumnosService {
    */
   static async createAlumno(input: CreateAlumnoInput) {
     // Verificar si el CURP o la matrícula ya están en uso
-    const existing = await prisma.alumno.findFirst({
-      where: {
-        OR: [
-          { curp: input.curp },
-          ...(input.matricula ? [{ matricula: input.matricula }] : [])
-        ]
-      }
-    });
+    const existing = await AlumnosRepository.findAlumnoByCurpOrMatricula(input.curp, input.matricula);
 
     if (existing) {
       throw new TRPCError({
@@ -79,13 +40,13 @@ export class AlumnosService {
       });
     }
 
-    return prisma.alumno.create({
-      data: {
-        ...input,
-        fechaNacimiento: new Date(input.fechaNacimiento),
-        personasAutorizadas: input.personasAutorizadas ?? null
-      }
-    });
+    const { fechaNacimiento, personasAutorizadas, ...rest } = input;
+
+    return AlumnosRepository.createAlumno({
+      ...rest,
+      fechaNacimiento: new Date(fechaNacimiento),
+      personasAutorizadas: personasAutorizadas ?? null
+    } as any); // Type assertion needed due to Prisma input types vs Schema types
   }
 
   /**
@@ -94,19 +55,16 @@ export class AlumnosService {
   static async updateAlumno(input: UpdateAlumnoInput) {
     const { alumnoId, fechaNacimiento, fechaBaja, ...data } = input;
 
-    const existing = await prisma.alumno.findUnique({ where: { alumnoId } });
+    const existing = await AlumnosRepository.getAlumnoDetail(alumnoId);
     if (!existing || existing.eliminadoEn) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Alumno no encontrado' });
     }
 
-    return prisma.alumno.update({
-      where: { alumnoId },
-      data: {
-        ...data,
-        ...(fechaNacimiento && { fechaNacimiento: new Date(fechaNacimiento) }),
-        ...(fechaBaja && { fechaBaja: new Date(fechaBaja) }),
-        actualizadoEn: new Date()
-      }
+    return AlumnosRepository.updateAlumno(alumnoId, {
+      ...data,
+      ...(fechaNacimiento && { fechaNacimiento: new Date(fechaNacimiento) }),
+      ...(fechaBaja && { fechaBaja: new Date(fechaBaja) }),
+      actualizadoEn: new Date()
     });
   }
 
@@ -114,12 +72,9 @@ export class AlumnosService {
    * Soft Delete de un alumno
    */
   static async deleteAlumno(alumnoId: number) {
-    return prisma.alumno.update({
-      where: { alumnoId },
-      data: {
-        eliminadoEn: new Date(),
-        estado: 'BAJA_DEFINITIVA'
-      }
+    return AlumnosRepository.updateAlumno(alumnoId, {
+      eliminadoEn: new Date(),
+      estado: 'BAJA_DEFINITIVA'
     });
   }
 
@@ -131,38 +86,27 @@ export class AlumnosService {
   static async linkTutor(input: LinkTutorInput) {
     // Si este será el tutor principal, debemos quitarle la marca a los demás tutores de este alumno
     if (input.esPrincipal) {
-      await prisma.tutorAlumno.updateMany({
-        where: { alumnoId: input.alumnoId, esPrincipal: true },
-        data: { esPrincipal: false }
-      });
+      await AlumnosRepository.removeTutorPrincipalFlag(input.alumnoId);
     }
 
     // Upsert para manejar el caso donde se reasigna la relación
-    const existingRel = await prisma.tutorAlumno.findUnique({
-      where: { tutorId_alumnoId: { tutorId: input.tutorId, alumnoId: input.alumnoId } }
-    });
+    const existingRel = await AlumnosRepository.findTutorAlumnoRelation(input.tutorId, input.alumnoId);
 
     if (existingRel) {
-      return prisma.tutorAlumno.update({
-        where: { tutorAlumnoId: existingRel.tutorAlumnoId },
-        data: {
-          esPrincipal: input.esPrincipal ?? existingRel.esPrincipal,
-          parentesco: input.parentesco
-        }
-      });
+      return AlumnosRepository.updateTutorAlumnoRelation(
+        existingRel.tutorAlumnoId, 
+        Boolean(input.esPrincipal ?? existingRel.esPrincipal), 
+        input.parentesco
+      );
     }
 
-    return prisma.tutorAlumno.create({
-      data: input
-    });
+    return AlumnosRepository.createTutorAlumnoRelation(input);
   }
 
   /**
    * Desvincula a un tutor de un alumno
    */
   static async unlinkTutor(input: UnlinkTutorInput) {
-    return prisma.tutorAlumno.delete({
-      where: { tutorAlumnoId: input.tutorAlumnoId }
-    });
+    return AlumnosRepository.deleteTutorAlumnoRelation(input.tutorAlumnoId);
   }
 }
