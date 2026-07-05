@@ -76,6 +76,7 @@ El backend utiliza la siguiente configuración para las pruebas:
   de tocar archivos de ese paquete
 - Consultar .agents/skills/skill-creator/SKILL.md
   antes de crear o mejorar cualquier skill
+- **Organización**: No crear subcarpetas para categorizar skills dentro de `.agents/skills/` (ej. `skills/categoria/mi-skill`), ya que el sistema no las detecta automáticamente. Mantener una estructura plana usando prefijos en los nombres de las carpetas (ej. `skills/ooad-diagramas-clases/`).
 
 ### Flujo de Diseño y Arquitectura (Pipeline)
 Las skills de diseño han sido analizadas y están diseñadas para complementarse sin conflictos. Sigue este orden lógico al diseñar una nueva funcionalidad:

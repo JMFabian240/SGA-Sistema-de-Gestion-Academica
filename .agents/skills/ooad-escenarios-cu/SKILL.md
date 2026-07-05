@@ -1,5 +1,5 @@
 ---
-name: EscenarioCU
+name: ooad-escenarios-cu
 description: >
   Elabora escenarios de caso de uso (CU) exhaustivos en formato tabular,
   siguiendo RUP e ICONIX, que sirven como insumo para construir diagramas de

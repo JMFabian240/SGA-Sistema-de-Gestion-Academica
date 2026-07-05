@@ -1,5 +1,5 @@
 ---
-name: diagramas-de-clases
+name: ooad-diagramas-clases
 description: >
   Genera diagramas de clases UML técnicos en PlantUML o Mermaid a partir de un
   requerimiento funcional, escenario de negocio o caso de uso. Usa esta skill

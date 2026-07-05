@@ -1,5 +1,5 @@
 ---
-name: diagramas-de-secuencia
+name: ooad-diagramas-secuencia
 description: >
   Genera diagramas de secuencia UML 2.5 en PlantUML a partir de un
   Escenario de Caso de Uso y, cuando exista, su Diagrama de Robustez.

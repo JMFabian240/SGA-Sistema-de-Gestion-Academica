@@ -1,5 +1,5 @@
 ---
-name: req-generator
+name: ooad-generador-requisitos
 description: Skill para la generación estructurada de requerimientos funcionales. Asegúrate de usar esta skill siempre que el usuario solicite redactar requerimientos, especificaciones de sistema, historias de usuario, o necesite desglosar un problema técnico en funcionalidades concretas.
 ---
 

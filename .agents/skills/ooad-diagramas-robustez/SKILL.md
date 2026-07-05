@@ -1,5 +1,5 @@
 ---
-name: robustness-diagrams
+name: ooad-diagramas-robustez
 description: >
   Genera diagramas Boundary/Control/Entity en PlantUML a partir de un Escenario de Caso de Uso ya redactado con el formato de EscenariosCU.md.
 ---
