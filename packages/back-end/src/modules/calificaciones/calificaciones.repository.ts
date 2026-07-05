@@ -1,7 +1,7 @@
 import { prisma, TipoEvaluacion } from '@sga/data-access';
-import type { 
-  GetCalificacionesGrupoInput, 
-  GetCalificacionesAlumnoInput, 
+import type {
+  GetCalificacionesGrupoInput,
+  GetCalificacionesAlumnoInput,
   UpsertCalificacionInput
 } from './calificaciones.schema';
 
@@ -56,7 +56,7 @@ export class CalificacionesRepository {
   }
 
   static async findAlumnoWithNivel(alumnoId: number) {
-    return prisma.alumno.findUnique({ 
+    return prisma.alumno.findUnique({
       where: { alumnoId },
       include: { nivel: true }
     });
@@ -71,9 +71,9 @@ export class CalificacionesRepository {
   }
 
   static async findCalificacionExistente(
-    alumnoId: number, 
-    grupoMateriaId: number, 
-    periodoId: number | null | undefined, 
+    alumnoId: number,
+    grupoMateriaId: number,
+    periodoId: number | null | undefined,
     tipoEvaluacion: TipoEvaluacion
   ) {
     return prisma.calificacion.findFirst({
@@ -120,9 +120,9 @@ export class CalificacionesRepository {
 
   static async getCalificacionesParaBoleta(alumnoId: number, cicloId: number) {
     return prisma.calificacion.findMany({
-      where: { 
-        alumnoId, 
-        grupoMateria: { grupo: { cicloId } } 
+      where: {
+        alumnoId,
+        grupoMateria: { grupo: { cicloId } }
       },
       include: {
         grupoMateria: { include: { materia: true } }
