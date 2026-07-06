@@ -1,9 +1,9 @@
-import { prisma } from '@sga/data-access';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { TRPCError } from '@trpc/server';
 import { type LoginInput } from './auth.schema';
+import { AuthRepository } from './auth.repository';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET && process.env.NODE_ENV !== 'test') {
@@ -13,22 +13,7 @@ const secret = JWT_SECRET || 'supersecret';
 
 export class AuthService {
   static async login(input: LoginInput, ip: string, userAgent: string) {
-    const usuario = await prisma.usuario.findFirst({
-      where: {
-        OR: [
-          { correo: input.identificador },
-          { nombreUsuario: input.identificador }
-        ]
-      },
-      include: {
-        roles: {
-          include: {
-            rol: true
-          }
-        },
-        permisosModulos: true
-      }
-    });
+    const usuario = await AuthRepository.findUsuarioByIdentifier(input.identificador);
 
     if (!usuario) {
       await this.registrarIntentoLogin(null, input.identificador, false, ip, userAgent);
@@ -57,21 +42,13 @@ export class AuthService {
         bloqueadoHasta.setMinutes(bloqueadoHasta.getMinutes() + 15); // Bloquear por 15 minutos
       }
 
-      await prisma.usuario.update({
-        where: { usuarioId: usuario.usuarioId },
-        data: { intentosFallidos: intentos, bloqueadoHasta }
-      });
-
+      await AuthRepository.updateUsuarioIntentos(usuario.usuarioId, intentos, bloqueadoHasta);
       await this.registrarIntentoLogin(usuario.usuarioId, input.identificador, false, ip, userAgent);
       throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Credenciales inválidas' });
     }
 
-    // Resetear intentos fallidos
-    await prisma.usuario.update({
-      where: { usuarioId: usuario.usuarioId },
-      data: { intentosFallidos: 0, bloqueadoHasta: null, ultimoAcceso: new Date() }
-    });
-
+    // Resetear intentos fallidos y actualizar último acceso
+    await AuthRepository.resetUsuarioIntentos(usuario.usuarioId);
     await this.registrarIntentoLogin(usuario.usuarioId, input.identificador, true, ip, userAgent);
 
     // Generar token JWT
@@ -99,13 +76,7 @@ export class AuthService {
 
   static async logout(jti: string, usuarioId: number, exp: number) {
     try {
-      await prisma.tokenRevocado.create({
-        data: {
-          jti,
-          usuarioId,
-          expiraEn: new Date(exp * 1000)
-        }
-      });
+      await AuthRepository.revocarToken(jti, usuarioId, new Date(exp * 1000));
       return { success: true };
     } catch (e) {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al cerrar sesión' });
@@ -120,15 +91,7 @@ export class AuthService {
     userAgent: string
   ) {
     try {
-      await prisma.intentoLogin.create({
-        data: {
-          usuarioId,
-          nombreUsuarioIntentado,
-          exitoso,
-          direccionIp: ip,
-          userAgent: userAgent
-        }
-      });
+      await AuthRepository.registrarIntentoLogin(usuarioId, nombreUsuarioIntentado, exitoso, ip, userAgent);
     } catch (e) {
       console.error('Error al registrar intento de login', e);
     }

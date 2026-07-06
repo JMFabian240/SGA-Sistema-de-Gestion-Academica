@@ -1,6 +1,6 @@
-import { prisma } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import { type UpdateConfigInput } from './configuracion.schema';
+import { ConfiguracionRepository } from './configuracion.repository';
 
 export class ConfiguracionService {
   // Siempre asumiremos que la configuración global tiene el ID 1 (Single Row)
@@ -10,20 +10,16 @@ export class ConfiguracionService {
    * Obtiene la configuración global actual
    */
   static async getConfiguracion() {
-    let config = await prisma.configuracionGlobal.findUnique({
-      where: { configuracionId: this.CONFIG_ID }
-    });
+    let config = await ConfiguracionRepository.findConfiguracion(this.CONFIG_ID);
 
     if (!config) {
       // Si no existe, creamos una por defecto
-      config = await prisma.configuracionGlobal.create({
-        data: {
-          configuracionId: this.CONFIG_ID,
-          montoRecargoDefecto: 400.00,
-          diasGraciaRecargo: 5,
-          plazoInscripcionDias: 60,
-          umbralesSmtpDias: [5, 3, 1] // Umbrales por defecto en la DB (JSON)
-        }
+      config = await ConfiguracionRepository.createConfiguracion({
+        configuracionId: this.CONFIG_ID,
+        montoRecargoDefecto: 400.00,
+        diasGraciaRecargo: 5,
+        plazoInscripcionDias: 60,
+        umbralesSmtpDias: [5, 3, 1] // Umbrales por defecto en la DB (JSON)
       });
     }
 
@@ -45,15 +41,12 @@ export class ConfiguracionService {
     await this.getConfiguracion();
 
     try {
-      const updatedConfig = await prisma.configuracionGlobal.update({
-        where: { configuracionId: this.CONFIG_ID },
-        data: {
-          montoRecargoDefecto: input.montoRecargoDefecto !== undefined ? input.montoRecargoDefecto : undefined,
-          diasGraciaRecargo: input.diasGraciaRecargo,
-          plazoInscripcionDias: input.plazoInscripcionDias,
-          umbralesSmtpDias: input.umbralesSmtpDias ? input.umbralesSmtpDias : undefined,
-          actualizadoEn: new Date()
-        }
+      const updatedConfig = await ConfiguracionRepository.updateConfiguracion(this.CONFIG_ID, {
+        montoRecargoDefecto: input.montoRecargoDefecto !== undefined ? input.montoRecargoDefecto : undefined,
+        diasGraciaRecargo: input.diasGraciaRecargo,
+        plazoInscripcionDias: input.plazoInscripcionDias,
+        umbralesSmtpDias: input.umbralesSmtpDias ? input.umbralesSmtpDias : undefined,
+        actualizadoEn: new Date()
       });
 
       return {

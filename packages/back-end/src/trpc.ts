@@ -41,6 +41,9 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
       },
     });
   } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
     throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Token inválido o expirado' });
   }
 });

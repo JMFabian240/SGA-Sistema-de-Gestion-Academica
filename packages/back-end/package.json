@@ -9,6 +9,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:functional": "vitest --config vitest.functional.config.ts",
     "build:sidecar": "pkg . --targets node18-win-x64 --output ../app-tauri/src-tauri/binaries/back-x86_64-pc-windows-msvc.exe"
   },
   "dependencies": {

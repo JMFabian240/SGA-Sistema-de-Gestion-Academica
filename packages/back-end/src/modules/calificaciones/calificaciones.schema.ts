@@ -45,3 +45,6 @@ export const GenerarBoletaSchema = z.object({
 export const KardexSchema = z.object({
   alumnoId: z.number().int().positive(),
 });
+
+export type GenerarBoletaInput = z.infer<typeof GenerarBoletaSchema>;
+export type KardexInput = z.infer<typeof KardexSchema>;

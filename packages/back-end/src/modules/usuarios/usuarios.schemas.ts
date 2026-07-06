@@ -24,3 +24,8 @@ export const ListarUsuariosSchema = z.object({
   limite: z.number().min(1).max(100).default(20),
   busqueda: z.string().optional(),
 });
+
+export type CrearUsuarioInput = z.infer<typeof CrearUsuarioSchema>;
+export type ActualizarEstadoUsuarioInput = z.infer<typeof ActualizarEstadoUsuarioSchema>;
+export type AsignarRolesInput = z.infer<typeof AsignarRolesSchema>;
+export type ListarUsuariosInput = z.infer<typeof ListarUsuariosSchema>;

@@ -1,46 +1,18 @@
 import { router, gestorProcedure } from '../../trpc';
+import { DashboardService } from './dashboard.service';
 
 export const dashboardRouter = router({
   obtenerMetricasInscripcion: gestorProcedure
-    .query(async ({ ctx }) => {
-      const [alumnosActivos, alumnosBaja, cuposPorNivel] = await Promise.all([
-        ctx.prisma.alumno.count({ where: { estado: 'ACTIVO' } }),
-        ctx.prisma.alumno.count({ where: { estado: { in: ['BAJA_DEFINITIVA', 'BAJA_TEMPORAL'] } } }),
-        ctx.prisma.grupo.groupBy({
-          by: ['nivelId'],
-          _sum: { cupoMaximo: true }
-        }),
-      ]);
-
-      return {
-        alumnosActivos,
-        alumnosBaja,
-        cuposTotales: cuposPorNivel.reduce((acc, curr) => acc + (curr._sum.cupoMaximo || 0), 0),
-        detallesNivel: cuposPorNivel
-      };
+    .query(async () => {
+      return DashboardService.obtenerMetricasInscripcion();
     }),
 
   obtenerKpisFinancieros: gestorProcedure
-    .query(async ({ ctx }) => {
-      // Ingresos del mes actual
-      const inicioMes = new Date();
-      inicioMes.setDate(1);
-      inicioMes.setHours(0, 0, 0, 0);
-
-      const [sumaIngresos, sumaDeudaPendiente] = await Promise.all([
-        ctx.prisma.pago.aggregate({
-          _sum: { montoTotal: true },
-          where: { fechaPago: { gte: inicioMes } }
-        }),
-        ctx.prisma.calendarioPago.aggregate({
-          _sum: { saldoPendiente: true },
-          where: { estadoCobro: { in: ['PENDIENTE', 'VENCIDO'] } }
-        })
-      ]);
-
+    .query(async () => {
+      const kpis = await DashboardService.obtenerKpisFinancieros();
       return {
-        ingresosMesActual: Number(sumaIngresos._sum.montoTotal || 0),
-        deudaPendienteTotal: Number(sumaDeudaPendiente._sum.saldoPendiente || 0),
+        ingresosMesActual: Number(kpis.ingresosMesActual),
+        deudaPendienteTotal: Number(kpis.deudaPendienteTotal)
       };
     }),
 
