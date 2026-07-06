@@ -1,0 +1,21 @@
+@startuml M12_HistorialAcademico
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+actor "Docente" as Docente
+
+rectangle "Módulo 12: Historial Académico" {
+  usecase "Consultar Historial de Calificaciones (RF-88)" as UC_HistorialCalificaciones
+  usecase "Consultar Historial Académico Completo (RF-89)" as UC_HistorialCompleto
+}
+
+Admin --> UC_HistorialCalificaciones
+Admin --> UC_HistorialCompleto
+
+Gestor --> UC_HistorialCalificaciones
+Gestor --> UC_HistorialCompleto
+
+Docente --> UC_HistorialCalificaciones
+Docente --> UC_HistorialCompleto
+@enduml

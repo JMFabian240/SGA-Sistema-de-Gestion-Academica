@@ -5,7 +5,7 @@ import { trpc } from './lib/trpc';
 import { router } from './router';
 
 // === CONFIGURACIÓN DE TRPC Y REACT QUERY ===
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/trpc';
+const API_URL = import.meta.env.VITE_API_URL || '/trpc';
 
 const queryClient = new QueryClient({
   defaultOptions: {

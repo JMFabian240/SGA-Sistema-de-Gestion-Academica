@@ -1,0 +1,13 @@
+@startuml M13_ConfiguracionSistema
+left to right direction
+
+actor "Administrador" as Admin
+
+rectangle "Módulo 13: Configuración de Sistema" {
+  usecase "Modificar Umbrales de Morosidad (RF-90)" as UC_ModificarUmbrales
+  usecase "Modificar Anticipación SMTP (RF-91)" as UC_ModificarSMTP
+}
+
+Admin --> UC_ModificarUmbrales
+Admin --> UC_ModificarSMTP
+@enduml

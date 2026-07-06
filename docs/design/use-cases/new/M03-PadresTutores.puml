@@ -1,0 +1,29 @@
+@startuml M03_PadresTutores
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 3: Gestión de Padres/Tutores" {
+  usecase "Registrar Perfil de Padre/Tutor (RF-18)" as UC_RegistrarTutor
+  usecase "Indicar Requerimiento Fiscal (RF-19)" as UC_RequerimientoFiscal
+  usecase "Vincular Tutor con Alumnos (RF-20)" as UC_VincularAlumnos
+  usecase "Modificar Datos de Padre/Tutor (RF-21)" as UC_ModificarTutor
+  usecase "Desactivar Perfil de Padre/Tutor (RF-22)" as UC_DesactivarTutor
+  usecase "Reactivar Perfil de Padre/Tutor (RF-23)" as UC_ReactivarTutor
+
+  UC_RegistrarTutor <.. UC_RequerimientoFiscal : <<extend>>
+  UC_ModificarTutor <.. UC_RequerimientoFiscal : <<extend>>
+  UC_RegistrarTutor .down.> UC_VincularAlumnos : <<include>>
+}
+
+Admin --> UC_RegistrarTutor
+Admin --> UC_ModificarTutor
+Admin --> UC_DesactivarTutor
+Admin --> UC_ReactivarTutor
+
+Gestor --> UC_RegistrarTutor
+Gestor --> UC_ModificarTutor
+Gestor --> UC_DesactivarTutor
+Gestor --> UC_ReactivarTutor
+@enduml

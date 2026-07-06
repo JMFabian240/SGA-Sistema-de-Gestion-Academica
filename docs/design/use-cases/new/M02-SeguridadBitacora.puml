@@ -1,0 +1,14 @@
+@startuml M02_SeguridadBitacora
+left to right direction
+
+actor "Administrador" as Admin
+
+rectangle "Módulo 2: Seguridad y Bitácora" {
+  usecase "Consultar Historial de Bitácora (RF-16)" as UC_ConsultarBitacora
+  usecase "Exportar Historial de Bitácora (RF-17)" as UC_ExportarBitacora
+
+  UC_ExportarBitacora .down.> UC_ConsultarBitacora : <<include>>
+}
+
+Admin --> UC_ConsultarBitacora
+@enduml

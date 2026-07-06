@@ -1,0 +1,41 @@
+@startuml M10_Calificaciones
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+actor "Docente" as Docente
+
+rectangle "Módulo 10: Registro de Calificaciones" {
+  usecase "Registrar Evaluación Trimestral Preescolar (RF-78)" as UC_Preescolar
+  usecase "Registrar Calificaciones Primaria (RF-79)" as UC_Primaria
+  usecase "Registrar Calificaciones Secundaria (RF-80)" as UC_Secundaria
+  usecase "Registrar Calificaciones Bachillerato (RF-81)" as UC_Bachillerato
+  usecase "Registrar Calificación Extracurricular [Especiales] (RF-82)" as UC_Extracurricular
+  usecase "Registrar Evaluación de Talleres [A/NA] (RF-83)" as UC_Talleres
+  usecase "Modificar Calificación (RF-84)" as UC_ModificarNota
+}
+
+Admin --> UC_Preescolar
+Admin --> UC_Primaria
+Admin --> UC_Secundaria
+Admin --> UC_Bachillerato
+Admin --> UC_Extracurricular
+Admin --> UC_Talleres
+Admin --> UC_ModificarNota
+
+Gestor --> UC_Preescolar
+Gestor --> UC_Primaria
+Gestor --> UC_Secundaria
+Gestor --> UC_Bachillerato
+Gestor --> UC_Extracurricular
+Gestor --> UC_Talleres
+Gestor --> UC_ModificarNota
+
+Docente --> UC_Preescolar
+Docente --> UC_Primaria
+Docente --> UC_Secundaria
+Docente --> UC_Bachillerato
+Docente --> UC_Extracurricular
+Docente --> UC_Talleres
+Docente --> UC_ModificarNota
+@enduml

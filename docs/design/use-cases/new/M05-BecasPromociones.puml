@@ -1,0 +1,29 @@
+@startuml M05_BecasPromociones
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 5: Gestión de Becas y Promociones" {
+  usecase "Registrar Beca o Promoción [Matriz] (RF-43)" as UC_RegistrarBeca
+  usecase "Consultar Catálogo de Becas (RF-44)" as UC_ConsultarBecas
+  usecase "Modificar Beca o Promoción (RF-45)" as UC_ModificarBeca
+  usecase "Asignar Beca o Promoción a Alumno (RF-46)" as UC_AsignarBeca
+  usecase "Gestionar Solicitudes de Beca (RF-48)" as UC_GestionarSolicitudes
+  usecase "Retirar Beca de Alumno (RF-50)" as UC_RetirarBeca
+  usecase "Configurar Promoción Inscripción Temprana (RF-53)" as UC_ConfigurarPromocion
+}
+
+Admin --> UC_RegistrarBeca
+Admin --> UC_ConsultarBecas
+Admin --> UC_ModificarBeca
+Admin --> UC_AsignarBeca
+Admin --> UC_GestionarSolicitudes
+Admin --> UC_RetirarBeca
+Admin --> UC_ConfigurarPromocion
+
+Gestor --> UC_ConsultarBecas
+Gestor --> UC_AsignarBeca
+Gestor --> UC_RetirarBeca
+Gestor --> UC_ConfigurarPromocion
+@enduml

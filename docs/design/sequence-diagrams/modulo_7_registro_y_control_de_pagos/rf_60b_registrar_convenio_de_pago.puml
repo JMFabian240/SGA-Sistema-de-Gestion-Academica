@@ -1,0 +1,54 @@
+@startuml rf_60b_registrar_convenio_de_pago
+actor "Administrador / Gestor" as User
+participant "TutorDetalle UI\n(Vite/React)" as Boundary
+participant "pagosRouter\n(Fastify/tRPC)" as Router
+participant "PagosService" as Service
+participant "PagosRepository" as Repo
+database "PostgreSQL\n(Prisma)" as DB
+
+User -> Boundary: Accede a "Registrar Convenio" y selecciona adeudos rezagados
+activate Boundary
+Boundary --> User: Muestra adeudos a consolidar
+
+User -> Boundary: Ingresa fecha compromiso y comentarios, y confirma
+Boundary -> Router: registrarConvenio(input)
+activate Router
+
+Router -> Service: registrarConvenio(input, registradorId)
+activate Service
+
+Service -> Service: Validar fecha compromiso es futura
+alt Fecha inválida
+  Service --> Router: Error de validación (TRPCError BAD_REQUEST)
+  Router --> Boundary: Muestra error en pantalla
+else Fecha válida
+  Service -> Repo: crearConvenioTransaccion(params)
+  activate Repo
+  
+  Repo -> DB: Iniciar transacción ($transaction)
+  activate DB
+  
+  Repo -> DB: Crear registro de ConvenioPago (montoTotal, fechaCompromiso, tutorId)
+  DB --> Repo: Convenio creado (convenioId)
+  
+  loop Para cada adeudo seleccionado
+    Repo -> DB: Vincular adeudo a convenioId
+    Repo -> DB: Actualizar CalendarioPago (estado = 'CONVENIO', congelarRecargos = true)
+  end
+  
+  DB --> Repo: Confirmar transacción (Commit)
+  deactivate DB
+  
+  Repo --> Service: Retorna Convenio procesado
+  deactivate Repo
+  
+  Service --> Router: Retorna éxito
+  deactivate Service
+  
+  Router --> Boundary: Respuesta de éxito
+  deactivate Router
+  
+  Boundary --> User: Muestra confirmación de convenio y habilita impresión física
+end
+deactivate Boundary
+@enduml

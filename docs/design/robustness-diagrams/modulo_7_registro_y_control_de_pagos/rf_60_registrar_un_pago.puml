@@ -1,25 +1,34 @@
-﻿@startuml
+@startuml rf_60_registrar_un_pago
 left to right direction
 skinparam packageStyle rectangle
 
-actor "Gestor / Caja" as Actor
-boundary "Pantalla\nRegistro Pagos" as PantallaPagos
-control "Procesador\nPagos" as GestorPagos
-entity "Estado\nCuenta" as EstadoCuenta
-entity "Log\nAuditoría" as Bitacora
+actor "Administrador / Gestor" as Actor
+boundary "Caja UI\n(Vite/React)" as PantallaCaja
+control "pagosRouter / tRPC" as Router
+control "PagosService / Repository" as ServiceRepo
+entity "Tutor" as TutorEntity
+entity "CalendarioPago\n(Adeudos)" as AdeudoEntity
+entity "Pago" as PagoEntity
+entity "AplicacionPago" as AplicacionEntity
+entity "MovimientoSaldo" as SaldoEntity
+entity "LogAuditoria" as AuditoriaEntity
 
-Actor --> PantallaPagos : Localiza adeudo de alumno
-PantallaPagos --> GestorPagos : Solicita adeudo pendiente
-GestorPagos --> EstadoCuenta : Consulta monto
-EstadoCuenta --> GestorPagos : Retorna monto a pagar
-GestorPagos --> PantallaPagos : Despliega formulario
-Actor --> PantallaPagos : Captura monto recibido y método
-Actor --> PantallaPagos : Clic "Registrar Pago"
-PantallaPagos --> GestorPagos : Envía transacción
-GestorPagos --> EstadoCuenta : Valida y descuenta saldo
-EstadoCuenta --> GestorPagos : Actualiza a "Pagado"
-GestorPagos --> Bitacora : Guarda movimiento en historial
-Bitacora --> GestorPagos : Log confirmado
-GestorPagos --> PantallaPagos : Retorna éxito y genera recibo
-PantallaPagos --> Actor : Muestra recibo generado
+Actor --> PantallaCaja : Busca tutor/alumno y selecciona deudas
+PantallaCaja --> Router : registrarPago(input)
+Router --> ServiceRepo : registrarPagoTransaccion()
+
+ServiceRepo --> AdeudoEntity : Consulta saldos pendientes
+ServiceRepo --> PagoEntity : Crea registro de Pago
+ServiceRepo --> AplicacionEntity : Crea aplicaciones del pago
+ServiceRepo --> AdeudoEntity : Actualiza saldoPendiente y estadoCobro (PAGADO/PENDIENTE)
+
+alt Si hay excedente de pago (montoTotal > totalAplicado)
+  ServiceRepo --> TutorEntity : Incrementa saldoAFavor
+  ServiceRepo --> SaldoEntity : Crea MovimientoSaldo (INGRESO)
+end
+
+ServiceRepo --> AuditoriaEntity : Registra log de auditoría
+ServiceRepo --> Router : Retorna confirmación de transacción
+Router --> PantallaCaja : Despliega ticket digital de pago
+PantallaCaja --> Actor : Muestra ticket y actualiza Dashboard
 @enduml

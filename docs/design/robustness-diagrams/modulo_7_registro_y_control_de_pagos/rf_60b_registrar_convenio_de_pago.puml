@@ -1,0 +1,26 @@
+@startuml rf_60b_registrar_convenio_de_pago
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador / Gestor" as Actor
+boundary "TutorDetalle UI\n(Vite/React)" as PantallaTutor
+control "pagosRouter / tRPC" as Router
+control "PagosService / Repository" as ServiceRepo
+entity "Tutor" as TutorEntity
+entity "ConvenioPago" as ConvenioEntity
+entity "CalendarioPago\n(Adeudos)" as AdeudoEntity
+entity "LogAuditoria" as AuditoriaEntity
+
+Actor --> PantallaTutor : Selecciona adeudos rezagados e ingresa fecha compromiso
+PantallaTutor --> Router : registrarConvenio(input)
+Router --> ServiceRepo : registrarConvenio()
+
+ServiceRepo --> ConvenioEntity : Crea ConvenioPago (tutorId, montoTotal, fechaCompromiso)
+ServiceRepo --> AdeudoEntity : Vincula adeudos a convenioId
+ServiceRepo --> AdeudoEntity : Actualiza estadoCobro a 'CONVENIO' y congela recargos
+ServiceRepo --> AuditoriaEntity : Registra log de auditoría en bitácora
+
+ServiceRepo --> Router : Retorna éxito
+Router --> PantallaTutor : Habilita impresión del convenio
+PantallaTutor --> Actor : Muestra confirmación del convenio en pantalla
+@enduml

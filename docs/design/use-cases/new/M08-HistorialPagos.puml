@@ -1,0 +1,20 @@
+@startuml M08_HistorialPagos
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 8: Historial de Pagos" {
+  usecase "Consultar Historial de Pagos de Tutor (RF-69)" as UC_ConsultarHistorial
+  usecase "Consultar Estado de Cuenta Consolidado (RF-70)" as UC_ConsultarConsolidado
+  usecase "Distribuir Pago entre Hermanos (RF-71)" as UC_DistribuirPago
+}
+
+Admin --> UC_ConsultarHistorial
+Admin --> UC_ConsultarConsolidado
+Admin --> UC_DistribuirPago
+
+Gestor --> UC_ConsultarHistorial
+Gestor --> UC_ConsultarConsolidado
+Gestor --> UC_DistribuirPago
+@enduml

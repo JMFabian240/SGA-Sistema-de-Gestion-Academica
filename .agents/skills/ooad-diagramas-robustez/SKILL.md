@@ -12,7 +12,7 @@ Esta skill te instruye a generar diagramas de robustez (PlantUML) respetando est
 1. **Boundaries (Límites):** Representan las interfaces (pantallas, ventanas, APIs externas). Los actores SOLO pueden comunicarse con Boundaries.
 2. **Controls (Controles):** Representan la lógica de negocio, validaciones y cálculos. Un Boundary no puede hablar con una Entity directamente, debe pasar por un Control.
 3. **Entities (Entidades):** Representan el almacenamiento de datos o los registros en la base de datos (PostgreSQL local). Solo los Controls pueden comunicarse con ellas.
-4. **Formato de Archivo:** El código generado debe ser guardado **directamente** en un archivo con extensión `.puml`. NO envuelvas el código en bloques Markdown ni le agregues títulos con hashtags. El archivo debe comenzar con `@startuml` y terminar con `@enduml`.
+4. **Formato de Archivo:** El código generado debe ser guardado **directamente** en un archivo con extensión `.puml`. NO envuelvas el código en bloques Markdown ni le agregues títulos con hashtags. El archivo debe comenzar obligatoriamente con `@startuml <nombre_del_diagrama>` (ej. `@startuml rf_60_registrar_un_pago`) y terminar con `@enduml` para evitar advertencias de diagrama sin nombre.
 
 ## Reglas del Proyecto (Colegio San Diego)
 - **Modelo Híbrido LAN:** Existen boundaries del tipo "Tauri Desktop UI" (para el Administrador) y "Navegador Web UI" (para docentes y administrativos).

@@ -244,9 +244,12 @@ class Beca {
   - id: UUID
   - nombre: String
   - criterio: TipoCriterioBeca
-  - porcentajeDescuento: Decimal
+  - porcentajeFijo: Decimal
+  - matrizPorcentajes: Map<String, Decimal>
+  - esExclusivaHermandad: Boolean
   --
-  + modificarPorcentaje(nuevoPorcentaje: Decimal): void
+  + obtenerPorcentajeAplicable(nivel: NivelEducativo, grado: int): Decimal
+  + modificarMatrizPorcentajes(matriz: Map<String, Decimal>): void
 }
 
 enum TipoCriterioBeca {
@@ -326,14 +329,29 @@ class ComprobanteDigital {
 class Cargo {
   - id: UUID
   - concepto: ConceptoCargo
+  - descripcionOtro: String
   - montoOriginal: BigDecimal
   - fechaVencimiento: Date
   - estadoPago: EstadoPago
   - recargoAplicado: BigDecimal
+  - idConvenio: UUID
   --
   + aplicarRecargoAutomatico(): void
   + condonarRecargo(motivo: String): void
   + calcularSaldoPendiente(): Decimal
+  + vincularAConvenio(idConvenio: UUID): void
+}
+
+class ConvenioPago {
+  - idConvenio: UUID
+  - idTutor: UUID
+  - montoTotalConsolidado: Decimal
+  - fechaCompromiso: Date
+  - activo: Boolean
+  - creadoEn: DateTime
+  --
+  + registrarConvenio(): void
+  + verificarVencimiento(fechaActual: Date): void
 }
 
 enum EstadoPago {
@@ -350,6 +368,7 @@ enum ConceptoCargo {
   MATERIAL
   LIBROS
   UNIFORME
+  OTRO
 }
 
 enum PlanPago {
@@ -591,6 +610,8 @@ Cargo "1" -- "0..*" DetallePago
 Alumno "1" -- "0..*" Cargo
 PlanPago -- Cargo
 Alumno -- PlanPago
+Tutor "1" -- "0..*" ConvenioPago
+Cargo "1..*" -- "0..1" ConvenioPago : "agrupado en"
 
 ConfiguracionColegiatura "1" -- "0..*" Cargo
 ConfiguracionColegiatura "1" o-- "1..*" CicloEscolar

@@ -1,0 +1,45 @@
+@startuml M04_GestionAlumnos
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 4: Gestión de Alumnos" {
+  usecase "Registrar Alumno de Nuevo Ingreso [Wizard] (RF-40)" as UC_RegistrarWizard
+  usecase "Registrar Alumno a Mitad de Ciclo (RF-24)" as UC_RegistrarMitadCiclo
+  usecase "Consultar Expediente de Alumno (RF-28)" as UC_ConsultarExpediente
+  usecase "Modificar Datos de Alumno (RF-29)" as UC_ModificarAlumno
+  usecase "Filtrar Listado de Alumnos (RF-30)" as UC_FiltrarAlumnos
+  usecase "Registrar Retiro Voluntario [Baja Definitiva] (RF-31)" as UC_BajaDefinitiva
+  usecase "Revertir Baja Temporal (RF-26)" as UC_RevertirBajaTemporal
+  usecase "Procesar Reingreso de Alumno (RF-32)" as UC_ProcesarReingreso
+  usecase "Registrar/Modificar Ciclo Escolar (RF-33, RF-34)" as UC_GestionarCiclos
+  usecase "Transición Masiva de Ciclo (RF-35)" as UC_TransicionMasiva
+  usecase "Excluir Alumno de Transición (RF-41)" as UC_ExcluirTransicion
+  usecase "Gestionar Grupos Académicos (RF-42)" as UC_GestionarGrupos
+
+  UC_TransicionMasiva <.. UC_ExcluirTransicion : <<extend>>
+}
+
+Admin --> UC_RegistrarWizard
+Admin --> UC_RegistrarMitadCiclo
+Admin --> UC_ConsultarExpediente
+Admin --> UC_ModificarAlumno
+Admin --> UC_FiltrarAlumnos
+Admin --> UC_BajaDefinitiva
+Admin --> UC_RevertirBajaTemporal
+Admin --> UC_ProcesarReingreso
+Admin --> UC_GestionarCiclos
+Admin --> UC_TransicionMasiva
+Admin --> UC_GestionarGrupos
+
+Gestor --> UC_RegistrarWizard
+Gestor --> UC_RegistrarMitadCiclo
+Gestor --> UC_ConsultarExpediente
+Gestor --> UC_ModificarAlumno
+Gestor --> UC_FiltrarAlumnos
+Gestor --> UC_BajaDefinitiva
+Gestor --> UC_RevertirBajaTemporal
+Gestor --> UC_ProcesarReingreso
+Gestor --> UC_TransicionMasiva
+@enduml

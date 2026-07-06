@@ -1,0 +1,39 @@
+@startuml M01_AccesoUsuarios
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+actor "Docente" as Docente
+actor "Usuario" as User
+
+rectangle "Módulo 1: Acceso y Gestión de Usuarios" {
+  usecase "Crear Cuenta de Colaborador (RF-01)" as UC_CrearCuenta
+  usecase "Habilitar Acceso de Cuenta (RF-02)" as UC_HabilitarAcceso
+  usecase "Consultar Listado de Usuarios (RF-03)" as UC_ConsultarUsuarios
+  usecase "Modificar Permisos de Cuenta (RF-04)" as UC_ModificarPermisos
+  usecase "Consultar Panel Principal (RF-06)" as UC_ConsultarPanel
+  usecase "Registrar Pagos Diarios (RF-07)" as UC_RegistrarPagosM1
+  usecase "Consultar Datos Básicos de Alumno (RF-08)" as UC_ConsultarDatosAlumnoM1
+  usecase "Cerrar Sesión (RF-09)" as UC_CerrarSesion
+  usecase "Desactivar Cuenta de Colaborador (RF-11)" as UC_DesactivarCuenta
+  usecase "Restablecer Contraseña (RF-13)" as UC_RestablecerPassword
+}
+
+Admin --> UC_CrearCuenta
+Admin --> UC_HabilitarAcceso
+Admin --> UC_ConsultarUsuarios
+Admin --> UC_ModificarPermisos
+Admin --> UC_DesactivarCuenta
+Admin --> UC_RestablecerPassword
+
+Gestor --> UC_ConsultarPanel
+Gestor --> UC_RegistrarPagosM1
+
+Docente --> UC_ConsultarDatosAlumnoM1
+
+User --> UC_CerrarSesion
+
+Admin -up-|> User
+Gestor -up-|> User
+Docente -up-|> User
+@enduml

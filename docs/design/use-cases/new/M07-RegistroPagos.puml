@@ -1,0 +1,32 @@
+@startuml M07_RegistroPagos
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 7: Registro y Control de Pagos" {
+  usecase "Registrar Pago [Completo o Abono Parcial] (RF-60)" as UC_RegistrarPago
+  usecase "Registrar Convenio de Pago (RF-60b)" as UC_RegistrarConvenio
+  usecase "Registrar Pago Adelantado (RF-63)" as UC_RegistrarAdelantado
+  usecase "Modificar Recargo Aplicado (RF-64)" as UC_ModificarRecargo
+  usecase "Suspender Servicio de Alumno [Manual] (RF-66)" as UC_SuspenderServicio
+  usecase "Registrar Múltiples Conceptos (RF-61)" as UC_MultiConceptos
+  usecase "Adjuntar Comprobante Digital (RF-62)" as UC_AdjuntarComprobante
+
+  UC_RegistrarPago <.. UC_MultiConceptos : <<extend>>
+  UC_RegistrarPago .down.> UC_AdjuntarComprobante : <<include>>
+  UC_RegistrarAdelantado .down.> UC_AdjuntarComprobante : <<include>>
+}
+
+Admin --> UC_RegistrarPago
+Admin --> UC_RegistrarConvenio
+Admin --> UC_RegistrarAdelantado
+Admin --> UC_ModificarRecargo
+Admin --> UC_SuspenderServicio
+
+Gestor --> UC_RegistrarPago
+Gestor --> UC_RegistrarConvenio
+Gestor --> UC_RegistrarAdelantado
+Gestor --> UC_ModificarRecargo
+Gestor --> UC_SuspenderServicio
+@enduml

@@ -61,21 +61,21 @@
 | RF-34 | El usuario autorizado (Administrador/Gestor) debe modificar ciclos escolares, actualizando sus fechas (inicio, fin) o estatus (activo, inactivo), para mantener la estructura académica vigente. | Usuario |
 | RF-35 | El usuario autorizado (Administrador/Gestor) debe iniciar la transición masiva de ciclo, seleccionando el nivel educativo (Preescolar,Primaria,Secundaria,Bachillerato), para listar alumnos a promover. | Usuario |
 | RF-36 | El sistema debe sugerir el siguiente ciclo aplicable (Anual para básicos, Semestral para Bachillerato), para guiar la promoción masiva correcta. | Sistema |
-| RF-37 | El sistema debe validar el estado financiero de los alumnos, consultando sus deudas, para retener a los morosos cambiando su estatus a 'Transición Pendiente'. | Sistema |
-| RF-38 | El sistema debe promover a los alumnos regulares al nuevo ciclo sugerido, actualizando su grado o nivel y confirmando su estatus 'Activo', para generar la estructura de cobros correspondientes. | Sistema |
+| RF-37 | El sistema debe validar el estado financiero y académico de los alumnos, consultando adeudos y verificando reprobaciones de cualquier tipo de materia (curricular, extracurricular/especial o taller), para retener a los alumnos irregulares cambiando su estatus a 'Transición Pendiente'. | Sistema |
+| RF-38 | El sistema debe promover a los alumnos regulares (aquellos sin adeudos financieros y sin materias reprobadas de ningún tipo) al nuevo ciclo sugerido, actualizando su grado o nivel y confirmando su estatus 'Activo', para generar la estructura de cobros correspondientes. | Sistema |
 | RF-39 | El usuario autorizado (Administrador/Gestor) debe ejecutar la baja definitiva de un alumno, seleccionando un expediente en 'Baja Temporal' sin acuerdo, para cambiar su estatus a 'Baja Definitiva' y cerrar su participación en el ciclo vigente. | Usuario |
 | RF-40 | El usuario autorizado (Administrador/Gestor) debe registrar alumnos de nuevo ingreso mediante un flujo guiado (Wizard) que permita seleccionar a un tutor existente o registrar uno nuevo, seguido de la captura de los datos del alumno y la generación de su primer adeudo, unificando el proceso. | Usuario |
 | RF-41 | El usuario autorizado (Administrador/Gestor) debe excluir individualmente a alumnos específicos del panel interactivo de transición de ciclo masiva, deseleccionando sus registros, para gestionar casos de repetición de grado o bajas programadas. | Usuario |
-| RF-42 | El usuario autorizado (Administrador/Gestor) debe gestionar (crear, consultar, modificar y eliminar) los grupos académicos asociados a cada grado y nivel educativo, para mantener la estructura organizativa de las clases en el sistema. | Usuario |
+| RF-42 | El usuario autorizado (Administrador/Gestor) debe gestionar los grupos académicos, organizándolos por grado y grupo (secciones A, B, etc.) para Preescolar/Primaria y por número de semestre para Bachillerato, para mantener la estructura organizativa de las clases en el sistema. | Usuario |
 
 ### Módulo 5 — Gestión de Becas y Promociones
 
 | ID | Descripción | Tipo |
 |---|---|---|
-| RF-43 | El administrador debe registrar tipos de beca, ingresando nombre, criterio (promedio mínimo, hermandad, fecha límite,inscripcion temprana) y porcentaje de descuento, para almacenarlas en el catálogo del sistema. | Usuario |
-| RF-44 | El administrador debe consultar los tipos de beca, seleccionando por nombre, para visualizar los descuentos disponibles. | Usuario |
-| RF-45 | El administrador debe modificar tipos de beca, actualizando criterio o porcentaje, para aplicarlos a inscripciones futuras sin alterar ciclos activos. | Usuario |
-| RF-46 | El administrador debe asignar una beca a un alumno, seleccionando la beca correspondiente, para aplicar el descuento automáticamente a sus colegiaturas. | Usuario |
+| RF-43 | El administrador debe registrar promociones estacionales y becas, ingresando nombre y configurando una matriz de porcentajes de descuento basados en Promoción × Nivel Educativo × Grado (excepto para Beca de Hermanos que maneja un 30% fijo), para almacenarlas en el catálogo del sistema. | Usuario |
+| RF-44 | El administrador debe consultar los tipos de beca y promociones, seleccionando por nombre, para visualizar los descuentos y matrices de porcentajes disponibles. | Usuario |
+| RF-45 | El administrador debe modificar tipos de beca y promociones, actualizando el criterio o la matriz de porcentajes, para aplicarlos a inscripciones futuras sin alterar ciclos activos. | Usuario |
+| RF-46 | El administrador debe asignar una beca o promoción a un alumno (de forma mutuamente excluyente entre Beca de Hermanos y promociones de inscripción), seleccionando la opción correspondiente y registrando de forma opcional un motivo o recomendación, para aplicar el descuento en su calendario de pagos. | Usuario |
 | RF-47 | El sistema debe generar una 'Solicitud Pendiente' si la asignación es hecha por un Gestor, reteniendo el descuento, para esperar autorización superior. | Sistema |
 | RF-48 | El administrador debe gestionar las solicitudes de beca, ingresando al panel de autorizaciones, para Aprobar o Rechazar las peticiones de los Gestores. | Usuario |
 | RF-49 | El sistema debe recalcular los cobros del alumno, utilizando la aprobación del Administrador, para aplicar los cambios financieros inmediatamente. | Sistema |
@@ -90,24 +90,25 @@
 | ID | Descripción | Tipo |
 |---|---|---|
 | RF-55 | El usuario autorizado (Administrador/Gestor) debe configurar las tarifas de colegiaturas e inscripciones, ingresando el ciclo, nivel educativo y los montos correspondientes, para aplicarlas a nuevos registros. | Usuario |
-| RF-56 | El usuario autorizado (Administrador/Gestor) debe registrar conceptos de cobro adicionales (Material, Libros, Uniforme), ingresando el nombre y la tarifa por nivel, para mantener estandarizado el catálogo de ventas. | Usuario |
-| RF-57 | El usuario autorizado (Administrador/Gestor) debe asignar el plan de pago, seleccionando 10 o 12 meses al registrar al alumno, para definir sus plazos. | Usuario |
-| RF-58 | El sistema debe generar el calendario de vencimientos, utilizando el plan seleccionado, para programar las cuotas (incluyendo pago doble en diciembre si aplica). | Sistema |
+| RF-56 | El usuario autorizado (Administrador/Gestor) debe registrar conceptos de cobro adicionales, seleccionando de una lista estándar (Inscripción, Arancel, Material, Uniforme, Libros) o ingresando una descripción abierta ("Otros") con su monto correspondiente, para mantener flexible y estandarizado el catálogo de ventas. | Usuario |
+| RF-57 | El usuario autorizado (Administrador/Gestor) debe asignar el plan de pago (10 meses corridos sin cobro doble, o 12 meses con cobro doble en diciembre correspondiente a diciembre y julio de vacaciones), seleccionando el plan al registrar al alumno, para definir sus plazos. | Usuario |
+| RF-58 | El sistema debe generar el calendario de vencimientos, utilizando el plan seleccionado (distribuyendo las mensualidades o aplicando el cargo de diciembre y julio de forma concentrada en diciembre para el plan de 12 meses), para programar los cargos del alumno. | Sistema |
 | RF-59 | El sistema debe aplicar un recargo de $400 MXN, contabilizando 5 días hábiles posteriores al vencimiento, para reflejar la penalización en el historial. | Sistema |
 
 ### Módulo 7 — Registro y Control de Pagos
 
 | ID | Descripción | Tipo |
 |---|---|---|
-| RF-60 | El usuario autorizado (Administrador/Gestor) debe registrar un pago, ingresando tipo de cobro, monto, fecha y método (Transferencia, Tarjeta de Crédito, Tarjeta de Débito, o Depósito), para actualizar el estado del adeudo del alumno. | Usuario |
+| RF-60 | El usuario autorizado (Administrador/Gestor) debe registrar un pago (completo o abono parcial), ingresando el tipo de cobro, monto, fecha y método (Transferencia, Tarjeta de Crédito, Tarjeta de Débito, o Depósito), para actualizar el saldo pendiente y el estado del adeudo del alumno. | Usuario |
+| RF-60b | El usuario autorizado (Administrador/Gestor) debe registrar un convenio de pago escrito por rezago, ingresando el monto consolidado adeudado y una fecha límite compromiso de pago, para formalizar el acuerdo en el sistema. | Usuario |
 | RF-61 | El usuario autorizado (Administrador/Gestor) debe registrar múltiples conceptos en un solo pago, seleccionando el adeudo, colegiatura o artículo adicional, para emitir un único comprobante unificado (ej. Colegiatura + Libros). | Usuario |
 | RF-62 | El usuario autorizado (Administrador/Gestor) debe adjuntar un comprobante digital, cargando el archivo correspondiente al pago, para permitir su consulta futura. | Usuario |
 | RF-63 | El usuario autorizado (Administrador/Gestor) debe registrar un pago adelantado, ingresando número de meses, monto y método, para liquidar colegiaturas futuras y evitar recargos erróneos. | Usuario |
 | RF-64 | El usuario autorizado (Administrador/Gestor) debe modificar un recargo aplicado, ingresando el registro de pago y motivo de modificación (ej. error de captura, condonación parcial), para reflejar el ajuste en la deuda total. | Usuario |
-| RF-65 | El sistema debe actualizar simultáneamente el estado del adeudo de inicio de ciclo a 'Vencido' y el estatus del alumno a 'Baja Temporal', bloqueando sus evaluaciones, al detectar 60 días naturales sin pago total, garantizando la consistencia de ambas entidades. | Sistema |
-| RF-66 | El sistema debe cambiar el estatus a 'Baja Temporal', detectando 3 meses consecutivos de adeudo, para notificar al administrador. | Sistema |
-| RF-67 | El sistema debe suspender la generación automática de colegiaturas, verificando el estado de 'Baja Temporal', para mantener intacto el adeudo previo. | Sistema |
-| RF-68 | El sistema debe generar alertas visuales automáticas, detectando vencimientos próximos o pérdida de becas, para informar al personal en el Dashboard. | Sistema |
+| RF-65 | El sistema debe generar alertas visuales automáticas de color rojo en el expediente del alumno inmediatamente al transcurrir el primer día después de la fecha de vencimiento de un pago, para advertir al personal administrativo desde el primer mes de atraso. | Sistema |
+| RF-66 | El usuario autorizado (Administrador/Gestor) debe aplicar manualmente la suspensión de servicio a un alumno con rezago acumulado, cambiando su estatus a 'Baja Temporal' o restringiendo sus evaluaciones desde el panel del alumno, para suspender sus privilegios académicos de forma discrecional. | Usuario |
+| RF-67 | El sistema debe suspender la generación automática de colegiaturas del alumno al registrar que su estatus cambió a 'Baja Temporal' (por suspensión manual), para mantener intacto el adeudo previo. | Sistema |
+| RF-68 | El sistema debe generar alertas visuales automáticas y resúmenes de morosidad, detectando vencimientos próximos o pérdida de becas, para informar al personal en el Panel Principal. | Sistema |
 
 ### Módulo 8 — Historial de Pagos
 
@@ -122,9 +123,9 @@
 | ID | Descripción | Tipo |
 |---|---|---|
 | RF-72 | El usuario autorizado (Administrador/Gestor) debe generar un reporte de pagos diarios, solicitando la extracción del día actual, para exportar un desglose (Excel/PDF) con sumatoria total. | Usuario |
-| RF-73 | El usuario autorizado (Administrador/Gestor) debe generar un reporte de ingresos mensuales, seleccionando mes y año, para exportar el desglose de pagos del periodo. | Usuario |
+| RF-73 | El usuario autorizado (Administrador/Gestor) debe generar y exportar el reporte de ingresos mensuales, seleccionando mes y año, para obtener el desglose detallado de cobros del periodo en un formato estructurado (Excel/CSV). | Usuario |
 | RF-74 | El usuario autorizado (Administrador/Gestor) debe generar un reporte financiero por ciclo escolar, seleccionando el ciclo, para exportar el resumen de ingresos y alumnos activos. | Usuario |
-| RF-75 | El usuario autorizado (Administrador/Gestor) debe consultar la lista de deudores, filtrando por mes, para visualizar los adeudos consolidados por familia y días de retraso. | Usuario |
+| RF-75 | El usuario autorizado (Administrador/Gestor) debe consultar la lista de alumnos según estado de pago (deudores o pagados), filtrando por mes y estatus de cobro, para visualizar los adeudos consolidados por familia y días de retraso o confirmar los cobros liquidados. | Usuario |
 | RF-76 | El usuario autorizado (Administrador/Gestor) debe consultar la lista de alumnos con examen restringido, indicando el periodo de evaluación, para identificar a los afectados por adeudos. | Usuario |
 | RF-77 | El usuario autorizado (Administrador/Gestor) debe generar un reporte de requerimientos de facturación, solicitando el listado, para exportar los datos fiscales de los padres aplicables. | Usuario |
 
@@ -145,7 +146,7 @@
 | ID | Descripción | Tipo |
 |---|---|---|
 | RF-85 | El usuario autorizado (Administrador/Gestor/Docente) debe consultar calificaciones de un alumno, ingresando nombre o matrícula, para visualizar únicamente el periodo activo sin datos fiscales ni pagos. | Usuario |
-| RF-86 | El sistema debe emitir un formato de boleta dinámico en PDF, validando el nivel educativo, para mostrar las evaluaciones cualitativas o cuantitativas apropiadas según el grado. | Sistema |
+| RF-86 | El sistema debe emitir la boleta de calificaciones en formato PDF de manera dinámica, incorporando el nombre del alumno, grado, grupo, ciclo escolar, materias cursadas con el nombre de sus respectivos docentes y datos institucionales inalterables (logo y firmas), para entregar un documento formal completo según el nivel educativo. | Sistema |
 | RF-87 | El sistema debe generar una alerta de restricción de examen, cruzando el estado de pagos con el periodo activo, para advertir al administrador que el alumno tiene deudas. | Sistema |
 
 ### Módulo 12 — Historial Académico
@@ -217,7 +218,7 @@
 | RNF-19 | El sistema debe presentar una interfaz clara y sin saturación visual, utilizando íconos reconocibles, etiquetas descriptivas y flujos de navegación simples, de forma que personal administrativo con nivel básico de manejo tecnológico pueda operar el sistema sin requerir capacitación extensa. | Producto |
 | RNF-20 | El sistema debe utilizar los colores institucionales del Colegio San Diego (azul marino RGB(5,14,119), rojo RGB(249,3,0) y blanco) y mostrar el escudo oficial en las pantallas principales, manteniendo coherencia con la imagen del plantel en toda la interfaz. | Producto |
 | RNF-21 | El sistema debe mostrar mensajes claros de confirmación antes de ejecutar acciones irreversibles (eliminar, desactivar, borrar) y mensajes descriptivos de error cuando una operación no pueda completarse, indicando la causa y la acción sugerida al usuario. | Producto |
-| RNF-22 | El sistema debe presentar las consultas más frecuentes (lista de deudores, ingresos del mes, pagos del día y alumnos con examen restringido) como accesos directos visibles desde la pantalla principal, de forma que el administrador pueda acceder a cualquiera de ellas en no más de dos clics desde el inicio de sesión. | Producto |
+| RNF-22 | El sistema debe presentar las consultas y KPIs más frecuentes (Panel Principal con total de alumnos, ingresos del día, alumnos con beca, deudores y resumen de pagos del día) como accesos directos visibles desde la pantalla de inicio, de forma que el usuario acceda a cualquiera de ellas en no más de dos clics desde el inicio de sesión. | Producto |
 
 ### Módulo 6 — Portabilidad y Mantenibilidad
 | ID | Descripción | Tipo |

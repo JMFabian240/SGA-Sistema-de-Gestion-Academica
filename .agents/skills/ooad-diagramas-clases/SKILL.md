@@ -38,7 +38,7 @@ si el usuario lo pide explícitamente.
 Entrega únicamente el código del diagrama dentro de un bloque de código PlantUML. Si fue necesario asumir algo del requerimiento, añade una nota breve de los supuestos tomados debajo del diagrama.
 
 ```plantuml
-@startuml
+@startuml DiagramaDeClases_CSD
 skinparam classAttributeIconSize 0
 
 abstract class Usuario {

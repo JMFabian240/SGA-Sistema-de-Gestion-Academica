@@ -1,44 +1,68 @@
-@startuml
-actor Administrador
-participant "PantallaUI" as Boundary
-participant "Controlador" as Control
-database "BaseDeDatos" as Entity
+@startuml rf_60_registrar_un_pago
+actor "Administrador / Gestor" as User
+participant "Caja UI\n(Vite/React)" as Boundary
+participant "pagosRouter\n(Fastify/tRPC)" as Router
+participant "PagosService" as Service
+participant "PagosRepository" as Repo
+database "PostgreSQL\n(Prisma)" as DB
 
-    Administrador -> Boundary: El usuario accede al módulo de pagos.
-    Administrador -> Boundary: Busca y selecciona al alumno.
-    Boundary -> Control: Procesar acción
-    Control --> Boundary: muestra los conceptos de cobro pendientes.
-    Boundary --> Administrador: Muestra resultado
-    Administrador -> Boundary: El usuario selecciona el concepto a pagar.
-    Boundary -> Control: Procesar acción
-    Control --> Boundary: muestra el saldo pendiente.
-    Boundary --> Administrador: Muestra resultado
-    Administrador -> Boundary: El usuario ingresa el monto, fecha y método de pago.
-    Boundary -> Control: Procesar acción
-    Boundary -> Control: valida la información....
-    activate Control
-    Control --> Boundary: valida la información.
-    Boundary --> Administrador: Muestra resultado
-    Control --> Boundary: muestra un resumen de la operación.
-    Boundary --> Administrador: Muestra resultado
-    Administrador -> Boundary: El usuario confirma el registro del pago.
-    Control -> Entity: Query/Update
-    activate Entity
-    Entity --> Control: Exito
-    deactivate Entity
-    Control --> Boundary: registra el pago y actualiza el saldo.
-    Boundary --> Administrador: Muestra resultado
-    Control -> Entity: Query/Update
-    activate Entity
-    Entity --> Control: Exito
-    deactivate Entity
-    Control --> Boundary: actualiza el estado del concepto según corresponda.
-    Boundary --> Administrador: Muestra resultado
-    Control -> Entity: Query/Update
-    activate Entity
-    Entity --> Control: Exito
-    deactivate Entity
-    Control --> Boundary: registra la operación en el historial y muestra un mensaje de éxito.
-    Boundary --> Administrador: Muestra resultado
+User -> Boundary: Busca tutor y selecciona adeudos
+activate Boundary
+Boundary --> User: Muestra adeudos pendientes y calcula total a pagar
 
+User -> Boundary: Ingresa monto recibido, método de pago y confirma
+Boundary -> Router: registrarPago(input)
+activate Router
+
+Router -> Service: registrarPago(input, registradorId)
+activate Service
+
+Service -> Service: Validar monto recibido >= suma de aplicaciones
+alt Monto inválido
+  Service --> Router: Error de validación (TRPCError BAD_REQUEST)
+  Router --> Boundary: Muestra error en pantalla
+else Monto válido
+  Service -> Repo: registrarPagoTransaccion(params)
+  activate Repo
+  
+  Repo -> DB: Iniciar transacción ($transaction)
+  activate DB
+  
+  Repo -> DB: crear registro de Pago
+  DB --> Repo: Pago creado (pagoId)
+  
+  loop Para cada aplicación de pago
+    Repo -> DB: Consultar CalendarioPago (calendarioPagoId)
+    DB --> Repo: Datos del adeudo (saldoPendiente)
+    
+    Repo -> Repo: Calcular nuevoSaldoPendiente = saldoPendiente - montoAplicado
+    Repo -> DB: crear AplicacionPago
+    
+    alt nuevoSaldoPendiente <= 0
+      Repo -> DB: actualizar CalendarioPago (saldoPendiente = 0, estado = PAGADO, liquidadoAt)
+    else nuevoSaldoPendiente > 0
+      Repo -> DB: actualizar CalendarioPago (saldoPendiente = nuevoSaldoPendiente, estado = PENDIENTE)
+    end
+  end
+  
+  alt saldoAFavorGenerado > 0 (Monto recibido supera total seleccionado)
+    Repo -> DB: actualizar Tutor (incrementar saldoAFavor)
+    Repo -> DB: crear MovimientoSaldo (INGRESO)
+  end
+  
+  DB --> Repo: Confirmar transacción (Commit)
+  deactivate DB
+  
+  Repo --> Service: Retorna Pago procesado
+  deactivate Repo
+  
+  Service --> Router: Retorna éxito
+  deactivate Service
+  
+  Router --> Boundary: Respuesta de éxito con datos de pago
+  deactivate Router
+  
+  Boundary --> User: Muestra ticket de pago digital y actualiza Dashboard
+end
+deactivate Boundary
 @enduml

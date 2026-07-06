@@ -1,0 +1,20 @@
+@startuml M06_ColegiaturasConceptos
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 6: Gestión de Colegiaturas y Conceptos" {
+  usecase "Configurar Tarifas Base (RF-55)" as UC_ConfigurarTarifas
+  usecase "Registrar Conceptos Adicionales [Estándar u Otros] (RF-56)" as UC_RegistrarConceptos
+  usecase "Asignar Plan de Pagos a Alumno (RF-57)" as UC_AsignarPlan
+}
+
+Admin --> UC_ConfigurarTarifas
+Admin --> UC_RegistrarConceptos
+Admin --> UC_AsignarPlan
+
+Gestor --> UC_ConfigurarTarifas
+Gestor --> UC_RegistrarConceptos
+Gestor --> UC_AsignarPlan
+@enduml

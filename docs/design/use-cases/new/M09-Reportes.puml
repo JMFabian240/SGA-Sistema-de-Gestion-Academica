@@ -1,0 +1,29 @@
+@startuml M09_Reportes
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+
+rectangle "Módulo 9: Reportes" {
+  usecase "Generar Reporte de Pagos Diarios (RF-72)" as UC_ReporteDiario
+  usecase "Generar/Exportar Reporte de Ingresos Mensuales (RF-73)" as UC_ReporteMensual
+  usecase "Generar Reporte Financiero por Ciclo (RF-74)" as UC_ReporteCiclo
+  usecase "Consultar Lista de Alumnos por Estado de Pago (RF-75)" as UC_ReporteDeudoresPagados
+  usecase "Consultar Lista de Exámenes Restringidos (RF-76)" as UC_ExamenesRestringidos
+  usecase "Generar Reporte de Facturación (RF-77)" as UC_ReporteFacturacion
+}
+
+Admin --> UC_ReporteDiario
+Admin --> UC_ReporteMensual
+Admin --> UC_ReporteCiclo
+Admin --> UC_ReporteDeudoresPagados
+Admin --> UC_ExamenesRestringidos
+Admin --> UC_ReporteFacturacion
+
+Gestor --> UC_ReporteDiario
+Gestor --> UC_ReporteMensual
+Gestor --> UC_ReporteCiclo
+Gestor --> UC_ReporteDeudoresPagados
+Gestor --> UC_ExamenesRestringidos
+Gestor --> UC_ReporteFacturacion
+@enduml

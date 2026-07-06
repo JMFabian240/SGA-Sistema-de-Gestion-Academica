@@ -1,0 +1,18 @@
+@startuml M11_GeneracionBoletas
+left to right direction
+
+actor "Administrador" as Admin
+actor "Gestor Administrativo" as Gestor
+actor "Docente" as Docente
+
+rectangle "Módulo 11: Generación y Consulta de Boletas" {
+  usecase "Consultar Calificaciones de Alumno (RF-85)" as UC_ConsultarNotas
+  usecase "Descargar Boleta de Calificaciones [PDF] (RF-86)" as UC_DescargarBoleta
+
+  UC_DescargarBoleta .up.> UC_ConsultarNotas : <<include>>
+}
+
+Admin --> UC_ConsultarNotas
+Gestor --> UC_ConsultarNotas
+Docente --> UC_ConsultarNotas
+@enduml
