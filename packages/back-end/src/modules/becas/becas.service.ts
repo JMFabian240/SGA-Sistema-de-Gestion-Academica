@@ -56,7 +56,7 @@ export class BecasService {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Solicitud no encontrada' });
     }
 
-    if (solicitud.resueltaPor !== null || solicitud.estado !== 'ACTIVA') {
+    if ((solicitud.resueltaPor !== null && solicitud.resueltaPor !== undefined) || solicitud.estado !== 'ACTIVA') {
       throw new TRPCError({ code: 'BAD_REQUEST', message: 'Esta solicitud ya ha sido resuelta o cancelada' });
     }
 
