@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, gestorProcedure, adminProcedure } from '../../trpc';
 import { updateConfigSchema } from './configuracion.schema';
 import { ConfiguracionService } from './configuracion.service';
 
@@ -6,7 +6,7 @@ export const configuracionRouter = router({
   /**
    * Obtener la configuración global del sistema
    */
-  get: protectedProcedure
+  get: gestorProcedure
     .query(async () => {
       return ConfiguracionService.getConfiguracion();
     }),
@@ -14,7 +14,7 @@ export const configuracionRouter = router({
   /**
    * Actualizar la configuración global del sistema
    */
-  update: protectedProcedure
+  update: adminProcedure
     .input(updateConfigSchema)
     .mutation(async ({ input }) => {
       return ConfiguracionService.updateConfiguracion(input);

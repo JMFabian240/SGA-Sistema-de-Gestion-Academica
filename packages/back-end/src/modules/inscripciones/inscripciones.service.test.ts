@@ -118,6 +118,30 @@ describe('InscripcionesService (Unit)', () => {
       }));
     });
 
+    it('createInscripcion debería rechazar si el grupo seleccionado no existe', async () => {
+      prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.grupo.findUnique.mockResolvedValue(null);
+
+      await expect(InscripcionesService.createInscripcion({
+        alumnoId: 1, cicloId: 1, grupoId: 99, planPagoId: 1, fechaIngreso: '2023-08-01', esIngresoTardio: false, estadoEnCiclo: 'ACTIVO', estadoFinanciero: 'AL_CORRIENTE'
+      })).rejects.toThrowError(new TRPCError({ code: 'NOT_FOUND', message: 'El grupo seleccionado no existe o ha sido eliminado.' }));
+    });
+
+    it('createInscripcion debería rechazar si el grupo seleccionado no tiene cupo', async () => {
+      prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.grupo.findUnique.mockResolvedValue({
+        grupoId: 2,
+        nombre: '1A',
+        cupoMaximo: 2,
+        eliminadoEn: null,
+        inscripciones: [{ inscripcionId: 10 }, { inscripcionId: 11 }]
+      } as any);
+
+      await expect(InscripcionesService.createInscripcion({
+        alumnoId: 1, cicloId: 1, grupoId: 2, planPagoId: 1, fechaIngreso: '2023-08-01', esIngresoTardio: false, estadoEnCiclo: 'ACTIVO', estadoFinanciero: 'AL_CORRIENTE'
+      })).rejects.toThrowError(new TRPCError({ code: 'BAD_REQUEST', message: 'El grupo 1A ya ha alcanzado su cupo máximo de 2 alumnos.' }));
+    });
+
     it('updateInscripcion debería rechazar si la inscripción no existe', async () => {
       prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
       await expect(InscripcionesService.updateInscripcion({ inscripcionId: 1, esIngresoTardio: true }))

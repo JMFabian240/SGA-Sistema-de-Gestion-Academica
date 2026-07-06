@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, docentProcedure, gestorProcedure } from '../../trpc';
 import { z } from 'zod';
 import { TutoresService } from './tutores.service';
 import { createTutorSchema, updateTutorSchema } from './tutores.schema';
@@ -7,14 +7,14 @@ export const tutoresRouter = router({
   /**
    * Listar todos los tutores activos.
    */
-  getAll: protectedProcedure.query(() => {
+  getAll: docentProcedure.query(() => {
     return TutoresService.getTutores();
   }),
 
   /**
    * Obtener detalle de un tutor específico por su ID.
    */
-  getById: protectedProcedure
+  getById: docentProcedure
     .input(z.number().int().positive())
     .query(({ input }) => {
       return TutoresService.getTutorById(input);
@@ -23,7 +23,7 @@ export const tutoresRouter = router({
   /**
    * Crear un nuevo tutor (y opcionalmente sus datos fiscales).
    */
-  create: protectedProcedure
+  create: gestorProcedure
     .input(createTutorSchema)
     .mutation(({ input }) => {
       return TutoresService.createTutor(input);
@@ -32,7 +32,7 @@ export const tutoresRouter = router({
   /**
    * Actualizar un tutor existente.
    */
-  update: protectedProcedure
+  update: gestorProcedure
     .input(updateTutorSchema)
     .mutation(({ input }) => {
       return TutoresService.updateTutor(input);
@@ -41,7 +41,7 @@ export const tutoresRouter = router({
   /**
    * Eliminar un tutor (Soft Delete).
    */
-  delete: protectedProcedure
+  delete: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => {
       return TutoresService.deleteTutor(input);

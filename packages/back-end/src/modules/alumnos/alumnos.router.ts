@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, docentProcedure, gestorProcedure } from '../../trpc';
 import { z } from 'zod';
 import { AlumnosService } from './alumnos.service';
 import { createAlumnoSchema, updateAlumnoSchema, linkTutorSchema, unlinkTutorSchema } from './alumnos.schema';
@@ -7,14 +7,14 @@ export const alumnosRouter = router({
   /**
    * Obtener todos los alumnos
    */
-  getAll: protectedProcedure.query(() => {
+  getAll: docentProcedure.query(() => {
     return AlumnosService.getAlumnos();
   }),
 
   /**
    * Obtener detalle de un alumno por ID
    */
-  getById: protectedProcedure
+  getById: docentProcedure
     .input(z.number().int().positive())
     .query(({ input }) => {
       return AlumnosService.getAlumnoById(input);
@@ -23,7 +23,7 @@ export const alumnosRouter = router({
   /**
    * Crear un nuevo alumno
    */
-  create: protectedProcedure
+  create: gestorProcedure
     .input(createAlumnoSchema)
     .mutation(({ input }) => {
       return AlumnosService.createAlumno(input);
@@ -32,7 +32,7 @@ export const alumnosRouter = router({
   /**
    * Actualizar un alumno existente
    */
-  update: protectedProcedure
+  update: gestorProcedure
     .input(updateAlumnoSchema)
     .mutation(({ input }) => {
       return AlumnosService.updateAlumno(input);
@@ -41,7 +41,7 @@ export const alumnosRouter = router({
   /**
    * Realizar Soft Delete de un alumno
    */
-  delete: protectedProcedure
+  delete: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => {
       return AlumnosService.deleteAlumno(input);
@@ -50,7 +50,7 @@ export const alumnosRouter = router({
   /**
    * Vincular un tutor a un alumno
    */
-  linkTutor: protectedProcedure
+  linkTutor: gestorProcedure
     .input(linkTutorSchema)
     .mutation(({ input }) => {
       return AlumnosService.linkTutor(input);
@@ -59,7 +59,7 @@ export const alumnosRouter = router({
   /**
    * Desvincular un tutor de un alumno
    */
-  unlinkTutor: protectedProcedure
+  unlinkTutor: gestorProcedure
     .input(unlinkTutorSchema)
     .mutation(({ input }) => {
       return AlumnosService.unlinkTutor(input);

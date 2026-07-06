@@ -1,8 +1,7 @@
 import { prisma } from '@sga/data-access';
 import { 
   type CreateTutorInput, 
-  type UpdateTutorInput, 
-  type UpsertDatosFiscalesInput 
+  type UpdateTutorInput 
 } from './tutores.schema';
 import { TRPCError } from '@trpc/server';
 

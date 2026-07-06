@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, docentProcedure } from '../../trpc';
 import { CalificacionesService } from './calificaciones.service';
 import { 
   getCalificacionesGrupoSchema, 
@@ -14,7 +14,7 @@ export const calificacionesRouter = router({
   /**
    * Obtiene la boleta/registro de calificaciones para un grupo (vista docente)
    */
-  getPorGrupo: protectedProcedure
+  getPorGrupo: docentProcedure
     .input(getCalificacionesGrupoSchema)
     .query(({ input }) => {
       return CalificacionesService.getCalificacionesGrupo(input);
@@ -23,7 +23,7 @@ export const calificacionesRouter = router({
   /**
    * Obtiene el kárdex completo de un alumno (vista administrativo/tutor)
    */
-  getPorAlumno: protectedProcedure
+  getPorAlumno: docentProcedure
     .input(getCalificacionesAlumnoSchema)
     .query(({ input }) => {
       return CalificacionesService.getCalificacionesAlumno(input);
@@ -32,7 +32,7 @@ export const calificacionesRouter = router({
   /**
    * Inserta o actualiza una calificación de un alumno
    */
-  upsert: protectedProcedure
+  upsert: docentProcedure
     .input(upsertCalificacionSchema)
     .mutation(({ input, ctx }) => {
       const registradorId = ctx.user?.usuarioId;
@@ -43,7 +43,7 @@ export const calificacionesRouter = router({
   /**
    * Elimina una calificación registrada por error
    */
-  delete: protectedProcedure
+  delete: docentProcedure
     .input(deleteCalificacionSchema)
     .mutation(({ input }) => {
       return CalificacionesService.deleteCalificacion(input);
@@ -52,7 +52,7 @@ export const calificacionesRouter = router({
   /**
    * Genera la boleta consolidada de un alumno en un ciclo escolar específico
    */
-  generarBoletaCiclo: protectedProcedure
+  generarBoletaCiclo: docentProcedure
     .input(GenerarBoletaSchema)
     .query(async ({ input, ctx }) => {
       const alumno = await ctx.prisma.alumno.findUnique({
@@ -87,7 +87,7 @@ export const calificacionesRouter = router({
   /**
    * Obtiene el historial académico completo de todos los ciclos
    */
-  obtenerKardexCompleto: protectedProcedure
+  obtenerKardexCompleto: docentProcedure
     .input(KardexSchema)
     .query(async ({ input, ctx }) => {
       const historial = await ctx.prisma.calificacion.findMany({

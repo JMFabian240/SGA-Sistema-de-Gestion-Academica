@@ -13,4 +13,18 @@ vi.mock('@sga/data-access', () => ({
 
 beforeEach(() => {
   mockReset(prismaMock);
+  
+  // Mock por defecto de roles (ADMIN) para evitar que fallen los routers protegidos
+  prismaMock.usuarioRol.findMany.mockResolvedValue([
+    {
+      usuarioRolId: 1,
+      usuarioId: 99,
+      rolId: 1,
+      rol: {
+        rolId: 1,
+        codigo: 'ADMIN',
+        nombre: 'Administrador'
+      }
+    }
+  ] as any);
 });

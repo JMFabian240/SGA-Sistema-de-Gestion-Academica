@@ -9,6 +9,6 @@ export default defineConfig({
     alias: {
       '@sga/data-access': path.resolve(__dirname, '../data-access/src')
     },
-    exclude: [...configDefaults.exclude, 'tests/integration/**/*.ts']
+    exclude: [...configDefaults.exclude, 'tests/integration/**/*.ts', 'dist/**/*.ts', 'dist/**/*.js']
   }
 });

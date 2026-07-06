@@ -137,6 +137,36 @@ export class BecasService {
 
   // --- Asignación Directa de Becas ---
   static async assignBeca(input: AssignBecaInput, asignadorId: number) {
+    // 1. Verificar si el alumno existe y no está eliminado
+    const alumno = await prisma.alumno.findUnique({
+      where: { alumnoId: input.alumnoId }
+    });
+
+    if (!alumno || alumno.eliminadoEn) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'El alumno seleccionado no existe o está inactivo.'
+      });
+    }
+
+    // 2. Verificar si el alumno ya tiene asignada esta beca de forma activa en el mismo ciclo
+    const existente = await prisma.asignacionBeca.findFirst({
+      where: {
+        alumnoId: input.alumnoId,
+        becaId: input.becaId,
+        cicloId: input.cicloId,
+        estado: 'ACTIVA',
+        eliminadoEn: null
+      }
+    });
+
+    if (existente) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'El alumno ya cuenta con una asignación activa para esta beca en este ciclo.'
+      });
+    }
+
     return prisma.asignacionBeca.create({
       data: {
         ...input,

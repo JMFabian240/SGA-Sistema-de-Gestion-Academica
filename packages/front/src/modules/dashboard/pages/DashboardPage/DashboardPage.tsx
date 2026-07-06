@@ -6,21 +6,12 @@ import { Users, TrendingUp, AlertTriangle, Medal, WalletCards, Clock, BarChart3 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import styles from './DashboardPage.module.css';
 
-const MOCK_CHART_DATA = [
-  { day: 'Vie', ingresos: 12500 },
-  { day: 'Sáb', ingresos: 0 },
-  { day: 'Dom', ingresos: 0 },
-  { day: 'Lun', ingresos: 45000 },
-  { day: 'Mar', ingresos: 32000 },
-  { day: 'Mié', ingresos: 28000 },
-  { day: 'Jue', ingresos: 19500 },
-];
-
 export function DashboardPage() {
   const inscripcionesQuery = trpc.dashboard.obtenerMetricasInscripcion.useQuery();
   const finanzasQuery = trpc.dashboard.obtenerKpisFinancieros.useQuery();
+  const ingresosChartQuery = trpc.dashboard.obtenerIngresosUltimos7Dias.useQuery();
 
-  const isLoading = inscripcionesQuery.isLoading || finanzasQuery.isLoading;
+  const isLoading = inscripcionesQuery.isLoading || finanzasQuery.isLoading || ingresosChartQuery.isLoading;
 
   if (isLoading) {
     return <Spinner centered size={40} />;
@@ -28,6 +19,7 @@ export function DashboardPage() {
 
   const metricasInscripcion = inscripcionesQuery.data;
   const kpisFinanzas = finanzasQuery.data;
+  const chartData = ingresosChartQuery.data || [];
 
   // Formatting helper
   const formatCurrency = (value: number) => 
@@ -145,7 +137,7 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent className={styles.chartContent}>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={MOCK_CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <XAxis 
                 dataKey="day" 
                 axisLine={false}

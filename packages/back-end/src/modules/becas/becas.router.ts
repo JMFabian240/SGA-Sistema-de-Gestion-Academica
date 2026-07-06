@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, gestorProcedure } from '../../trpc';
 import { z } from 'zod';
 import { BecasService } from './becas.service';
 import { 
@@ -9,31 +9,31 @@ import {
 
 export const becasRouter = router({
   // --- Catálogo de Becas ---
-  getBecas: protectedProcedure.query(() => {
+  getBecas: gestorProcedure.query(() => {
     return BecasService.getBecas();
   }),
 
-  createBeca: protectedProcedure
+  createBeca: gestorProcedure
     .input(createBecaSchema)
     .mutation(({ input }) => BecasService.createBeca(input)),
 
-  updateBeca: protectedProcedure
+  updateBeca: gestorProcedure
     .input(updateBecaSchema)
     .mutation(({ input }) => BecasService.updateBeca(input)),
 
-  deleteBeca: protectedProcedure
+  deleteBeca: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => BecasService.deleteBeca(input)),
 
   // --- Solicitudes de Becas ---
-  getSolicitudes: protectedProcedure
+  getSolicitudes: gestorProcedure
     .input(z.object({
       cicloId: z.number().int().positive().optional(),
       alumnoId: z.number().int().positive().optional()
     }).optional())
     .query(({ input }) => BecasService.getSolicitudes(input?.cicloId, input?.alumnoId)),
 
-  createSolicitud: protectedProcedure
+  createSolicitud: gestorProcedure
     .input(createSolicitudBecaSchema)
     .mutation(({ input, ctx }) => {
       const solicitadorId = ctx.user?.usuarioId;
@@ -41,7 +41,7 @@ export const becasRouter = router({
       return BecasService.createSolicitud(input, solicitadorId);
     }),
 
-  resolverSolicitud: protectedProcedure
+  resolverSolicitud: gestorProcedure
     .input(resolverSolicitudBecaSchema)
     .mutation(({ input, ctx }) => {
       const resolvedorId = ctx.user?.usuarioId;
@@ -50,7 +50,7 @@ export const becasRouter = router({
     }),
 
   // --- Asignación Directa ---
-  assignBeca: protectedProcedure
+  assignBeca: gestorProcedure
     .input(assignBecaSchema)
     .mutation(({ input, ctx }) => {
       const asignadorId = ctx.user?.usuarioId;

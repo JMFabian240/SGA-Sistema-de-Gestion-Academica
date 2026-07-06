@@ -114,12 +114,39 @@ export class AlumnosService {
    * Soft Delete de un alumno
    */
   static async deleteAlumno(alumnoId: number) {
-    return prisma.alumno.update({
-      where: { alumnoId },
-      data: {
-        eliminadoEn: new Date(),
-        estado: 'BAJA_DEFINITIVA'
-      }
+    return prisma.$transaction(async (tx) => {
+      // 1. Soft delete del alumno
+      const alumno = await tx.alumno.update({
+        where: { alumnoId },
+        data: {
+          eliminadoEn: new Date(),
+          estado: 'BAJA_DEFINITIVA'
+        }
+      });
+
+      // 2. Anular matrículas/inscripciones activas en este ciclo escolar
+      await tx.inscripcionCiclo.updateMany({
+        where: { alumnoId, eliminadoEn: null },
+        data: {
+          eliminadoEn: new Date(),
+          estadoEnCiclo: 'ANULADA'
+        }
+      });
+
+      // 3. Cancelar y realizar soft delete de los adeudos pendientes del calendario
+      await tx.calendarioPago.updateMany({
+        where: {
+          alumnoId,
+          estadoCobro: { in: ['PENDIENTE', 'VENCIDO'] },
+          eliminadoEn: null
+        },
+        data: {
+          estadoCobro: 'CANCELADO',
+          eliminadoEn: new Date()
+        }
+      });
+
+      return alumno;
     });
   }
 

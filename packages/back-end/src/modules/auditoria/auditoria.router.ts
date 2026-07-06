@@ -1,9 +1,9 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, adminProcedure } from '../../trpc';
 import { ObtenerLogsSchema } from './auditoria.schemas';
 import { Prisma } from '@prisma/client';
 
 export const auditoriaRouter = router({
-  obtenerLogs: protectedProcedure
+  obtenerLogs: adminProcedure
     .input(ObtenerLogsSchema)
     .query(async ({ input, ctx }) => {
       const skip = (input.pagina - 1) * input.limite;

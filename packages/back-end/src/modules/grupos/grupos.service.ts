@@ -1,5 +1,5 @@
 import { prisma } from '@sga/data-access';
-import { TRPCError } from '@trpc/server';
+
 import {
   type CreateNivelEducativoInput, type UpdateNivelEducativoInput,
   type CreateCicloEscolarInput, type UpdateCicloEscolarInput,

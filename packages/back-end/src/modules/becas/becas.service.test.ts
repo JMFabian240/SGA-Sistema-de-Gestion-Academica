@@ -127,6 +127,8 @@ describe('BecasService (Unit)', () => {
 
   describe('Asignación Directa de Becas', () => {
     it('assignBeca debería crear una asignacion', async () => {
+      prismaMock.alumno.findUnique.mockResolvedValue({ alumnoId: 1, eliminadoEn: null } as any);
+      prismaMock.asignacionBeca.findFirst.mockResolvedValue(null);
       prismaMock.asignacionBeca.create.mockResolvedValue({ asignacionId: 1 } as any);
       
       const result = await BecasService.assignBeca({
@@ -137,6 +139,23 @@ describe('BecasService (Unit)', () => {
       expect(prismaMock.asignacionBeca.create).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({ asignadaPor: 5 })
       }));
+    });
+
+    it('assignBeca debería lanzar error si el alumno no existe', async () => {
+      prismaMock.alumno.findUnique.mockResolvedValue(null);
+
+      await expect(BecasService.assignBeca({
+        alumnoId: 99, becaId: 1, cicloId: 1, estado: 'ACTIVA' as EstadoBeca, fechaAsignacion: '2023-01-01'
+      }, 5)).rejects.toThrowError(new TRPCError({ code: 'NOT_FOUND', message: 'El alumno seleccionado no existe o está inactivo.' }));
+    });
+
+    it('assignBeca debería lanzar error si el alumno ya tiene esa beca activa en el ciclo', async () => {
+      prismaMock.alumno.findUnique.mockResolvedValue({ alumnoId: 1, eliminadoEn: null } as any);
+      prismaMock.asignacionBeca.findFirst.mockResolvedValue({ asignacionId: 10 } as any);
+
+      await expect(BecasService.assignBeca({
+        alumnoId: 1, becaId: 1, cicloId: 1, estado: 'ACTIVA' as EstadoBeca, fechaAsignacion: '2023-01-01'
+      }, 5)).rejects.toThrowError(new TRPCError({ code: 'BAD_REQUEST', message: 'El alumno ya cuenta con una asignación activa para esta beca en este ciclo.' }));
     });
   });
 });

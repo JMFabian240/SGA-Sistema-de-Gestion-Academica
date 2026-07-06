@@ -136,9 +136,9 @@ export class PagosService {
           }
         });
 
-        // Actualizar saldos del adeudo
-        const nuevoMontoPagado = Number(adeudo.montoPagado) + app.montoAplicado;
-        const nuevoSaldoPendiente = Number(adeudo.saldoPendiente) - app.montoAplicado;
+        // Actualizar saldos del adeudo (con redondeo a 2 decimales para evitar problemas de precisión en punto flotante)
+        const nuevoMontoPagado = Math.round((Number(adeudo.montoPagado) + app.montoAplicado) * 100) / 100;
+        const nuevoSaldoPendiente = Math.round((Number(adeudo.saldoPendiente) - app.montoAplicado) * 100) / 100;
         
         let nuevoEstado = adeudo.estadoCobro;
         let liquidadoAt = adeudo.liquidadoAt;

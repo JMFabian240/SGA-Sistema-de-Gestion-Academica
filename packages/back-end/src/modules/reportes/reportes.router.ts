@@ -1,8 +1,8 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, gestorProcedure, docentProcedure } from '../../trpc';
 import { ReporteFechasSchema, ReporteAsistenciaSchema } from './reportes.schemas';
 
 export const reportesRouter = router({
-  reporteDeudores: protectedProcedure
+  reporteDeudores: gestorProcedure
     .query(async ({ ctx }) => {
       // Obtenemos alumnos que tienen un calendario de pago vencido
       const deudores = await ctx.prisma.calendarioPago.findMany({
@@ -34,7 +34,7 @@ export const reportesRouter = router({
       }));
     }),
 
-  reporteIngresos: protectedProcedure
+  reporteIngresos: gestorProcedure
     .input(ReporteFechasSchema)
     .query(async ({ input, ctx }) => {
       const pagos = await ctx.prisma.pago.findMany({
@@ -63,7 +63,7 @@ export const reportesRouter = router({
       }));
     }),
 
-  listaAsistencia: protectedProcedure
+  listaAsistencia: docentProcedure
     .input(ReporteAsistenciaSchema)
     .query(async ({ input, ctx }) => {
       let dateFilter = {};

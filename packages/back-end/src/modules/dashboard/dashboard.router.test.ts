@@ -98,4 +98,36 @@ describe('Dashboard Router (Unit)', () => {
       expect(result.deudaPendienteTotal).toBe(0);
     });
   });
+
+  describe('obtenerIngresosUltimos7Dias', () => {
+    it('debería retornar un listado de los últimos 7 días con los ingresos sumados', async () => {
+      const hoyLocal = new Date();
+      const hoyUTC = new Date(Date.UTC(hoyLocal.getFullYear(), hoyLocal.getMonth(), hoyLocal.getDate()));
+
+      const hace2DiasLocal = new Date();
+      hace2DiasLocal.setDate(hace2DiasLocal.getDate() - 2);
+      const hace2DiasUTC = new Date(Date.UTC(hace2DiasLocal.getFullYear(), hace2DiasLocal.getMonth(), hace2DiasLocal.getDate()));
+
+      prismaMock.pago.findMany.mockResolvedValue([
+        { fechaPago: hoyUTC, montoTotal: 1000 },
+        { fechaPago: hoyUTC, montoTotal: 500 },
+        { fechaPago: hace2DiasUTC, montoTotal: 2500 }
+      ] as any);
+
+      const result = await caller.dashboard.obtenerIngresosUltimos7Dias();
+
+      expect(prismaMock.pago.findMany).toHaveBeenCalled();
+      expect(result).toHaveLength(7);
+
+      const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const diaHoy = diasSemana[hoyLocal.getDay()];
+      const diaHace2Dias = diasSemana[hace2DiasLocal.getDay()];
+
+      expect(result[6].day).toBe(diaHoy);
+      expect(result[6].ingresos).toBe(1500); // 1000 + 500
+
+      expect(result[4].day).toBe(diaHace2Dias);
+      expect(result[4].ingresos).toBe(2500);
+    });
+  });
 });

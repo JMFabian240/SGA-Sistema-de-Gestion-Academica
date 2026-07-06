@@ -100,11 +100,37 @@ export class InscripcionesService {
       }
     });
 
-    if (existente) {
+    if (existente && !existente.eliminadoEn) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'El alumno ya se encuentra inscrito en este ciclo escolar.'
       });
+    }
+
+    // Validar cupo del grupo si se proporciona grupoId
+    if (input.grupoId) {
+      const grupo = await prisma.grupo.findUnique({
+        where: { grupoId: input.grupoId },
+        include: {
+          inscripciones: {
+            where: { eliminadoEn: null }
+          }
+        }
+      });
+
+      if (!grupo || grupo.eliminadoEn) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'El grupo seleccionado no existe o ha sido eliminado.'
+        });
+      }
+
+      if (grupo.inscripciones.length >= grupo.cupoMaximo) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `El grupo ${grupo.nombre} ya ha alcanzado su cupo máximo de ${grupo.cupoMaximo} alumnos.`
+        });
+      }
     }
 
     return prisma.inscripcionCiclo.create({

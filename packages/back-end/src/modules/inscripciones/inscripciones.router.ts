@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, gestorProcedure } from '../../trpc';
 import { z } from 'zod';
 import { InscripcionesService } from './inscripciones.service';
 import { 
@@ -10,51 +10,51 @@ import {
 export const inscripcionesRouter = router({
   
   // --- Planes de Pago ---
-  getPlanesPago: protectedProcedure.query(() => InscripcionesService.getPlanesPago()),
+  getPlanesPago: gestorProcedure.query(() => InscripcionesService.getPlanesPago()),
 
-  createPlanPago: protectedProcedure
+  createPlanPago: gestorProcedure
     .input(createPlanPagoSchema)
     .mutation(({ input }) => InscripcionesService.createPlanPago(input)),
 
-  updatePlanPago: protectedProcedure
+  updatePlanPago: gestorProcedure
     .input(updatePlanPagoSchema)
     .mutation(({ input }) => InscripcionesService.updatePlanPago(input)),
 
-  deletePlanPago: protectedProcedure
+  deletePlanPago: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => InscripcionesService.deletePlanPago(input)),
 
   // --- Ventanas de Inscripción ---
-  getVentanas: protectedProcedure.query(() => InscripcionesService.getVentanas()),
+  getVentanas: gestorProcedure.query(() => InscripcionesService.getVentanas()),
 
-  createVentana: protectedProcedure
+  createVentana: gestorProcedure
     .input(createVentanaInscripcionSchema)
     .mutation(({ input }) => InscripcionesService.createVentana(input)),
 
-  updateVentana: protectedProcedure
+  updateVentana: gestorProcedure
     .input(updateVentanaInscripcionSchema)
     .mutation(({ input }) => InscripcionesService.updateVentana(input)),
 
-  deleteVentana: protectedProcedure
+  deleteVentana: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => InscripcionesService.deleteVentana(input)),
 
   // --- Inscripciones de Alumnos ---
-  getInscripciones: protectedProcedure
+  getInscripciones: gestorProcedure
     .input(z.object({
       cicloId: z.number().int().positive().optional()
     }).optional())
     .query(({ input }) => InscripcionesService.getInscripciones(input?.cicloId)),
 
-  createInscripcion: protectedProcedure
+  createInscripcion: gestorProcedure
     .input(createInscripcionSchema)
     .mutation(({ input }) => InscripcionesService.createInscripcion(input)),
 
-  updateInscripcion: protectedProcedure
+  updateInscripcion: gestorProcedure
     .input(updateInscripcionSchema)
     .mutation(({ input }) => InscripcionesService.updateInscripcion(input)),
 
-  deleteInscripcion: protectedProcedure
+  deleteInscripcion: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => InscripcionesService.deleteInscripcion(input))
 });

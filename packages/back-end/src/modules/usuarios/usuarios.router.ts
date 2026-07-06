@@ -1,5 +1,6 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, adminProcedure } from '../../trpc';
 import { TRPCError } from '@trpc/server';
+import bcrypt from 'bcryptjs';
 import { 
   ListarUsuariosSchema, 
   CrearUsuarioSchema, 
@@ -7,21 +8,17 @@ import {
   AsignarRolesSchema 
 } from './usuarios.schemas';
 
-// TODO: Importar utilería de hash (e.g., bcrypt) si estuviese disponible. 
-// Por simplicidad, aquí simulamos que guardamos un hash (el módulo 'auth' debe tenerlo).
-
 export const usuariosRouter = router({
-  getRoles: protectedProcedure.query(async ({ ctx }) => {
+  getRoles: adminProcedure.query(async ({ ctx }) => {
     return ctx.prisma.rol.findMany({
       where: { eliminadoEn: null },
       orderBy: { nombre: 'asc' },
     });
   }),
 
-  listarUsuarios: protectedProcedure
+  listarUsuarios: adminProcedure
     .input(ListarUsuariosSchema)
     .query(async ({ input, ctx }) => {
-      // Idealmente, se valida si el ctx.usuario tiene Rol de Admin aquí
       const skip = (input.pagina - 1) * input.limite;
 
       const whereClause = input.busqueda ? {
@@ -63,7 +60,7 @@ export const usuariosRouter = router({
       };
     }),
 
-  crearUsuario: protectedProcedure
+  crearUsuario: adminProcedure
     .input(CrearUsuarioSchema)
     .mutation(async ({ input, ctx }) => {
       // 1. Verificar correo / usuario único
@@ -83,6 +80,9 @@ export const usuariosRouter = router({
         });
       }
 
+      // Hashear la contraseña usando bcrypt
+      const hashedPassword = await bcrypt.hash(input.password, 10);
+
       // 2. Crear usuario y asignar roles transaccionalmente
       const nuevoUsuario = await ctx.prisma.$transaction(async (tx) => {
         const u = await tx.usuario.create({
@@ -91,7 +91,7 @@ export const usuariosRouter = router({
             nombreCompleto: input.nombreCompleto,
             correo: input.correo,
             telefono: input.telefono,
-            passwordHash: input.password, // TODO: Hashear con bcrypt
+            passwordHash: hashedPassword,
             debeCambiarPwd: true,
           }
         });
@@ -111,7 +111,7 @@ export const usuariosRouter = router({
       return { success: true, usuarioId: nuevoUsuario.usuarioId };
     }),
 
-  actualizarEstadoUsuario: protectedProcedure
+  actualizarEstadoUsuario: adminProcedure
     .input(ActualizarEstadoUsuarioSchema)
     .mutation(async ({ input, ctx }) => {
       if (input.usuarioId === ctx.user.usuarioId) {
@@ -129,7 +129,7 @@ export const usuariosRouter = router({
       return { success: true, activo: actualizado.activo };
     }),
 
-  asignarRoles: protectedProcedure
+  asignarRoles: adminProcedure
     .input(AsignarRolesSchema)
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.$transaction(async (tx) => {

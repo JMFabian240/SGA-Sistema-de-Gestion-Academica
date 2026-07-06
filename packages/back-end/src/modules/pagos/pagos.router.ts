@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../../trpc';
+import { router, gestorProcedure } from '../../trpc';
 import { z } from 'zod';
 import { PagosService } from './pagos.service';
 import { 
@@ -10,7 +10,7 @@ import {
 export const pagosRouter = router({
   
   // --- Tarifas ---
-  getTarifas: protectedProcedure
+  getTarifas: gestorProcedure
     .input(z.object({
       cicloId: z.number().int().positive().optional(),
       nivelId: z.number().int().positive().optional()
@@ -19,36 +19,36 @@ export const pagosRouter = router({
       return PagosService.getTarifas(input?.cicloId, input?.nivelId);
     }),
 
-  createTarifa: protectedProcedure
+  createTarifa: gestorProcedure
     .input(createTarifaSchema)
     .mutation(({ input }) => PagosService.createTarifa(input)),
 
-  updateTarifa: protectedProcedure
+  updateTarifa: gestorProcedure
     .input(updateTarifaSchema)
     .mutation(({ input }) => PagosService.updateTarifa(input)),
 
-  deleteTarifa: protectedProcedure
+  deleteTarifa: gestorProcedure
     .input(z.number().int().positive())
     .mutation(({ input }) => PagosService.deleteTarifa(input)),
 
   // --- Adeudos (Calendario de Pagos) ---
-  getAdeudos: protectedProcedure
+  getAdeudos: gestorProcedure
     .input(z.object({
       alumnoId: z.number().int().positive(),
       estadoCobro: z.enum(['PENDIENTE', 'PAGADO', 'VENCIDO', 'CANCELADO']).optional()
     }))
     .query(({ input }) => PagosService.getAdeudosAlumno(input.alumnoId, input.estadoCobro)),
 
-  createAdeudo: protectedProcedure
+  createAdeudo: gestorProcedure
     .input(createCalendarioPagoSchema)
     .mutation(({ input }) => PagosService.createAdeudo(input)),
 
-  updateAdeudo: protectedProcedure
+  updateAdeudo: gestorProcedure
     .input(updateCalendarioPagoSchema)
     .mutation(({ input }) => PagosService.updateAdeudo(input)),
 
   // --- Registro de Pagos ---
-  registrarPago: protectedProcedure
+  registrarPago: gestorProcedure
     .input(registrarPagoSchema)
     .mutation(({ input, ctx }) => {
       // Tomar el registradorId directamente del token JWT decodificado en ctx

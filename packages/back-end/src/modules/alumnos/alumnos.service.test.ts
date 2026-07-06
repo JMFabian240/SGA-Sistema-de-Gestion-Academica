@@ -94,8 +94,11 @@ describe('AlumnosService (Unit)', () => {
   });
 
   describe('deleteAlumno', () => {
-    it('debería hacer un soft delete actualizando estado y eliminadoEn', async () => {
-      prismaMock.alumno.update.mockResolvedValue({} as any);
+    it('debería hacer un soft delete actualizando estado y eliminadoEn, y anular matrículas y adeudos en cascada', async () => {
+      prismaMock.$transaction.mockImplementation(async (cb: any) => cb(prismaMock));
+      prismaMock.alumno.update.mockResolvedValue({ alumnoId: 1 } as any);
+      prismaMock.inscripcionCiclo.updateMany.mockResolvedValue({ count: 1 } as any);
+      prismaMock.calendarioPago.updateMany.mockResolvedValue({ count: 2 } as any);
 
       await AlumnosService.deleteAlumno(1);
 
@@ -103,6 +106,26 @@ describe('AlumnosService (Unit)', () => {
       expect(callArgs.where.alumnoId).toBe(1);
       expect(callArgs.data.estado).toBe('BAJA_DEFINITIVA');
       expect(callArgs.data.eliminadoEn).toBeInstanceOf(Date);
+
+      expect(prismaMock.inscripcionCiclo.updateMany).toHaveBeenCalledWith({
+        where: { alumnoId: 1, eliminadoEn: null },
+        data: {
+          eliminadoEn: expect.any(Date),
+          estadoEnCiclo: 'ANULADA'
+        }
+      });
+
+      expect(prismaMock.calendarioPago.updateMany).toHaveBeenCalledWith({
+        where: {
+          alumnoId: 1,
+          estadoCobro: { in: ['PENDIENTE', 'VENCIDO'] },
+          eliminadoEn: null
+        },
+        data: {
+          estadoCobro: 'CANCELADO',
+          eliminadoEn: expect.any(Date)
+        }
+      });
     });
   });
 

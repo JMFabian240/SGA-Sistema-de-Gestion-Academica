@@ -14,9 +14,14 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
   }
   
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET && process.env.NODE_ENV !== 'test') {
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'JWT_SECRET no configurado en el servidor' });
+    }
+    const secret = JWT_SECRET || 'supersecret';
+    
     // Se espera que el token tenga un identificador único jti
-    const decoded = jwt.verify(ctx.token, JWT_SECRET) as { usuarioId: number, jti: string };
+    const decoded = jwt.verify(ctx.token, secret) as { usuarioId: number, jti: string };
     
     // Verificar si el token (jti) fue revocado
     if (decoded.jti) {
@@ -73,3 +78,40 @@ export const auditMiddleware = t.middleware(async ({ type, path, ctx, next, rawI
 });
 
 export const protectedProcedure = t.procedure.use(isAuthed).use(auditMiddleware);
+
+// Middleware para validación de roles (RBAC)
+export const hasRoles = (allowedRoles: string[]) => t.middleware(async ({ ctx, next }) => {
+  const user = (ctx as any).user;
+  if (!user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'No autenticado' });
+  }
+
+  // Buscar los roles del usuario en la base de datos
+  const userRoles = await ctx.prisma.usuarioRol.findMany({
+    where: { 
+      usuarioId: user.usuarioId, 
+      activo: true,
+      eliminadoEn: null 
+    },
+    include: { rol: true }
+  });
+
+  const roles = userRoles.map(ur => ur.rol.codigo);
+  const hasPermission = roles.some(role => allowedRoles.includes(role));
+
+  if (!hasPermission) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'No tiene permisos para realizar esta acción' });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      roles,
+    }
+  });
+});
+
+// Procedimientos con seguridad RBAC
+export const adminProcedure = protectedProcedure.use(hasRoles(['ADMIN']));
+export const gestorProcedure = protectedProcedure.use(hasRoles(['ADMIN', 'GESTOR']));
+export const docentProcedure = protectedProcedure.use(hasRoles(['ADMIN', 'GESTOR', 'DOCENTE']));
