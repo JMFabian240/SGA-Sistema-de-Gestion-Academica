@@ -85,6 +85,20 @@ export const cerrarCicloGrupoSchema = z.object({
   }))
 });
 
+// Inicialización Selectiva de Grupos
+export const getGradosParaInicializarSchema = z.object({
+  cicloId: z.number().int().positive()
+});
+
+export const inicializarGruposSeleccionadosSchema = z.object({
+  cicloId: z.number().int().positive(),
+  grupos: z.array(z.object({
+    gradoId: z.number().int().positive(),
+    nombre: z.string().min(1, 'El nombre es requerido').max(10),
+    cupoMaximo: z.number().int().positive().default(30)
+  }))
+});
+
 // Types
 export type CreateNivelEducativoInput = z.infer<typeof createNivelEducativoSchema>;
 export type UpdateNivelEducativoInput = z.infer<typeof updateNivelEducativoSchema>;
@@ -100,3 +114,5 @@ export type AssignMateriaGrupoInput = z.infer<typeof assignMateriaGrupoSchema>;
 export type UnassignMateriaGrupoInput = z.infer<typeof unassignMateriaGrupoSchema>;
 export type GetAlumnosCierreGrupoInput = z.infer<typeof getAlumnosCierreGrupoSchema>;
 export type CerrarCicloGrupoInput = z.infer<typeof cerrarCicloGrupoSchema>;
+export type GetGradosParaInicializarInput = z.infer<typeof getGradosParaInicializarSchema>;
+export type InicializarGruposSeleccionadosInput = z.infer<typeof inicializarGruposSeleccionadosSchema>;

@@ -8,7 +8,8 @@ import {
   createMateriaSchema, updateMateriaSchema,
   createGrupoSchema, updateGrupoSchema,
   assignMateriaGrupoSchema, unassignMateriaGrupoSchema,
-  getAlumnosCierreGrupoSchema, cerrarCicloGrupoSchema
+  getAlumnosCierreGrupoSchema, cerrarCicloGrupoSchema,
+  getGradosParaInicializarSchema, inicializarGruposSeleccionadosSchema
 } from './grupos.schema';
 
 export const gruposRouter = router({
@@ -49,4 +50,12 @@ export const gruposRouter = router({
   unassignMateria: gestorProcedure.input(unassignMateriaGrupoSchema).mutation(({ input }) => GruposService.unassignMateriaFromGrupo(input)),
   getAlumnosCierreGrupo: gestorProcedure.input(getAlumnosCierreGrupoSchema).query(({ input }) => GruposService.getAlumnosCierreGrupo(input.grupoId)),
   cerrarCicloGrupo: gestorProcedure.input(cerrarCicloGrupoSchema).mutation(({ input }) => GruposService.cerrarCicloGrupo(input)),
+
+  // --- Inicialización Selectiva de Grupos ---
+  getGradosParaInicializar: docentProcedure
+    .input(getGradosParaInicializarSchema)
+    .query(({ input }) => GruposService.getGradosParaInicializar(input.cicloId)),
+  inicializarGruposSeleccionados: gestorProcedure
+    .input(inicializarGruposSeleccionadosSchema)
+    .mutation(({ input }) => GruposService.inicializarGruposSeleccionados(input)),
 });

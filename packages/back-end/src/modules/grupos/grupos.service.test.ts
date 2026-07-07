@@ -171,4 +171,71 @@ describe('GruposService (Unit)', () => {
       expect(prismaMock.grupoMateria.delete).toHaveBeenCalledWith({ where: { grupoMateriaId: 1 } });
     });
   });
+
+  describe('Inicialización Selectiva de Grupos', () => {
+    it('getGradosParaInicializar debe retornar grados no inicializados aún', async () => {
+      prismaMock.cicloEscolar.findUnique.mockResolvedValue({
+        cicloId: 1,
+        gradosPermitidos: { "1": [1, 2] }
+      } as any);
+
+      prismaMock.grado.findMany.mockResolvedValue([
+        { gradoId: 1, numero: 1, nombre: '1º Grado', nivelId: 1, nivel: { nombre: 'Primaria' } },
+        { gradoId: 2, numero: 2, nombre: '2º Grado', nivelId: 1, nivel: { nombre: 'Primaria' } }
+      ] as any);
+
+      // Simular que el gradoId 1 ya tiene grupo en el ciclo 1
+      prismaMock.grupo.findMany.mockResolvedValue([
+        { gradoId: 1 }
+      ] as any);
+
+      const result = await GruposService.getGradosParaInicializar(1);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(expect.objectContaining({
+        gradoId: 2,
+        nombreGrado: '2º Grado',
+        nombreNivel: 'Primaria',
+        nombrePropuesto: '2A'
+      }));
+    });
+
+    it('getGradosParaInicializar debe lanzar error si no existe el ciclo', async () => {
+      prismaMock.cicloEscolar.findUnique.mockResolvedValue(null);
+      await expect(GruposService.getGradosParaInicializar(1)).rejects.toThrowError(
+        'Ciclo escolar no encontrado.'
+      );
+    });
+
+    it('inicializarGruposSeleccionados debe crear los grupos en transacción', async () => {
+      prismaMock.cicloEscolar.findUnique.mockResolvedValue({ cicloId: 1 } as any);
+      
+      // Mock de transacción
+      prismaMock.$transaction.mockImplementation(async (cb) => {
+        return cb(prismaMock);
+      });
+
+      prismaMock.grado.findUnique.mockResolvedValue({ gradoId: 2, nivelId: 1 } as any);
+      prismaMock.grupo.findFirst.mockResolvedValue(null); // No duplicado
+      prismaMock.grupo.create.mockResolvedValue({} as any);
+
+      const result = await GruposService.inicializarGruposSeleccionados({
+        cicloId: 1,
+        grupos: [
+          { gradoId: 2, nombre: '2A', cupoMaximo: 25 }
+        ]
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.count).toBe(1);
+      expect(prismaMock.grupo.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          cicloId: 1,
+          gradoId: 2,
+          nombre: '2A',
+          cupoMaximo: 25
+        })
+      }));
+    });
+  });
 });

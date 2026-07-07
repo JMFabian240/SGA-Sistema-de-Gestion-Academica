@@ -7,7 +7,8 @@ import type {
   CreateMateriaInput, UpdateMateriaInput,
   CreateGrupoInput, UpdateGrupoInput,
   AssignMateriaGrupoInput, UnassignMateriaGrupoInput,
-  CerrarCicloGrupoInput
+  CerrarCicloGrupoInput,
+  GetGradosParaInicializarInput, InicializarGruposSeleccionadosInput
 } from './grupos.schema';
 import { GruposRepository } from './grupos.repository';
 
@@ -318,4 +319,127 @@ export class GruposService {
       return { success: true };
     });
   }
+
+  // --- Inicialización Selectiva de Grupos ---
+  static async getGradosParaInicializar(cicloId: number) {
+    const ciclo = await prisma.cicloEscolar.findUnique({
+      where: { cicloId, eliminadoEn: null }
+    });
+
+    if (!ciclo) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Ciclo escolar no encontrado.'
+      });
+    }
+
+    const gradosPermitidos = ciclo.gradosPermitidos as Record<string, number[]> | null;
+    if (!gradosPermitidos || Object.keys(gradosPermitidos).length === 0) {
+      return [];
+    }
+
+    // Aplanar todos los grados permitidos en un array simple de IDs
+    const gradoIds = Object.values(gradosPermitidos).flat();
+
+    // Obtener los grados de la base de datos
+    const grados = await prisma.grado.findMany({
+      where: {
+        gradoId: { in: gradoIds },
+        eliminadoEn: null
+      },
+      include: {
+        nivel: true
+      },
+      orderBy: { numero: 'asc' }
+    });
+
+    // Consultar grupos que ya existen para este ciclo
+    const gruposExistentes = await prisma.grupo.findMany({
+      where: {
+        cicloId,
+        eliminadoEn: null
+      },
+      select: { gradoId: true }
+    });
+
+    const gradoIdsExistentes = new Set(gruposExistentes.map(g => g.gradoId));
+
+    // Filtrar los grados que ya tienen un grupo creado y mapear al formato deseado
+    const gradosDisponibles = grados
+      .filter(g => !gradoIdsExistentes.has(g.gradoId))
+      .map(grado => ({
+        gradoId: grado.gradoId,
+        nombreGrado: grado.nombre,
+        nivelId: grado.nivelId,
+        nombreNivel: grado.nivel.nombre,
+        nombrePropuesto: `${grado.numero}A`
+      }));
+
+    return gradosDisponibles;
+  }
+
+  static async inicializarGruposSeleccionados(input: InicializarGruposSeleccionadosInput) {
+    const { cicloId, grupos } = input;
+
+    const ciclo = await prisma.cicloEscolar.findUnique({
+      where: { cicloId, eliminadoEn: null }
+    });
+
+    if (!ciclo) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Ciclo escolar no encontrado.'
+      });
+    }
+
+    if (grupos.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    // Iniciar transacción
+    return prisma.$transaction(async (tx) => {
+      let count = 0;
+      for (const item of grupos) {
+        // Obtener el grado para saber el nivelId correspondiente
+        const grado = await tx.grado.findUnique({
+          where: { gradoId: item.gradoId, eliminadoEn: null }
+        });
+
+        if (!grado) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Grado con ID ${item.gradoId} no encontrado o eliminado.`
+          });
+        }
+
+        // Validar si ya existe el grupo en ese ciclo
+        const existente = await tx.grupo.findFirst({
+          where: {
+            cicloId,
+            gradoId: item.gradoId,
+            nombre: item.nombre,
+            eliminadoEn: null
+          }
+        });
+
+        if (existente) {
+          continue; // Omitir duplicados si ya existen
+        }
+
+        await tx.grupo.create({
+          data: {
+            nivelId: grado.nivelId,
+            cicloId,
+            gradoId: item.gradoId,
+            nombre: item.nombre,
+            cupoMaximo: item.cupoMaximo ?? 30
+          }
+        });
+        count++;
+      }
+
+      return { success: true, count };
+    });
+  }
 }
+
