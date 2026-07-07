@@ -8,7 +8,7 @@ import type {
   CreateGrupoInput, UpdateGrupoInput,
   AssignMateriaGrupoInput, UnassignMateriaGrupoInput,
   CerrarCicloGrupoInput,
-  GetGradosParaInicializarInput, InicializarGruposSeleccionadosInput
+  InicializarGruposSeleccionadosInput
 } from './grupos.schema';
 import { GruposRepository } from './grupos.repository';
 

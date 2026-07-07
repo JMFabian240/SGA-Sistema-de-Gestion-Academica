@@ -8,6 +8,7 @@ import { LoginPage } from '../modules/auth/pages/LoginPage';
 import { AlumnosPage } from '../modules/alumnos/pages/AlumnosPage';
 import { TutoresPage } from '../modules/tutores/pages/TutoresPage';
 import { ConfiguracionPage } from '../modules/configuracion/pages/ConfiguracionPage';
+import { GruposListPage } from '../modules/grupos/pages/GruposListPage';
 
 
 export const router = createBrowserRouter([
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: 'alumnos', element: <AlumnosPage /> },
       { path: 'tutores', element: <TutoresPage /> },
+      { path: 'grupos', element: <GruposListPage /> },
       { path: 'configuracion', element: <ConfiguracionPage /> },
       // Aquí se irán registrando las rutas de cada módulo (modules/pagos/...)
     ],

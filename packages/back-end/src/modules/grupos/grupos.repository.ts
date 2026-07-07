@@ -118,6 +118,7 @@ export class GruposRepository {
   static async getMaterias() {
     return prisma.materia.findMany({
       where: { eliminadoEn: null },
+      include: { grado: true },
       orderBy: { nombre: 'asc' }
     });
   }
