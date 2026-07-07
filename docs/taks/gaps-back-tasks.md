@@ -22,6 +22,9 @@ Este archivo contiene la lista de tareas técnicas pendientes para corregir los 
 - [ ] **Validación de Materias Reprobadas:**
   - [ ] Modificar `createInscripcion` para consultar las calificaciones del alumno del ciclo anterior inmediato.
   - [ ] Validar que no tenga ninguna calificación menor a 6.0 (curricular/extracurricular) o `NO_ACREDITADO` (taller). Si existe alguna, arrojar un `TRPCError` indicando la retención por reprobación.
+- [ ] **Validación de Grados Activos en Grupos:**
+  - [ ] Modificar `createGrupo` en `grupos.service.ts` para extraer el grado/semestre a partir de la propiedad `nombre` del grupo (ej. "1A" -> 1).
+  - [ ] Validar que el grado/semestre extraído esté habilitado/activo dentro de la propiedad `gradosPermitidos` del ciclo escolar asociado. Si no está permitido, lanzar un error descriptivo para impedir la creación.
 
 ## 4. Módulo de Pagos (Convenios de Pago)
 - [ ] **Migración de Base de Datos:**

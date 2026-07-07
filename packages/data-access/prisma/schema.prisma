@@ -236,6 +236,7 @@ model CicloEscolar {
   fechaFin      DateTime  @map("fecha_fin") @db.Date
   activo        Boolean?  @default(false)
   periodicidad  String    @default("ANUAL") @db.VarChar(15)
+  gradosPermitidos Json?   @map("grados_permitidos")
   creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
   actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
   eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
@@ -260,6 +261,7 @@ model Grupo {
   creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
   actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
   eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
+  cerrado       Boolean?  @default(false)
 
   nivel         NivelEducativo @relation(fields: [nivelId], references: [nivelId])
   ciclo         CicloEscolar   @relation(fields: [cicloId], references: [cicloId])

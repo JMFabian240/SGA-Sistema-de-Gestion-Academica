@@ -144,6 +144,111 @@ describe('Grupos Module (Functional)', () => {
       expect(list.length).toBe(1);
       expect(list[0].cicloId).toBe(c1.cicloId);
     });
+
+    it('debería persistir y actualizar el campo gradosPermitidos en un ciclo escolar', async () => {
+      const config = {
+        PRI: [1, 2, 3, 4, 5, 6],
+        BAC: [1, 3, 5]
+      };
+
+      // 1. Crear un Ciclo con gradosPermitidos
+      const c = await caller.grupos.createCiclo({
+        nombre: '2026-Config',
+        fechaInicio: new Date('2026-08-01T00:00:00.000Z').toISOString(),
+        fechaFin: new Date('2027-06-30T00:00:00.000Z').toISOString(),
+        activo: true,
+        gradosPermitidos: config
+      });
+      expect(c.gradosPermitidos).toEqual(config);
+
+      // 2. Verificar en la base de datos
+      const dbC = await prisma.cicloEscolar.findUnique({ where: { cicloId: c.cicloId } });
+      expect(dbC?.gradosPermitidos).toEqual(config);
+
+      // 3. Actualizar gradosPermitidos
+      const newConfig = {
+        BAC: [2, 4, 6]
+      };
+      const updated = await caller.grupos.updateCiclo({
+        cicloId: c.cicloId,
+        gradosPermitidos: newConfig
+      });
+      expect(updated.gradosPermitidos).toEqual(newConfig);
+
+      const dbUpdated = await prisma.cicloEscolar.findUnique({ where: { cicloId: c.cicloId } });
+      expect(dbUpdated?.gradosPermitidos).toEqual(newConfig);
+    });
+
+    it('debería soportar la coexistencia de un ciclo activo de cada periodicidad (ANUAL y SEMESTRAL) en paralelo', async () => {
+      // 1. Crear un Ciclo Anual Activo
+      const anual1 = await caller.grupos.createCiclo({
+        nombre: 'Anual-Activo-1',
+        fechaInicio: new Date('2026-08-01T00:00:00.000Z').toISOString(),
+        fechaFin: new Date('2027-07-31T00:00:00.000Z').toISOString(),
+        activo: true,
+        periodicidad: 'ANUAL'
+      });
+      expect(anual1.activo).toBe(true);
+
+      // 2. Crear un Ciclo Semestral Activo (debería coexistir en paralelo sin desactivar el anual)
+      const semestral1 = await caller.grupos.createCiclo({
+        nombre: 'Semestral-Activo-1',
+        fechaInicio: new Date('2026-08-01T00:00:00.000Z').toISOString(),
+        fechaFin: new Date('2027-01-31T00:00:00.000Z').toISOString(),
+        activo: true,
+        periodicidad: 'SEMESTRAL'
+      });
+      expect(semestral1.activo).toBe(true);
+
+      // Verificar en la BD que ambos estén activos en paralelo
+      let dbAnual1 = await prisma.cicloEscolar.findUnique({ where: { cicloId: anual1.cicloId } });
+      let dbSemestral1 = await prisma.cicloEscolar.findUnique({ where: { cicloId: semestral1.cicloId } });
+      expect(dbAnual1?.activo).toBe(true);
+      expect(dbSemestral1?.activo).toBe(true);
+
+      // 3. Crear un nuevo Ciclo Anual Activo (debería desactivar anual1 pero mantener semestral1 activo)
+      const anual2 = await caller.grupos.createCiclo({
+        nombre: 'Anual-Activo-2',
+        fechaInicio: new Date('2027-08-01T00:00:00.000Z').toISOString(),
+        fechaFin: new Date('2028-07-31T00:00:00.000Z').toISOString(),
+        activo: true,
+        periodicidad: 'ANUAL'
+      });
+      expect(anual2.activo).toBe(true);
+
+      dbAnual1 = await prisma.cicloEscolar.findUnique({ where: { cicloId: anual1.cicloId } });
+      let dbAnual2 = await prisma.cicloEscolar.findUnique({ where: { cicloId: anual2.cicloId } });
+      dbSemestral1 = await prisma.cicloEscolar.findUnique({ where: { cicloId: semestral1.cicloId } });
+
+      expect(dbAnual1?.activo).toBe(false); // Desactivado por nuevo anual
+      expect(dbAnual2?.activo).toBe(true);  // Activo
+      expect(dbSemestral1?.activo).toBe(true); // Se mantiene activo por ser de otra periodicidad
+
+      // 4. Crear un Ciclo Semestral Inactivo
+      const semestral2 = await caller.grupos.createCiclo({
+        nombre: 'Semestral-Inactivo-2',
+        fechaInicio: new Date('2027-02-01T00:00:00.000Z').toISOString(),
+        fechaFin: new Date('2027-07-31T00:00:00.000Z').toISOString(),
+        activo: false,
+        periodicidad: 'SEMESTRAL'
+      });
+      expect(semestral2.activo).toBe(false);
+
+      // 5. Activar semestral2 mediante actualización (debería desactivar semestral1, pero mantener anual2 activo)
+      const updatedSemestral2 = await caller.grupos.updateCiclo({
+        cicloId: semestral2.cicloId,
+        activo: true
+      });
+      expect(updatedSemestral2.activo).toBe(true);
+
+      dbSemestral1 = await prisma.cicloEscolar.findUnique({ where: { cicloId: semestral1.cicloId } });
+      let dbSemestral2 = await prisma.cicloEscolar.findUnique({ where: { cicloId: semestral2.cicloId } });
+      dbAnual2 = await prisma.cicloEscolar.findUnique({ where: { cicloId: anual2.cicloId } });
+
+      expect(dbSemestral1?.activo).toBe(false); // Desactivado
+      expect(dbSemestral2?.activo).toBe(true);  // Activo
+      expect(dbAnual2?.activo).toBe(true);      // Se mantiene activo
+    });
   });
 
   describe('RF-3: Materias', () => {

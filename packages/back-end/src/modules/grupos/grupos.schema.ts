@@ -18,7 +18,8 @@ export const createCicloEscolarSchema = z.object({
   fechaInicio: z.string().datetime({ message: 'Formato de fecha inválido' }),
   fechaFin: z.string().datetime({ message: 'Formato de fecha inválido' }),
   activo: z.boolean().optional(),
-  periodicidad: z.enum(['ANUAL', 'SEMESTRAL']).optional()
+  periodicidad: z.enum(['ANUAL', 'SEMESTRAL']).optional(),
+  gradosPermitidos: z.record(z.array(z.number().int().positive())).optional()
 });
 
 export const updateCicloEscolarSchema = createCicloEscolarSchema.partial().extend({
@@ -58,6 +59,19 @@ export const unassignMateriaGrupoSchema = z.object({
   grupoMateriaId: z.number().int().positive()
 });
 
+// Cierre de Grupo
+export const getAlumnosCierreGrupoSchema = z.object({
+  grupoId: z.number().int().positive()
+});
+
+export const cerrarCicloGrupoSchema = z.object({
+  grupoId: z.number().int().positive(),
+  promociones: z.array(z.object({
+    alumnoId: z.number().int().positive(),
+    promover: z.boolean()
+  }))
+});
+
 // Types
 export type CreateNivelEducativoInput = z.infer<typeof createNivelEducativoSchema>;
 export type UpdateNivelEducativoInput = z.infer<typeof updateNivelEducativoSchema>;
@@ -69,3 +83,5 @@ export type CreateGrupoInput = z.infer<typeof createGrupoSchema>;
 export type UpdateGrupoInput = z.infer<typeof updateGrupoSchema>;
 export type AssignMateriaGrupoInput = z.infer<typeof assignMateriaGrupoSchema>;
 export type UnassignMateriaGrupoInput = z.infer<typeof unassignMateriaGrupoSchema>;
+export type GetAlumnosCierreGrupoInput = z.infer<typeof getAlumnosCierreGrupoSchema>;
+export type CerrarCicloGrupoInput = z.infer<typeof cerrarCicloGrupoSchema>;

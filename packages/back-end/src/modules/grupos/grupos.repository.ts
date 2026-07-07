@@ -36,6 +36,17 @@ export class GruposRepository {
   }
 
   static async createCiclo(data: Prisma.CicloEscolarUncheckedCreateInput) {
+    if (data.activo) {
+      const periodicidad = data.periodicidad || 'ANUAL';
+      const [_, newCiclo] = await prisma.$transaction([
+        prisma.cicloEscolar.updateMany({
+          where: { activo: true, periodicidad, eliminadoEn: null } as any,
+          data: { activo: false, actualizadoEn: new Date() }
+        }),
+        prisma.cicloEscolar.create({ data })
+      ]);
+      return newCiclo;
+    }
     return prisma.cicloEscolar.create({ data });
   }
 
@@ -44,11 +55,12 @@ export class GruposRepository {
       where: { cicloId },
       select: { periodicidad: true } as any
     }) as any;
-    const periodicidad = ciclo?.periodicidad || 'ANUAL';
+    
+    const periodicidad = (data.periodicidad as string) || ciclo?.periodicidad || 'ANUAL';
 
     return prisma.$transaction([
       prisma.cicloEscolar.updateMany({
-        where: { activo: true, periodicidad } as any,
+        where: { activo: true, periodicidad, eliminadoEn: null } as any,
         data: { activo: false, actualizadoEn: new Date() }
       }),
       prisma.cicloEscolar.update({
@@ -141,6 +153,13 @@ export class GruposRepository {
     return prisma.grupo.update({
       where: { grupoId },
       data: { eliminadoEn: new Date() }
+    });
+  }
+
+  static async findGrupoWithCiclo(grupoId: number) {
+    return prisma.grupo.findUnique({
+      where: { grupoId },
+      include: { ciclo: true }
     });
   }
 

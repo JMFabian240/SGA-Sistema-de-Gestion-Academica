@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { CalificacionesRepository } from './calificaciones.repository';
+import { prisma } from '@sga/data-access';
 import type { 
   GetCalificacionesGrupoInput, 
   GetCalificacionesAlumnoInput, 
@@ -32,6 +33,18 @@ export class CalificacionesService {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Materia/Grupo no encontrado' });
     }
 
+    // Verificar si el grupo está cerrado
+    const grupo = await prisma.grupo.findUnique({
+      where: { grupoId: grupoMateria.grupoId },
+      select: { cerrado: true } as any
+    }) as any;
+    if (grupo?.cerrado) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'No se pueden modificar calificaciones de un grupo cuyo ciclo escolar ya está cerrado.'
+      });
+    }
+
     const existente = await CalificacionesRepository.findCalificacionExistente(
       input.alumnoId, 
       input.grupoMateriaId, 
@@ -51,6 +64,20 @@ export class CalificacionesService {
 
     if (!calif) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Calificación no encontrada' });
+    }
+
+    const grupoMateria = await CalificacionesRepository.findGrupoMateria(calif.grupoMateriaId);
+    if (grupoMateria) {
+      const grupo = await prisma.grupo.findUnique({
+        where: { grupoId: grupoMateria.grupoId },
+        select: { cerrado: true } as any
+      }) as any;
+      if (grupo?.cerrado) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'No se pueden eliminar calificaciones de un grupo cuyo ciclo escolar ya está cerrado.'
+        });
+      }
     }
 
     // Encapsulando el Hard Delete

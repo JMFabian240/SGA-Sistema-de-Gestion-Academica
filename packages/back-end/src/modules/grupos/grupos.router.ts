@@ -6,7 +6,8 @@ import {
   createCicloEscolarSchema, updateCicloEscolarSchema,
   createMateriaSchema, updateMateriaSchema,
   createGrupoSchema, updateGrupoSchema,
-  assignMateriaGrupoSchema, unassignMateriaGrupoSchema
+  assignMateriaGrupoSchema, unassignMateriaGrupoSchema,
+  getAlumnosCierreGrupoSchema, cerrarCicloGrupoSchema
 } from './grupos.schema';
 
 export const gruposRouter = router({
@@ -39,4 +40,6 @@ export const gruposRouter = router({
   // --- Asignación Materias a Grupos ---
   assignMateria: gestorProcedure.input(assignMateriaGrupoSchema).mutation(({ input }) => GruposService.assignMateriaToGrupo(input)),
   unassignMateria: gestorProcedure.input(unassignMateriaGrupoSchema).mutation(({ input }) => GruposService.unassignMateriaFromGrupo(input)),
+  getAlumnosCierreGrupo: gestorProcedure.input(getAlumnosCierreGrupoSchema).query(({ input }) => GruposService.getAlumnosCierreGrupo(input.grupoId)),
+  cerrarCicloGrupo: gestorProcedure.input(cerrarCicloGrupoSchema).mutation(({ input }) => GruposService.cerrarCicloGrupo(input)),
 });
