@@ -60,6 +60,7 @@ export function ConfiguracionPage() {
   const [tarifaExisten, setTarifaExisten] = useState<Record<string, number>>({}); // maps key -> tarifaId
   const [guardandoTarifas, setGuardandoTarifas] = useState(false);
   const [tarifaSuccess, setTarifaSuccess] = useState(false);
+  const [editandoTarifas, setEditandoTarifas] = useState(false);
 
   // Set default selected cycle when list loads
   useEffect(() => {
@@ -77,7 +78,7 @@ export function ConfiguracionPage() {
 
       // Initialize all keys
       niveles.forEach((n: any) => {
-        ['INSCRIPCION', 'COLEGIATURA', 'MATERIAL', 'UNIFORME'].forEach((concepto) => {
+        ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].forEach((concepto) => {
           valores[`${n.nivelId}_${concepto}`] = '';
         });
       });
@@ -102,21 +103,47 @@ export function ConfiguracionPage() {
 
   const handleSaveTarifas = async () => {
     if (!selectedCicloId || !niveles) return;
+
+    // Validación de montos negativos o inválidos
+    let hasNegative = false;
+    let hasInvalid = false;
+    const conceptos = ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'];
+
+    for (const n of niveles) {
+      for (const c of conceptos) {
+        const key = `${n.nivelId}_${c}`;
+        const val = tarifaValores[key];
+        if (!val) continue;
+        const monto = Number(val);
+        if (isNaN(monto)) {
+          hasInvalid = true;
+        } else if (monto < 0) {
+          hasNegative = true;
+        }
+      }
+    }
+
+    if (hasInvalid) {
+      alert("Error de validación: Se han ingresado valores numéricos inválidos.");
+      return;
+    }
+
+    if (hasNegative) {
+      alert("Error de validación: No se permiten montos negativos.");
+      return;
+    }
+
     setGuardandoTarifas(true);
     setTarifaSuccess(false);
 
     try {
-      const conceptos = ['INSCRIPCION', 'COLEGIATURA', 'MATERIAL', 'UNIFORME'];
-      
       for (const n of niveles) {
         for (const c of conceptos) {
           const key = `${n.nivelId}_${c}`;
           const val = tarifaValores[key];
-          if (!val) continue; // Skip empty fields
+          if (!val) continue;
 
           const monto = Number(val);
-          if (isNaN(monto) || monto < 0) continue;
-
           const tarifaId = tarifaExisten[key];
 
           if (tarifaId) {
@@ -141,10 +168,11 @@ export function ConfiguracionPage() {
       }
 
       setTarifaSuccess(true);
+      setEditandoTarifas(false);
       utils.pagos.getTarifas.invalidate({ cicloId: selectedCicloId });
       setTimeout(() => setTarifaSuccess(false), 3000);
     } catch (err) {
-      alert('Ocurrió un error al guardar algunas tarifas.');
+      alert('Excepción: Ocurrió un error al guardar algunas tarifas.');
     } finally {
       setGuardandoTarifas(false);
     }
@@ -377,51 +405,29 @@ export function ConfiguracionPage() {
                         <tr className="border-b border-gray-100 text-gray-600 text-xs uppercase">
                           <th className="py-3 font-semibold">Nivel Educativo</th>
                           <th className="py-3 font-semibold text-center">Inscripción ($)</th>
-                          <th className="py-3 font-semibold text-center">Colegiatura ($)</th>
+                          <th className="py-3 font-semibold text-center">Arancel ($)</th>
                           <th className="py-3 font-semibold text-center">Materiales ($)</th>
+                          <th className="py-3 font-semibold text-center">Libros ($)</th>
                           <th className="py-3 font-semibold text-center">Uniforme ($)</th>
+                          <th className="py-3 font-semibold text-center">Colegiatura ($)</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
                         {niveles?.map((n: any) => (
                           <tr key={n.nivelId}>
                             <td className="py-4 font-bold text-navy-800">{n.nombre}</td>
-                            <td className="py-4 text-center">
-                              <input
-                                type="number"
-                                value={tarifaValores[`${n.nivelId}_INSCRIPCION`] || ''}
-                                onChange={(e) => handleTarifaChange(n.nivelId, 'INSCRIPCION', e.target.value)}
-                                className="w-24 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium"
-                                placeholder="0.00"
-                              />
-                            </td>
-                            <td className="py-4 text-center">
-                              <input
-                                type="number"
-                                value={tarifaValores[`${n.nivelId}_COLEGIATURA`] || ''}
-                                onChange={(e) => handleTarifaChange(n.nivelId, 'COLEGIATURA', e.target.value)}
-                                className="w-24 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium"
-                                placeholder="0.00"
-                              />
-                            </td>
-                            <td className="py-4 text-center">
-                              <input
-                                type="number"
-                                value={tarifaValores[`${n.nivelId}_MATERIAL`] || ''}
-                                onChange={(e) => handleTarifaChange(n.nivelId, 'MATERIAL', e.target.value)}
-                                className="w-24 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium"
-                                placeholder="0.00"
-                              />
-                            </td>
-                            <td className="py-4 text-center">
-                              <input
-                                type="number"
-                                value={tarifaValores[`${n.nivelId}_UNIFORME`] || ''}
-                                onChange={(e) => handleTarifaChange(n.nivelId, 'UNIFORME', e.target.value)}
-                                className="w-24 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium"
-                                placeholder="0.00"
-                              />
-                            </td>
+                            {['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].map((c) => (
+                              <td key={c} className="py-4 text-center">
+                                <input
+                                  type="number"
+                                  disabled={!editandoTarifas}
+                                  value={tarifaValores[`${n.nivelId}_${c}`] || ''}
+                                  onChange={(e) => handleTarifaChange(n.nivelId, c, e.target.value)}
+                                  className="w-20 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium disabled:bg-gray-50 disabled:text-gray-400"
+                                  placeholder="0.00"
+                                />
+                              </td>
+                            ))}
                           </tr>
                         ))}
                       </tbody>
@@ -435,13 +441,26 @@ export function ConfiguracionPage() {
                       <Check size={16} /> Tarifas guardadas con éxito
                     </span>
                   )}
-                  <button
-                    onClick={handleSaveTarifas}
-                    disabled={guardandoTarifas || loadingTarifas}
-                    className="px-6 py-2 bg-navy-500 text-white rounded-xl font-medium hover:bg-navy-600 disabled:opacity-50 transition-all cursor-pointer"
-                  >
-                    {guardandoTarifas ? 'Guardando...' : 'Guardar Tarifas'}
-                  </button>
+                  {editandoTarifas ? (
+                    <Button
+                      onClick={handleSaveTarifas}
+                      isLoading={guardandoTarifas}
+                      disabled={loadingTarifas}
+                      variant="primary"
+                      className="rounded-xl px-6 py-2 font-medium"
+                    >
+                      Guardar Montos
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setEditandoTarifas(true)}
+                      disabled={loadingTarifas}
+                      variant="primary"
+                      className="rounded-xl px-6 py-2 font-medium"
+                    >
+                      Modificar Montos
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

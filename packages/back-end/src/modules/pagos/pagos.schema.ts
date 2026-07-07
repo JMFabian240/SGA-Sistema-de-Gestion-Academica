@@ -5,7 +5,7 @@ export const createTarifaSchema = z.object({
   cicloId: z.number().int().positive(),
   nivelId: z.number().int().positive(),
   concepto: z.string().min(1).max(15),
-  monto: z.number().positive(),
+  monto: z.number().nonnegative('El monto no puede ser negativo'),
   descripcion: z.string().optional(),
   activa: z.boolean().optional()
 });
