@@ -43,11 +43,10 @@ export function ConfiguracionPage() {
     }
   };
 
-  // --- Tarifas de Cobro ---
+  // --- Tarifas de Cobro (ANUAL) ---
   const [selectedCicloId, setSelectedCicloId] = useState<number | undefined>(undefined);
   const { data: niveles, isLoading: loadingNiveles } = trpc.grupos.getNiveles.useQuery();
   
-  // Fetch rates for the selected cycle
   const { data: tarifas, isLoading: loadingTarifas } = trpc.pagos.getTarifas.useQuery(
     selectedCicloId ? { cicloId: selectedCicloId } : undefined,
     { enabled: !!selectedCicloId }
@@ -57,55 +56,97 @@ export function ConfiguracionPage() {
   const updateTarifaMutation = trpc.pagos.updateTarifa.useMutation();
 
   const [tarifaValores, setTarifaValores] = useState<Record<string, string>>({});
-  const [tarifaExisten, setTarifaExisten] = useState<Record<string, number>>({}); // maps key -> tarifaId
+  const [tarifaExisten, setTarifaExisten] = useState<Record<string, number>>({});
   const [guardandoTarifas, setGuardandoTarifas] = useState(false);
   const [tarifaSuccess, setTarifaSuccess] = useState(false);
   const [editandoTarifas, setEditandoTarifas] = useState(false);
 
-  // Filtrado de niveles según periodicidad del ciclo
-  const selectedCiclo = ciclos?.find((c: any) => c.cicloId === selectedCicloId);
-  const isSemestral = selectedCiclo?.periodicidad === 'SEMESTRAL';
-  const filteredNiveles = niveles?.filter((n: any) => 
-    isSemestral ? n.codigo === 'BAC' : n.codigo !== 'BAC'
+  // --- Tarifas de Cobro (SEMESTRAL) ---
+  const [selectedCicloSemId, setSelectedCicloSemId] = useState<number | undefined>(undefined);
+
+  const { data: tarifasSem, isLoading: loadingTarifasSem } = trpc.pagos.getTarifas.useQuery(
+    selectedCicloSemId ? { cicloId: selectedCicloSemId } : undefined,
+    { enabled: !!selectedCicloSemId }
   );
 
-  // Desactivar modo edición al cambiar de ciclo
+  const [tarifaValoresSem, setTarifaValoresSem] = useState<Record<string, string>>({});
+  const [tarifaExistenSem, setTarifaExistenSem] = useState<Record<string, number>>({});
+  const [guardandoTarifasSem, setGuardandoTarifasSem] = useState(false);
+  const [tarifaSuccessSem, setTarifaSuccessSem] = useState(false);
+  const [editandoTarifasSem, setEditandoTarifasSem] = useState(false);
+
+  // Listas de ciclos filtradas por periodicidad
+  const ciclosAnuales = ciclos?.filter((c: any) => c.periodicidad !== 'SEMESTRAL') || [];
+  const ciclosSemestrales = ciclos?.filter((c: any) => c.periodicidad === 'SEMESTRAL') || [];
+
+  // Niveles filtrados
+  const nivelesAnuales = niveles?.filter((n: any) => n.codigo !== 'BAC');
+  const nivelesSemestrales = niveles?.filter((n: any) => n.codigo === 'BAC');
+
+  const selectedCiclo = ciclos?.find((c: any) => c.cicloId === selectedCicloId);
+  const selectedCicloSem = ciclos?.find((c: any) => c.cicloId === selectedCicloSemId);
+
+  // --- Efectos ANUAL ---
   useEffect(() => {
     setEditandoTarifas(false);
   }, [selectedCicloId]);
 
-  // Set default selected cycle when list loads
   useEffect(() => {
-    if (ciclos && ciclos.length > 0 && !selectedCicloId) {
-      const active = ciclos.find((c: any) => c.activo);
-      setSelectedCicloId(active ? active.cicloId : ciclos[0].cicloId);
+    if (ciclosAnuales.length > 0 && !selectedCicloId) {
+      const active = ciclosAnuales.find((c: any) => c.activo);
+      setSelectedCicloId(active ? active.cicloId : ciclosAnuales[0].cicloId);
     }
   }, [ciclos, selectedCicloId]);
 
-  // Load existing rates into form values
   useEffect(() => {
-    if (tarifas && niveles) {
+    if (tarifas && nivelesAnuales) {
       const valores: Record<string, string> = {};
       const existen: Record<string, number> = {};
-
-      // Initialize all keys
-      niveles.forEach((n: any) => {
+      nivelesAnuales.forEach((n: any) => {
         ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].forEach((concepto) => {
           valores[`${n.nivelId}_${concepto}`] = '';
         });
       });
-
-      // Populate from existing database rates
       tarifas.forEach((t: any) => {
         valores[`${t.nivelId}_${t.concepto}`] = String(t.monto);
         existen[`${t.nivelId}_${t.concepto}`] = t.tarifaId;
       });
-
       setTarifaValores(valores);
       setTarifaExisten(existen);
     }
   }, [tarifas, niveles]);
 
+  // --- Efectos SEMESTRAL ---
+  useEffect(() => {
+    setEditandoTarifasSem(false);
+  }, [selectedCicloSemId]);
+
+  useEffect(() => {
+    if (ciclosSemestrales.length > 0 && !selectedCicloSemId) {
+      const active = ciclosSemestrales.find((c: any) => c.activo);
+      setSelectedCicloSemId(active ? active.cicloId : ciclosSemestrales[0].cicloId);
+    }
+  }, [ciclos, selectedCicloSemId]);
+
+  useEffect(() => {
+    if (tarifasSem && nivelesSemestrales) {
+      const valores: Record<string, string> = {};
+      const existen: Record<string, number> = {};
+      nivelesSemestrales.forEach((n: any) => {
+        ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].forEach((concepto) => {
+          valores[`${n.nivelId}_${concepto}`] = '';
+        });
+      });
+      tarifasSem.forEach((t: any) => {
+        valores[`${t.nivelId}_${t.concepto}`] = String(t.monto);
+        existen[`${t.nivelId}_${t.concepto}`] = t.tarifaId;
+      });
+      setTarifaValoresSem(valores);
+      setTarifaExistenSem(existen);
+    }
+  }, [tarifasSem, niveles]);
+
+  // --- Handlers ANUAL ---
   const handleTarifaChange = (nivelId: number, concepto: string, value: string) => {
     setTarifaValores(prev => ({
       ...prev,
@@ -113,72 +154,46 @@ export function ConfiguracionPage() {
     }));
   };
 
-  const handleSaveTarifas = async () => {
-    if (!selectedCicloId || !filteredNiveles) return;
+  const handleTarifaChangeSem = (nivelId: number, concepto: string, value: string) => {
+    setTarifaValoresSem(prev => ({
+      ...prev,
+      [`${nivelId}_${concepto}`]: value
+    }));
+  };
 
-    // Validación de montos negativos o inválidos
+  const handleSaveTarifas = async () => {
+    if (!selectedCicloId || !nivelesAnuales) return;
+    const conceptos = ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'];
     let hasNegative = false;
     let hasInvalid = false;
-    const conceptos = ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'];
-
-    for (const n of filteredNiveles) {
+    for (const n of nivelesAnuales) {
       for (const c of conceptos) {
-        const key = `${n.nivelId}_${c}`;
-        const val = tarifaValores[key];
+        const val = tarifaValores[`${n.nivelId}_${c}`];
         if (!val) continue;
         const monto = Number(val);
-        if (isNaN(monto)) {
-          hasInvalid = true;
-        } else if (monto < 0) {
-          hasNegative = true;
-        }
+        if (isNaN(monto)) hasInvalid = true;
+        else if (monto < 0) hasNegative = true;
       }
     }
-
-    if (hasInvalid) {
-      alert("Error de validación: Se han ingresado valores numéricos inválidos.");
-      return;
-    }
-
-    if (hasNegative) {
-      alert("Error de validación: No se permiten montos negativos.");
-      return;
-    }
-
+    if (hasInvalid) { alert("Error de validación: Se han ingresado valores numéricos inválidos."); return; }
+    if (hasNegative) { alert("Error de validación: No se permiten montos negativos."); return; }
     setGuardandoTarifas(true);
     setTarifaSuccess(false);
-
     try {
-      for (const n of filteredNiveles) {
+      for (const n of nivelesAnuales) {
         for (const c of conceptos) {
           const key = `${n.nivelId}_${c}`;
           const val = tarifaValores[key];
           if (!val) continue;
-
           const monto = Number(val);
           const tarifaId = tarifaExisten[key];
-
           if (tarifaId) {
-            // Update existing
-            await updateTarifaMutation.mutateAsync({
-              tarifaId,
-              monto,
-              concepto: c,
-              cicloId: selectedCicloId,
-              nivelId: n.nivelId
-            });
+            await updateTarifaMutation.mutateAsync({ tarifaId, monto, concepto: c, cicloId: selectedCicloId, nivelId: n.nivelId });
           } else {
-            // Create new
-            await createTarifaMutation.mutateAsync({
-              cicloId: selectedCicloId,
-              nivelId: n.nivelId,
-              concepto: c,
-              monto
-            });
+            await createTarifaMutation.mutateAsync({ cicloId: selectedCicloId, nivelId: n.nivelId, concepto: c, monto });
           }
         }
       }
-
       setTarifaSuccess(true);
       setEditandoTarifas(false);
       utils.pagos.getTarifas.invalidate({ cicloId: selectedCicloId });
@@ -187,6 +202,50 @@ export function ConfiguracionPage() {
       alert('Excepción: Ocurrió un error al guardar algunas tarifas.');
     } finally {
       setGuardandoTarifas(false);
+    }
+  };
+
+  const handleSaveTarifasSem = async () => {
+    if (!selectedCicloSemId || !nivelesSemestrales) return;
+    const conceptos = ['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'];
+    let hasNegative = false;
+    let hasInvalid = false;
+    for (const n of nivelesSemestrales) {
+      for (const c of conceptos) {
+        const val = tarifaValoresSem[`${n.nivelId}_${c}`];
+        if (!val) continue;
+        const monto = Number(val);
+        if (isNaN(monto)) hasInvalid = true;
+        else if (monto < 0) hasNegative = true;
+      }
+    }
+    if (hasInvalid) { alert("Error de validación: Se han ingresado valores numéricos inválidos."); return; }
+    if (hasNegative) { alert("Error de validación: No se permiten montos negativos."); return; }
+    setGuardandoTarifasSem(true);
+    setTarifaSuccessSem(false);
+    try {
+      for (const n of nivelesSemestrales) {
+        for (const c of conceptos) {
+          const key = `${n.nivelId}_${c}`;
+          const val = tarifaValoresSem[key];
+          if (!val) continue;
+          const monto = Number(val);
+          const tarifaId = tarifaExistenSem[key];
+          if (tarifaId) {
+            await updateTarifaMutation.mutateAsync({ tarifaId, monto, concepto: c, cicloId: selectedCicloSemId, nivelId: n.nivelId });
+          } else {
+            await createTarifaMutation.mutateAsync({ cicloId: selectedCicloSemId, nivelId: n.nivelId, concepto: c, monto });
+          }
+        }
+      }
+      setTarifaSuccessSem(true);
+      setEditandoTarifasSem(false);
+      utils.pagos.getTarifas.invalidate({ cicloId: selectedCicloSemId });
+      setTimeout(() => setTarifaSuccessSem(false), 3000);
+    } catch (err) {
+      alert('Excepción: Ocurrió un error al guardar algunas tarifas semestrales.');
+    } finally {
+      setGuardandoTarifasSem(false);
     }
   };
 
@@ -381,104 +440,222 @@ export function ConfiguracionPage() {
         {activeTab === 'tarifas' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Grid de tarifas (Izquierda) */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="text-red-600" size={20} />
-                    <h3 className="font-bold text-navy-800 text-lg">Tarifas por Nivel Educativo</h3>
+            <div className="lg:col-span-2 space-y-6">
+              
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-8">
+                
+                {/* === SECCIÓN ANUAL === */}
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="text-red-600" size={20} />
+                      <h3 className="font-bold text-navy-800 text-lg">Tarifas por Nivel Educativo</h3>
+                      <span className="text-[10px] font-semibold uppercase bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-full">Ciclo Anual</span>
+                    </div>
+                    
+                    {/* Selector de Ciclo Anual */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 font-semibold uppercase">Ciclo Escolar:</span>
+                      <select
+                        value={selectedCicloId || ''}
+                        onChange={(e) => setSelectedCicloId(Number(e.target.value))}
+                        className="px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-sm focus:ring-2 focus:ring-navy-500 bg-white"
+                      >
+                        {ciclosAnuales.map((c: any) => (
+                          <option key={c.cicloId} value={c.cicloId}>
+                            {c.nombre} {c.activo ? '(Activo)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  
-                  {/* Selector de Ciclo */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 font-semibold uppercase">Ciclo Escolar:</span>
-                    <select
-                      value={selectedCicloId || ''}
-                      onChange={(e) => setSelectedCicloId(Number(e.target.value))}
-                      className="px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-sm focus:ring-2 focus:ring-navy-500 bg-white"
-                    >
-                      {ciclos?.map((c: any) => (
-                        <option key={c.cicloId} value={c.cicloId}>
-                          {c.nombre} {c.activo ? '(Activo)' : ''}
-                        </option>
-                      ))}
-                    </select>
+
+                  {ciclosAnuales.length === 0 ? (
+                    <div className="py-8 text-center text-gray-400 text-sm">
+                      No hay ciclos escolares anuales registrados.
+                    </div>
+                  ) : loadingNiveles || loadingTarifas ? (
+                    <div className="py-8 text-center text-gray-400 flex items-center justify-center gap-2">
+                      <RefreshCw className="animate-spin" size={18} /> Cargando tarifas financieras...
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead>
+                          <tr className="border-b border-gray-100 text-gray-600 text-xs uppercase">
+                            <th className="py-3 font-semibold">Nivel Educativo</th>
+                            <th className="py-3 font-semibold text-center">Inscripción ($)</th>
+                            <th className="py-3 font-semibold text-center">Arancel ($)</th>
+                            <th className="py-3 font-semibold text-center">Materiales ($)</th>
+                            <th className="py-3 font-semibold text-center">Libros ($)</th>
+                            <th className="py-3 font-semibold text-center">Uniforme ($)</th>
+                            <th className="py-3 font-semibold text-center">Colegiatura ($ / Mes)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {nivelesAnuales?.map((n: any) => (
+                            <tr key={n.nivelId}>
+                              <td className="py-4 font-bold text-navy-800">{n.nombre}</td>
+                              {['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].map((c) => (
+                                <td key={c} className="py-4 text-center">
+                                  <input
+                                    type="number"
+                                    disabled={!editandoTarifas}
+                                    value={tarifaValores[`${n.nivelId}_${c}`] || ''}
+                                    onChange={(e) => handleTarifaChange(n.nivelId, c, e.target.value)}
+                                    className="w-20 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium disabled:bg-gray-50 disabled:text-gray-400"
+                                    placeholder="0.00"
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 pt-2 items-center">
+                    {tarifaSuccess && (
+                      <span className="text-green-600 text-sm font-semibold flex items-center gap-1.5 animate-in fade-in">
+                        <Check size={16} /> Tarifas guardadas con éxito
+                      </span>
+                    )}
+                    {selectedCiclo?.activo ? (
+                      editandoTarifas ? (
+                        <Button
+                          onClick={handleSaveTarifas}
+                          isLoading={guardandoTarifas}
+                          disabled={loadingTarifas}
+                          variant="primary"
+                          className="rounded-xl px-6 py-2 font-medium"
+                        >
+                          Guardar Montos
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => setEditandoTarifas(true)}
+                          disabled={loadingTarifas}
+                          variant="primary"
+                          className="rounded-xl px-6 py-2 font-medium"
+                        >
+                          Modificar Montos
+                        </Button>
+                      )
+                    ) : (
+                      <span className="text-gray-400 text-xs font-semibold uppercase italic bg-gray-50 border border-gray-150 px-3 py-2 rounded-xl">
+                        Solo lectura (Ciclo Inactivo)
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {loadingNiveles || loadingTarifas ? (
-                  <div className="py-8 text-center text-gray-400 flex items-center justify-center gap-2">
-                    <RefreshCw className="animate-spin" size={18} /> Cargando tarifas financieras...
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead>
-                        <tr className="border-b border-gray-100 text-gray-600 text-xs uppercase">
-                          <th className="py-3 font-semibold">Nivel Educativo</th>
-                          <th className="py-3 font-semibold text-center">Inscripción ($)</th>
-                          <th className="py-3 font-semibold text-center">Arancel ($)</th>
-                          <th className="py-3 font-semibold text-center">Materiales ($)</th>
-                          <th className="py-3 font-semibold text-center">Libros ($)</th>
-                          <th className="py-3 font-semibold text-center">Uniforme ($)</th>
-                          <th className="py-3 font-semibold text-center">Colegiatura ($ / Mes)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {filteredNiveles?.map((n: any) => (
-                          <tr key={n.nivelId}>
-                            <td className="py-4 font-bold text-navy-800">{n.nombre}</td>
-                            {['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].map((c) => (
-                              <td key={c} className="py-4 text-center">
-                                <input
-                                  type="number"
-                                  disabled={!editandoTarifas}
-                                  value={tarifaValores[`${n.nivelId}_${c}`] || ''}
-                                  onChange={(e) => handleTarifaChange(n.nivelId, c, e.target.value)}
-                                  className="w-20 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-navy-500 font-medium disabled:bg-gray-50 disabled:text-gray-400"
-                                  placeholder="0.00"
-                                />
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <div className="border-t border-gray-200 pt-6"></div>
 
-                <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 items-center">
-                  {tarifaSuccess && (
-                    <span className="text-green-600 text-sm font-semibold flex items-center gap-1.5 animate-in fade-in">
-                      <Check size={16} /> Tarifas guardadas con éxito
-                    </span>
-                  )}
-                  {selectedCiclo?.activo ? (
-                    editandoTarifas ? (
-                      <Button
-                        onClick={handleSaveTarifas}
-                        isLoading={guardandoTarifas}
-                        disabled={loadingTarifas}
-                        variant="primary"
-                        className="rounded-xl px-6 py-2 font-medium"
+                {/* === SECCIÓN SEMESTRAL (BACHILLERATO) === */}
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="text-purple-600" size={20} />
+                      <h3 className="font-bold text-navy-800 text-lg">Tarifas de Bachillerato</h3>
+                      <span className="text-[10px] font-semibold uppercase bg-purple-50 text-purple-600 border border-purple-100 px-2 py-0.5 rounded-full">Ciclo Semestral</span>
+                    </div>
+                    
+                    {/* Selector de Ciclo Semestral */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 font-semibold uppercase">Ciclo Escolar:</span>
+                      <select
+                        value={selectedCicloSemId || ''}
+                        onChange={(e) => setSelectedCicloSemId(Number(e.target.value))}
+                        className="px-3 py-1.5 rounded-xl border border-gray-200 outline-none text-sm focus:ring-2 focus:ring-purple-500 bg-white"
                       >
-                        Guardar Montos
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => setEditandoTarifas(true)}
-                        disabled={loadingTarifas}
-                        variant="primary"
-                        className="rounded-xl px-6 py-2 font-medium"
-                      >
-                        Modificar Montos
-                      </Button>
-                    )
+                        {ciclosSemestrales.map((c: any) => (
+                          <option key={c.cicloId} value={c.cicloId}>
+                            {c.nombre} {c.activo ? '(Activo)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {ciclosSemestrales.length === 0 ? (
+                    <div className="py-8 text-center text-gray-400 text-sm">
+                      No hay ciclos escolares semestrales registrados.
+                    </div>
+                  ) : loadingNiveles || loadingTarifasSem ? (
+                    <div className="py-8 text-center text-gray-400 flex items-center justify-center gap-2">
+                      <RefreshCw className="animate-spin" size={18} /> Cargando tarifas de bachillerato...
+                    </div>
                   ) : (
-                    <span className="text-gray-400 text-xs font-semibold uppercase italic bg-gray-50 border border-gray-150 px-3 py-2 rounded-xl">
-                      Solo lectura (Ciclo Inactivo)
-                    </span>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left">
+                        <thead>
+                          <tr className="border-b border-gray-100 text-gray-600 text-xs uppercase">
+                            <th className="py-3 font-semibold">Nivel Educativo</th>
+                            <th className="py-3 font-semibold text-center">Inscripción ($)</th>
+                            <th className="py-3 font-semibold text-center">Arancel ($)</th>
+                            <th className="py-3 font-semibold text-center">Materiales ($)</th>
+                            <th className="py-3 font-semibold text-center">Libros ($)</th>
+                            <th className="py-3 font-semibold text-center">Uniforme ($)</th>
+                            <th className="py-3 font-semibold text-center">Colegiatura ($ / Mes)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {nivelesSemestrales?.map((n: any) => (
+                            <tr key={n.nivelId}>
+                              <td className="py-4 font-bold text-navy-800">{n.nombre}</td>
+                              {['INSCRIPCION', 'ARANCEL', 'MATERIAL', 'LIBROS', 'UNIFORME', 'COLEGIATURA'].map((c) => (
+                                <td key={c} className="py-4 text-center">
+                                  <input
+                                    type="number"
+                                    disabled={!editandoTarifasSem}
+                                    value={tarifaValoresSem[`${n.nivelId}_${c}`] || ''}
+                                    onChange={(e) => handleTarifaChangeSem(n.nivelId, c, e.target.value)}
+                                    className="w-20 text-center py-1.5 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-purple-500 font-medium disabled:bg-gray-50 disabled:text-gray-400"
+                                    placeholder="0.00"
+                                  />
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
+
+                  <div className="flex justify-end gap-3 pt-2 items-center">
+                    {tarifaSuccessSem && (
+                      <span className="text-green-600 text-sm font-semibold flex items-center gap-1.5 animate-in fade-in">
+                        <Check size={16} /> Tarifas guardadas con éxito
+                      </span>
+                    )}
+                    {selectedCicloSem?.activo ? (
+                      editandoTarifasSem ? (
+                        <Button
+                          onClick={handleSaveTarifasSem}
+                          isLoading={guardandoTarifasSem}
+                          disabled={loadingTarifasSem}
+                          variant="primary"
+                          className="rounded-xl px-6 py-2 font-medium"
+                        >
+                          Guardar Montos
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => setEditandoTarifasSem(true)}
+                          disabled={loadingTarifasSem}
+                          variant="primary"
+                          className="rounded-xl px-6 py-2 font-medium"
+                        >
+                          Modificar Montos
+                        </Button>
+                      )
+                    ) : (
+                      <span className="text-gray-400 text-xs font-semibold uppercase italic bg-gray-50 border border-gray-150 px-3 py-2 rounded-xl">
+                        Solo lectura (Ciclo Inactivo)
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -541,6 +718,7 @@ export function ConfiguracionPage() {
                       <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 text-xs uppercase">
                         <tr>
                           <th className="px-6 py-4 font-semibold">Nivel Educativo</th>
+                          <th className="px-6 py-4 font-semibold">Grado</th>
                           <th className="px-6 py-4 font-semibold">Grupo</th>
                           <th className="px-6 py-4 font-semibold">Ciclo Escolar</th>
                           <th className="px-6 py-4 font-semibold text-center">Estado del Ciclo</th>
@@ -553,10 +731,8 @@ export function ConfiguracionPage() {
                             if (a.nivel.orden !== b.nivel.orden) {
                               return a.nivel.orden - b.nivel.orden;
                             }
-                            const numA = parseInt(a.nombre) || 0;
-                            const numB = parseInt(b.nombre) || 0;
-                            if (numA !== numB) {
-                              return numA - numB;
+                            if (a.grado?.numero !== b.grado?.numero) {
+                              return (a.grado?.numero || 0) - (b.grado?.numero || 0);
                             }
                             return a.nombre.localeCompare(b.nombre);
                           })
@@ -564,6 +740,9 @@ export function ConfiguracionPage() {
                             <tr key={g.grupoId} className="hover:bg-gray-50/50 transition-colors">
                               <td className="px-6 py-4 font-bold text-navy-800">
                                 {g.nivel.nombre}
+                              </td>
+                              <td className="px-6 py-4 text-gray-700">
+                                {g.grado?.nombre || '-'}
                               </td>
                               <td className="px-6 py-4 font-bold text-gray-900">
                                 {g.nombre}
@@ -593,7 +772,7 @@ export function ConfiguracionPage() {
                           ))}
                         {grupos?.length === 0 && (
                           <tr>
-                            <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
+                            <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
                               No hay grupos registrados.
                             </td>
                           </tr>

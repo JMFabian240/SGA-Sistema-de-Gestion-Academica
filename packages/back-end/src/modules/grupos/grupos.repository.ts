@@ -158,7 +158,10 @@ export class GruposRepository {
     return prisma.grupo.findMany({
       where: {
         eliminadoEn: null,
-        ...(cicloId && { cicloId })
+        ...(cicloId
+          ? { cicloId }
+          : { ciclo: { activo: true } }
+        )
       },
       include: {
         nivel: true,
