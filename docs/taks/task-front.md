@@ -28,13 +28,13 @@ A continuación se listan los módulos que se encuentran implementados en el bac
 * [ ] **Calendario de Pagos:** Generación automática y manual de adeudos individuales o masivos para alumnos.
 
 ### 2. Módulo de Inscripciones y Ciclos
-* [ ] **Ciclos Escolares:** Configuración de años escolares lectivos (ej: 2026-2027), marcas de ciclo activo, fechas de inicio y fin.
+* [x] **Ciclos Escolares:** Configuración de años escolares lectivos (ej: 2026-2027), marcas de ciclo activo, fechas de inicio y fin.
 * [ ] **Ventanas de Inscripción Temprana:** Definición de rangos de fecha y descuentos por pronto pago.
 * [ ] **Planes de Pago:** CRUD de plazos de financiamiento (ej: Pago de contado, 10 mensualidades, 12 mensualidades).
 * [ ] **Proceso de Inscripción:** Formulario para asociar un alumno a un ciclo escolar, grupo, plan de pagos y beca (si aplica) de forma unificada.
 
 ### 3. Módulo de Calificaciones y Grupos
-* [ ] **Grupos Escolares:** Asignación de docentes a materias y niveles.
+* [x] **Grupos Escolares:** Asignación de docentes a materias y niveles.
 * [ ] **Registro de Asistencia:** Vista mensual del docente para pase de lista diario.
 * [ ] **Evaluaciones:** Formulario de captura de calificaciones parciales/finales por materia, con validación de rangos numéricos.
 

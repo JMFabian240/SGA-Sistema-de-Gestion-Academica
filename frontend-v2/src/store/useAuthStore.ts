@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
 export interface User {
-  rol: any;
-  nombre: any;
   id: string;
+  nombre: string;
   name: string;
-  email: string;
   role: string;
+  roles?: string[];
+  permisosModulos?: { modulo: string, nivel: string }[];
 }
 
 interface AuthState {

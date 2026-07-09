@@ -1,12 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1d4ed8;
+  --color-navy-50: #eef2f8;
+  --color-navy-100: #d9e2ef;
+  --color-navy-500: #003366;
+  --color-navy-600: #002952;
+  --color-navy-700: #001f3d;
+  --color-navy-800: #001429;
+
+  --color-crimson-400: #ff4d4d;
+  --color-crimson-500: #CC0000;
+  --color-crimson-600: #a30000;
+  --color-crimson-700: #7a0000;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
-/* Add custom global styles here */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f3f4f6; /* bg-gray-100 */
+  font-family: var(--font-sans);
+  background-color: #F8FAFE; /* Fondo principal de SGA Design */
 }

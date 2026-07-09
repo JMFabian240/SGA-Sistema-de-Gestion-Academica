@@ -86,7 +86,6 @@ model Usuario {
   usuarioId        Int       @id @default(autoincrement()) @map("usuario_id")
   nombreUsuario    String    @unique @map("nombre_usuario") @db.VarChar(80)
   nombreCompleto   String    @map("nombre_completo") @db.VarChar(120)
-  correo           String    @unique @db.VarChar(255)
   telefono         String?   @db.VarChar(15)
   passwordHash     String    @map("password_hash") @db.VarChar(255)
   activo           Boolean?  @default(true)

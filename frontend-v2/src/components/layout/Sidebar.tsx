@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { LayoutDashboard, Users, UserSquare2, CreditCard, LogOut, Settings, BookOpen, Layers } from 'lucide-react';
+import { LayoutDashboard, Users, UserSquare2, CreditCard, LogOut, Settings, BookOpen, Layers, Shield } from 'lucide-react';
 
 export function Sidebar() {
   const { user, logout } = useAuthStore();
@@ -11,14 +11,24 @@ export function Sidebar() {
     navigate('/auth/login');
   };
 
+  const hasPermiso = (modulo: string) => {
+    if (!user || !user.permisosModulos) return false;
+    const p = user.permisosModulos.find((m: any) => m.modulo === modulo);
+    return p && p.nivel !== 'DENEGADO';
+  };
+
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Panel Administrativo' },
-    { to: '/alumnos', icon: Users, label: 'Alumnos' },
-    { to: '/tutores', icon: UserSquare2, label: 'Tutores' },
-    { to: '/grupos', icon: Layers, label: 'Grupos' },
-    { to: '/materias', icon: BookOpen, label: 'Materias' },
-    { to: '/pagos', icon: CreditCard, label: 'Pagos' },
+    { to: '/', icon: LayoutDashboard, label: 'Panel Administrativo', modulo: null }, // Siempre visible
+    { to: '/alumnos', icon: Users, label: 'Alumnos', modulo: 'Alumnos' },
+    { to: '/tutores', icon: UserSquare2, label: 'Tutores', modulo: 'Tutores' },
+    { to: '/grupos', icon: Layers, label: 'Grupos', modulo: 'Grupos' },
+    { to: '/materias', icon: BookOpen, label: 'Materias', modulo: 'Materias' },
+    { to: '/pagos', icon: CreditCard, label: 'Pagos', modulo: 'Pagos' },
   ];
+
+  const visibleNavItems = navItems.filter(item => item.modulo === null || hasPermiso(item.modulo));
+  const hasConfig = hasPermiso('Configuracion');
+  const hasUsuarios = hasPermiso('Usuarios');
 
   return (
     <aside className="w-64 bg-[#001429] text-slate-300 flex flex-col transition-all duration-300 relative z-20 shadow-xl h-full">
@@ -36,7 +46,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
         <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-2">Principal</div>
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -52,21 +62,41 @@ export function Sidebar() {
           </NavLink>
         ))}
 
-        <div className="mt-8 mb-4 px-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Configuración</div>
-        </div>
-        <NavLink
-          to="/configuracion"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
-              ? 'bg-blue-600/10 text-blue-400'
-              : 'hover:bg-slate-800/50 hover:text-white'
-            }`
-          }
-        >
-          <Settings size={18} strokeWidth={2.5} />
-          Ajustes Generales
-        </NavLink>
+        {(hasConfig || hasUsuarios) && (
+          <div className="mt-8 mb-4 px-2">
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Configuración</div>
+          </div>
+        )}
+        
+        {hasConfig && (
+          <NavLink
+            to="/configuracion"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                ? 'bg-blue-600/10 text-blue-400'
+                : 'hover:bg-slate-800/50 hover:text-white'
+              }`
+            }
+          >
+            <Settings size={18} strokeWidth={2.5} />
+            Ajustes Generales
+          </NavLink>
+        )}
+        
+        {hasUsuarios && (
+          <NavLink
+            to="/usuarios"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive
+                ? 'bg-blue-600/10 text-blue-400'
+                : 'hover:bg-slate-800/50 hover:text-white'
+              }`
+            }
+          >
+            <Shield size={18} strokeWidth={2.5} />
+            Usuarios y Permisos
+          </NavLink>
+        )}
       </nav>
 
       {/* User Footer */}

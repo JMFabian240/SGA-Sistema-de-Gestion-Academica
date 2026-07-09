@@ -239,7 +239,9 @@ className="px-3 py-1.5 text-xs font-medium text-navy-600
 
 Los modales usan un overlay oscuro y un panel centrado con bordes redondeados `rounded-2xl`.
 El botón de cierre (X) siempre está en la esquina superior derecha del panel.
-El fondo del modal es `bg-white`, el overlay es `bg-black/50`.
+El fondo del modal es `bg-white`, el overlay es `bg-black/20 backdrop-blur-sm`.
+
+**Regla obligatoria para Formularios:** Todos los formularios de creación o edición de entidades principales (ej. Nuevo Usuario, Editar Alumno, etc.) **DEBEN implementarse como ventanas emergentes (Modales)**. La tarjeta del formulario debe mantenerse igual en diseño, pero flotar sobre la vista principal con el fondo transparente difuminado (`bg-black/20 backdrop-blur-sm`).
 
 ### Selects y Filtros
 

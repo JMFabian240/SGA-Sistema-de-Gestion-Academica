@@ -40,6 +40,7 @@ Usuario → React (TanStack Query)
 - **Creación de Directorios:** Si vas a crear archivos relacionados, crea un subdirectorio específico para separarlos y estructurar el contenido de forma lógica, evitando dejar archivos revueltos o sueltos.
 
 ## Reglas por Capa
+- **CRÍTICO - FRONTEND ACTIVO**: Cuando se pida modificar o crear algo en el frontend o UI, los cambios DEBEN hacerse EXCLUSIVAMENTE en el directorio `frontend-v2`. El paquete `packages/front` es legacy (obsoleto) y NO debe ser modificado a menos que se te indique explícitamente.
 - @sga/front-end: NUNCA importar PrismaClient directamente
 - @sga/back-end: TODA comunicación con BD va por data-access
 - @sga/data-access: única capa que conecta a PostgreSQL

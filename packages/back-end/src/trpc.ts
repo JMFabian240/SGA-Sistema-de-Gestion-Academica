@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import { type Context } from './context';
 import jwt from 'jsonwebtoken';
+import { NivelPermiso } from '@prisma/client';
 
 export const t = initTRPC.context<Context>().create();
 
@@ -112,6 +113,33 @@ export const hasRoles = (allowedRoles: string[]) => t.middleware(async ({ ctx, n
       roles,
     }
   });
+});
+
+// Middleware para validación de permisos por módulo (Módulos Granulares)
+export const hasModulePermission = (modulo: string, requireWrite: boolean = false) => t.middleware(async ({ ctx, next }) => {
+  const user = (ctx as any).user;
+  if (!user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'No autenticado' });
+  }
+
+  const permisoModulo = await ctx.prisma.usuarioPermisoModulo.findUnique({
+    where: {
+      usuarioId_modulo: {
+        usuarioId: user.usuarioId,
+        modulo: modulo
+      }
+    }
+  });
+
+  if (!permisoModulo || !permisoModulo.activo || permisoModulo.nivel === NivelPermiso.DENEGADO) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: `Acceso denegado al módulo: ${modulo}` });
+  }
+
+  if (requireWrite && permisoModulo.nivel !== NivelPermiso.LECTURA_Y_ESCRITURA) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: `No tiene permisos de escritura en el módulo: ${modulo}` });
+  }
+
+  return next({ ctx });
 });
 
 // Procedimientos con seguridad RBAC
