@@ -21,7 +21,6 @@ export class UsuariosRepository {
         usuarioId: true,
         nombreUsuario: true,
         nombreCompleto: true,
-        correo: true,
         activo: true,
         roles: {
           include: { rol: true }
@@ -31,13 +30,10 @@ export class UsuariosRepository {
     });
   }
 
-  static async findByUsernameOrEmail(nombreUsuario: string, correo: string) {
+  static async findByUsername(nombreUsuario: string) {
     return prisma.usuario.findFirst({
       where: {
-        OR: [
-          { nombreUsuario },
-          { correo },
-        ]
+        nombreUsuario
       }
     });
   }
@@ -87,6 +83,58 @@ export class UsuariosRepository {
 
       if (userRolesData.length > 0) {
         await tx.usuarioRol.createMany({ data: userRolesData });
+      }
+    });
+  }
+
+  static async findById(usuarioId: number) {
+    return prisma.usuario.findUnique({
+      where: { usuarioId },
+      select: {
+        usuarioId: true,
+        nombreUsuario: true,
+        nombreCompleto: true,
+        telefono: true,
+        activo: true,
+        ultimoAcceso: true,
+        creadoEn: true,
+        roles: {
+          include: { rol: true }
+        },
+        permisosModulos: {
+          select: {
+            modulo: true,
+            nivel: true
+          }
+        }
+      }
+    });
+  }
+
+  static async updatePassword(usuarioId: number, passwordHash: string) {
+    return prisma.usuario.update({
+      where: { usuarioId },
+      data: { passwordHash }
+    });
+  }
+
+  static async sincronizarPermisosModulo(usuarioId: number, permisos: { modulo: string, nivel: any }[]) {
+    return prisma.$transaction(async (tx) => {
+      // Eliminar todos los permisos actuales
+      await tx.usuarioPermisoModulo.deleteMany({
+        where: { usuarioId }
+      });
+
+      // Crear los nuevos permisos
+      if (permisos.length > 0) {
+        await tx.usuarioPermisoModulo.createMany({
+          data: permisos.map(p => ({
+            usuarioId,
+            modulo: p.modulo,
+            nivel: p.nivel,
+            activo: true
+          }))
+        });
       }
     });
   }

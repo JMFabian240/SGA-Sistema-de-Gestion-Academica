@@ -2,7 +2,15 @@ import { TRPCError } from '@trpc/server';
 import bcrypt from 'bcryptjs';
 import { UsuariosRepository } from './usuarios.repository';
 import type { Prisma } from '@sga/data-access';
-import type { ListarUsuariosInput, CrearUsuarioInput, ActualizarEstadoUsuarioInput, AsignarRolesInput } from './usuarios.schemas';
+import type { 
+  ListarUsuariosInput, 
+  CrearUsuarioInput, 
+  ActualizarEstadoUsuarioInput, 
+  AsignarRolesInput,
+  ActualizarPasswordInput,
+  PermisosModuloInput
+} from './usuarios.schemas';
+import { getDefaultPermissions } from './usuarios.defaults';
 
 export class UsuariosService {
   static async getRoles() {
@@ -16,7 +24,6 @@ export class UsuariosService {
       OR: [
         { nombreUsuario: { contains: input.busqueda, mode: 'insensitive' as const } },
         { nombreCompleto: { contains: input.busqueda, mode: 'insensitive' as const } },
-        { correo: { contains: input.busqueda, mode: 'insensitive' as const } },
       ]
     } : {};
 
@@ -37,12 +44,12 @@ export class UsuariosService {
   }
 
   static async crearUsuario(input: CrearUsuarioInput, actorId: number) {
-    const existente = await UsuariosRepository.findByUsernameOrEmail(input.nombreUsuario, input.correo);
+    const existente = await UsuariosRepository.findByUsername(input.nombreUsuario);
 
     if (existente) {
       throw new TRPCError({
         code: 'CONFLICT',
-        message: 'El nombre de usuario o correo ya está registrado',
+        message: 'El nombre de usuario ya está registrado',
       });
     }
 
@@ -51,13 +58,20 @@ export class UsuariosService {
     const usuarioData = {
       nombreUsuario: input.nombreUsuario,
       nombreCompleto: input.nombreCompleto,
-      correo: input.correo,
-      telefono: input.telefono,
       passwordHash: hashedPassword,
       debeCambiarPwd: true,
-    };
+    } as any;
 
-    const nuevoUsuario = await UsuariosRepository.createUsuarioWithRoles(usuarioData, input.roles, actorId);
+    const nuevoUsuario = await UsuariosRepository.createUsuarioWithRoles(usuarioData, [input.rolId], actorId);
+
+    // Asignar permisos por defecto basados en los roles seleccionados
+    const rolesDisponibles = await UsuariosRepository.getRoles();
+    const codigosRoles = rolesDisponibles
+      .filter(r => r.rolId === input.rolId)
+      .map(r => r.codigo);
+    
+    const permisosPorDefecto = getDefaultPermissions(codigosRoles);
+    await UsuariosRepository.sincronizarPermisosModulo(nuevoUsuario.usuarioId, permisosPorDefecto);
 
     return { success: true, usuarioId: nuevoUsuario.usuarioId };
   }
@@ -77,6 +91,42 @@ export class UsuariosService {
 
   static async asignarRoles(input: AsignarRolesInput, actorId: number) {
     await UsuariosRepository.replaceRoles(input.usuarioId, input.roles, actorId);
+
+    // Sincronizar permisos por defecto cuando cambian los roles
+    const rolesDisponibles = await UsuariosRepository.getRoles();
+    const codigosRoles = rolesDisponibles
+      .filter(r => input.roles.includes(r.rolId))
+      .map(r => r.codigo);
+    
+    const permisosPorDefecto = getDefaultPermissions(codigosRoles);
+    await UsuariosRepository.sincronizarPermisosModulo(input.usuarioId, permisosPorDefecto);
+
+    return { success: true };
+  }
+
+  static async obtenerUsuarioDetalle(usuarioId: number) {
+    const usuario = await UsuariosRepository.findById(usuarioId);
+    if (!usuario) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Usuario no encontrado',
+      });
+    }
+    return usuario;
+  }
+
+  static async actualizarPasswordUsuario(input: ActualizarPasswordInput) {
+    const hashedPassword = await bcrypt.hash(input.nuevaPassword, 10);
+    await UsuariosRepository.updatePassword(input.usuarioId, hashedPassword);
+    return { success: true };
+  }
+
+  static async sincronizarPermisosModulo(input: PermisosModuloInput) {
+    const permisosMap = input.permisos.map(p => ({
+      modulo: p.modulo as string,
+      nivel: p.nivel
+    }));
+    await UsuariosRepository.sincronizarPermisosModulo(input.usuarioId, permisosMap);
     return { success: true };
   }
 }

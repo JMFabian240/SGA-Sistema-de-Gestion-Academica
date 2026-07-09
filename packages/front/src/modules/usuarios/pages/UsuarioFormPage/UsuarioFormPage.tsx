@@ -14,7 +14,6 @@ import styles from './UsuarioFormPage.module.css';
 const usuarioSchema = z.object({
   nombreUsuario: z.string().min(3, 'Mínimo 3 caracteres'),
   nombreCompleto: z.string().min(3, 'Mínimo 3 caracteres'),
-  correo: z.string().email('Correo inválido'),
   password: z.string().min(8, 'Mínimo 8 caracteres').optional(),
   rolId: z.string().min(1, 'Debe seleccionar un rol')
 });
@@ -30,14 +29,8 @@ export function UsuarioFormPage() {
   const usuario = null as any;
   const isLoadingUser = false;
 
-  // Mocks o queries reales para roles (asumiremos que hay un endpoint, si no simulamos)
-  // const { data: roles } = trpc.configuracion.listarRoles.useQuery();
-  const roles = [
-    { id: '1', nombre: 'Administrador' },
-    { id: '2', nombre: 'Director' },
-    { id: '3', nombre: 'Docente' },
-    { id: '4', nombre: 'Cajero' },
-  ];
+  const { data: rolesData } = trpc.usuarios.getRoles.useQuery();
+  const roles = rolesData?.map(r => ({ id: r.rolId.toString(), nombre: r.nombre })) || [];
 
   // tRPC Mutations
   const utils = trpc.useUtils();
@@ -56,7 +49,6 @@ export function UsuarioFormPage() {
     defaultValues: {
       nombreUsuario: '',
       nombreCompleto: '',
-      correo: '',
       password: '',
       rolId: ''
     }
@@ -67,7 +59,6 @@ export function UsuarioFormPage() {
       reset({
         nombreUsuario: usuario.nombreUsuario,
         nombreCompleto: usuario.nombreCompleto,
-        correo: usuario.correo,
         rolId: usuario.roles?.[0] ? String(usuario.roles[0]) : '',
         password: '' // No cargar password en edición
       });
@@ -83,9 +74,8 @@ export function UsuarioFormPage() {
       createMutation.mutate({
         nombreUsuario: data.nombreUsuario,
         nombreCompleto: data.nombreCompleto,
-        correo: data.correo,
         password: data.password || '12345678', // mínimo 8
-        roles: [Number(data.rolId)]
+        rolId: Number(data.rolId)
       });
     }
   };
@@ -136,20 +126,6 @@ export function UsuarioFormPage() {
                     label="Nombre Completo"
                     placeholder="Ej. Juan Pérez"
                     error={errors.nombreCompleto?.message}
-                    disabled={isSaving}
-                  />
-                )}
-              />
-              <Controller
-                name="correo"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    type="email"
-                    label="Correo Electrónico"
-                    placeholder="juan@colegio.edu"
-                    error={errors.correo?.message}
                     disabled={isSaving}
                   />
                 )}
