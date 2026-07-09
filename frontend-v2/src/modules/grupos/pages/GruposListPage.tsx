@@ -7,7 +7,8 @@ import {
   ArrowLeft, 
   Calendar, 
   Layers, 
-  Trash2
+  Trash2,
+  LayoutGrid
 } from 'lucide-react';
 import { trpc } from '../../../lib/trpc';
 import { Button } from '../../../components/ui/Button';
@@ -362,6 +363,7 @@ export function GruposListPage() {
                     {gradosDelNivel.map((grado) => {
                       const materiasGradoCount = getMateriasGrado(grado.gradoId).length;
                       const alumnosGradoCount = getAlumnosGrado(grado.gradoId, nivel.codigo).length;
+                      const gruposGradoCount = getGruposGrado(grado.gradoId, nivel.codigo).length;
 
                       return (
                         <div 
@@ -378,6 +380,9 @@ export function GruposListPage() {
                             </span>
                             <span className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1">
                               <Users className="w-3.5 h-3.5 text-gray-400" /> {alumnosGradoCount} Alumnos
+                            </span>
+                            <span className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1">
+                              <LayoutGrid className="w-3.5 h-3.5 text-gray-400" /> Grupos: {gruposGradoCount}
                             </span>
                           </div>
                         </div>
