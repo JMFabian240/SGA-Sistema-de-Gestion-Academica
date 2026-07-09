@@ -3,6 +3,7 @@ import { PagosService } from './pagos.service';
 import { prismaMock } from '../../../tests/setup/prisma-mock';
 import { TRPCError } from '@trpc/server';
 import { MetodoPago } from '@prisma/client';
+import { createTarifaSchema, createCalendarioPagoSchema } from './pagos.schema';
 
 describe('PagosService (Unit)', () => {
   beforeEach(() => {
@@ -157,6 +158,56 @@ describe('PagosService (Unit)', () => {
           monto: 500
         })
       }));
+    });
+  });
+
+  describe('Zod Schemas (Gap 6)', () => {
+    it('createTarifaSchema debería aceptar conceptos de hasta 100 caracteres y rechazar más de 100', () => {
+      const conceptoValido = 'a'.repeat(100);
+      const conceptoInvalido = 'a'.repeat(101);
+
+      const payloadValido = {
+        cicloId: 1,
+        nivelId: 1,
+        concepto: conceptoValido,
+        monto: 1000
+      };
+
+      const payloadInvalido = {
+        cicloId: 1,
+        nivelId: 1,
+        concepto: conceptoInvalido,
+        monto: 1000
+      };
+
+      expect(createTarifaSchema.safeParse(payloadValido).success).toBe(true);
+      expect(createTarifaSchema.safeParse(payloadInvalido).success).toBe(false);
+    });
+
+    it('createCalendarioPagoSchema debería aceptar conceptos de hasta 100 caracteres y rechazar más de 100', () => {
+      const conceptoValido = 'a'.repeat(100);
+      const conceptoInvalido = 'a'.repeat(101);
+
+      const payloadValido = {
+        alumnoId: 1,
+        cicloId: 1,
+        concepto: conceptoValido,
+        montoOriginal: 1000,
+        saldoPendiente: 1000,
+        fechaVencimiento: new Date().toISOString()
+      };
+
+      const payloadInvalido = {
+        alumnoId: 1,
+        cicloId: 1,
+        concepto: conceptoInvalido,
+        montoOriginal: 1000,
+        saldoPendiente: 1000,
+        fechaVencimiento: new Date().toISOString()
+      };
+
+      expect(createCalendarioPagoSchema.safeParse(payloadValido).success).toBe(true);
+      expect(createCalendarioPagoSchema.safeParse(payloadInvalido).success).toBe(false);
     });
   });
 });

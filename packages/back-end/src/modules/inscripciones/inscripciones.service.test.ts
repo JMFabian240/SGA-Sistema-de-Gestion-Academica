@@ -6,6 +6,7 @@ import { TRPCError } from '@trpc/server';
 describe('InscripcionesService (Unit)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.$transaction.mockImplementation(async (cb: any) => cb(prismaMock));
   });
 
   describe('Planes de Pago', () => {
@@ -104,9 +105,17 @@ describe('InscripcionesService (Unit)', () => {
       })).rejects.toThrowError(new TRPCError({ code: 'BAD_REQUEST', message: 'El alumno ya se encuentra inscrito en este ciclo escolar.' }));
     });
 
-    it('createInscripcion debería crear la inscripción si no existe duplicado', async () => {
+    it('createInscripcion debería crear la inscripción si no existe duplicado y generar adeudos (10 meses)', async () => {
       prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.calificacion.findFirst.mockResolvedValue(null);
+      prismaMock.planPago.findUnique.mockResolvedValue({
+        planPagoId: 1,
+        meses: 10,
+        montoMensual: 1500,
+        eliminadoEn: null
+      } as any);
       prismaMock.inscripcionCiclo.create.mockResolvedValue({ inscripcionId: 5 } as any);
+      prismaMock.calendarioPago.createMany.mockResolvedValue({ count: 10 } as any);
 
       const result = await InscripcionesService.createInscripcion({
         alumnoId: 1, cicloId: 1, planPagoId: 1, fechaIngreso: '2023-08-01', esIngresoTardio: false, estadoEnCiclo: 'ACTIVO', estadoFinanciero: 'AL_CORRIENTE'
@@ -116,10 +125,18 @@ describe('InscripcionesService (Unit)', () => {
       expect(prismaMock.inscripcionCiclo.create).toHaveBeenCalledWith(expect.objectContaining({
         data: expect.objectContaining({ fechaIngreso: expect.any(Date) })
       }));
+      expect(prismaMock.calendarioPago.createMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ concepto: 'Colegiatura Septiembre', montoOriginal: 1500 })
+          ])
+        })
+      );
     });
 
     it('createInscripcion debería rechazar si el grupo seleccionado no existe', async () => {
       prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.calificacion.findFirst.mockResolvedValue(null);
       prismaMock.grupo.findUnique.mockResolvedValue(null);
 
       await expect(InscripcionesService.createInscripcion({
@@ -129,6 +146,7 @@ describe('InscripcionesService (Unit)', () => {
 
     it('createInscripcion debería rechazar si el grupo seleccionado no tiene cupo', async () => {
       prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.calificacion.findFirst.mockResolvedValue(null);
       prismaMock.grupo.findUnique.mockResolvedValue({
         grupoId: 2,
         nombre: '1A',
@@ -140,6 +158,42 @@ describe('InscripcionesService (Unit)', () => {
       await expect(InscripcionesService.createInscripcion({
         alumnoId: 1, cicloId: 1, grupoId: 2, planPagoId: 1, fechaIngreso: '2023-08-01', esIngresoTardio: false, estadoEnCiclo: 'ACTIVO', estadoFinanciero: 'AL_CORRIENTE'
       })).rejects.toThrowError(new TRPCError({ code: 'BAD_REQUEST', message: 'El grupo 1A ya ha alcanzado su cupo máximo de 2 alumnos.' }));
+    });
+
+    it('createInscripcion debería rechazar si el alumno tiene materias reprobadas (Gap 3)', async () => {
+      prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.calificacion.findFirst.mockResolvedValue({ calificacionId: 1, valorNumerico: 5.5 } as any);
+
+      await expect(InscripcionesService.createInscripcion({
+        alumnoId: 1, cicloId: 1, planPagoId: 1, fechaIngreso: '2023-08-01', esIngresoTardio: false, estadoEnCiclo: 'ACTIVO', estadoFinanciero: 'AL_CORRIENTE'
+      })).rejects.toThrowError(new TRPCError({ code: 'FORBIDDEN', message: 'El alumno tiene materias reprobadas y no puede ser inscrito.' }));
+    });
+
+    it('createInscripcion debería generar adeudos correctamente para plan de 12 meses (Gap 2)', async () => {
+      prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null);
+      prismaMock.calificacion.findFirst.mockResolvedValue(null);
+      prismaMock.planPago.findUnique.mockResolvedValue({
+        planPagoId: 1,
+        meses: 12,
+        montoMensual: 2000,
+        montoDiciembre: 4000,
+        eliminadoEn: null
+      } as any);
+      prismaMock.inscripcionCiclo.create.mockResolvedValue({ inscripcionId: 6 } as any);
+      prismaMock.calendarioPago.createMany.mockResolvedValue({ count: 12 } as any);
+
+      await InscripcionesService.createInscripcion({
+        alumnoId: 1, cicloId: 1, planPagoId: 1, fechaIngreso: '2023-08-01', esIngresoTardio: false, estadoEnCiclo: 'ACTIVO', estadoFinanciero: 'AL_CORRIENTE'
+      });
+
+      expect(prismaMock.calendarioPago.createMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({ concepto: 'Colegiatura Diciembre', montoOriginal: 4000 }),
+            expect.objectContaining({ concepto: 'Colegiatura Julio', montoOriginal: 0 })
+          ])
+        })
+      );
     });
 
     it('updateInscripcion debería rechazar si la inscripción no existe', async () => {

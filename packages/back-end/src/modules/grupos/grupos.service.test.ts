@@ -170,6 +170,48 @@ describe('GruposService (Unit)', () => {
       await GruposService.unassignMateriaFromGrupo({ grupoMateriaId: 1 });
       expect(prismaMock.grupoMateria.delete).toHaveBeenCalledWith({ where: { grupoMateriaId: 1 } });
     });
+
+    it('createGrupo debería rechazar si el grado del grupo no está permitido en el ciclo escolar (Gap 3)', async () => {
+      prismaMock.cicloEscolar.findUnique.mockResolvedValue({
+        cicloId: 1,
+        gradosPermitidos: { PRI: [1, 2] }
+      } as any);
+      prismaMock.grado.findMany.mockResolvedValue([
+        { gradoId: 1, numero: 1 },
+        { gradoId: 2, numero: 2 }
+      ] as any);
+
+      await expect(GruposService.createGrupo({
+        cicloId: 1,
+        nombre: '3A',
+        gradoId: 3,
+        nivelId: 1,
+        cupoMaximo: 30
+      })).rejects.toThrowError('El grado/semestre 3 extraído del grupo "3A" no está habilitado en los grados permitidos del ciclo escolar.');
+    });
+
+    it('createGrupo debería tener éxito si el grado está habilitado en el ciclo escolar (Gap 3)', async () => {
+      prismaMock.cicloEscolar.findUnique.mockResolvedValue({
+        cicloId: 1,
+        gradosPermitidos: { PRI: [1, 2] }
+      } as any);
+      prismaMock.grado.findMany.mockResolvedValue([
+        { gradoId: 1, numero: 1 },
+        { gradoId: 2, numero: 2 }
+      ] as any);
+      prismaMock.grupo.create.mockResolvedValue({ grupoId: 10, nombre: '1A' } as any);
+
+      const result = await GruposService.createGrupo({
+        cicloId: 1,
+        nombre: '1A',
+        gradoId: 1,
+        nivelId: 1,
+        cupoMaximo: 30
+      });
+
+      expect(result.grupoId).toBe(10);
+      expect(prismaMock.grupo.create).toHaveBeenCalled();
+    });
   });
 
   describe('Inicialización Selectiva de Grupos', () => {
