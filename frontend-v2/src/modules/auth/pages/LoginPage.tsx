@@ -19,10 +19,10 @@ export function LoginPage() {
         {
           id: String(data.usuario.id),
           name: data.usuario.nombre,
-          email: '', // Backend no devuelve email
+          nombre: data.usuario.nombre,
           role: data.usuario.roles[0] || 'USER',
-          rol: undefined,
-          nombre: undefined
+          roles: data.usuario.roles,
+          permisosModulos: data.usuario.permisosModulos,
         },
         data.token
       );
@@ -69,14 +69,9 @@ export function LoginPage() {
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Contraseña
-                </label>
-                <a href="#" className="text-xs font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                  ¿Olvidaste tu contraseña?
-                </a>
-              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Contraseña
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
