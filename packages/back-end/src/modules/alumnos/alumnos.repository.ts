@@ -51,6 +51,10 @@ export class AlumnosRepository {
             },
             planPago: true
           }
+        },
+        calendariosPagos: {
+          orderBy: { fechaVencimiento: 'asc' },
+          where: { eliminadoEn: null }
         }
       }
     });

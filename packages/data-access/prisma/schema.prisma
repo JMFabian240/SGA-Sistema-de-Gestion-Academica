@@ -378,7 +378,7 @@ model InscripcionCiclo {
   alumnoId         Int          @map("alumno_id")
   cicloId          Int          @map("ciclo_id")
   grupoId          Int?         @map("grupo_id")
-  planPagoId       Int          @map("plan_pago_id")
+  planPagoId       Int?         @map("plan_pago_id")
   fechaIngreso     DateTime     @map("fecha_ingreso") @db.Date
   esIngresoTardio  Boolean?     @default(false) @map("es_ingreso_tardio")
   estadoEnCiclo    String       @map("estado_en_ciclo") @db.VarChar(20)
@@ -392,7 +392,7 @@ model InscripcionCiclo {
   ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId], onDelete: NoAction)
   grado            Grado?       @relation(fields: [gradoId], references: [gradoId], onDelete: NoAction)
   grupo            Grupo?       @relation(fields: [grupoId], references: [grupoId], onDelete: NoAction)
-  planPago         PlanPago     @relation(fields: [planPagoId], references: [planPagoId])
+  planPago         PlanPago?    @relation(fields: [planPagoId], references: [planPagoId])
 
   @@unique([alumnoId, cicloId])
   @@map("inscripcion_ciclo")

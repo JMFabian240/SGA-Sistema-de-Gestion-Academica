@@ -1,15 +1,19 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { trpc } from '../../../lib/trpc';
-import { ChevronLeft, User, Crown, Mail, Phone, BookOpen, Users, Link2Off, Plus } from 'lucide-react';
+import { ChevronLeft, User, Crown, Mail, Phone, BookOpen, Users, Link2Off, Plus, Calculator, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { VincularTutorModal } from '../components/VincularTutorModal';
+import { InscribirAlumnoModal } from '../components/InscribirAlumnoModal';
+import { AsignarPlanPagoModal } from '../components/AsignarPlanPagoModal';
 
 export function ExpedienteAlumnoPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [isVincularModalOpen, setIsVincularModalOpen] = useState(false);
+  const [isInscribirModalOpen, setIsInscribirModalOpen] = useState(false);
+  const [isAsignarPlanModalOpen, setIsAsignarPlanModalOpen] = useState(false);
 
   const alumnoId = parseInt(id || '0', 10);
   
@@ -33,6 +37,22 @@ export function ExpedienteAlumnoPage() {
     if (!alumno?.inscripciones) return null;
     return alumno.inscripciones.find(i => i.estadoEnCiclo === 'INSCRITO' && i.ciclo.activo);
   }, [alumno]);
+
+  const quitarPlanMutation = trpc.inscripciones.quitarPlanPago.useMutation({
+    onSuccess: () => {
+      window.alert('Plan de pago removido con éxito.');
+      utils.alumnos.getById.invalidate(alumnoId);
+    },
+    onError: (err) => {
+      window.alert(err.message || 'Error al quitar el plan de pagos.');
+    }
+  });
+
+  const handleQuitarPlan = (inscripcionId: number) => {
+    if (window.confirm('¿Estás seguro que deseas quitar el plan de pagos? Esto borrará el calendario de recibos generado (siempre y cuando no tengan pagos aplicados).')) {
+      quitarPlanMutation.mutate({ inscripcionId });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -181,9 +201,19 @@ export function ExpedienteAlumnoPage() {
 
       {/* Inscripciones */}
       <div>
-        <div className="flex items-center gap-2 text-emerald-700 font-semibold mb-4 px-1">
-          <BookOpen size={20} />
-          <h2>Inscripciones a Comisiones <span className="text-gray-400 font-normal text-sm ml-1">({alumno.inscripciones?.length || 0})</span></h2>
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+            <BookOpen size={20} />
+            <h2>Inscripciones a Comisiones <span className="text-gray-400 font-normal text-sm ml-1">({alumno.inscripciones?.length || 0})</span></h2>
+          </div>
+          {!inscripcionActual && (
+            <button
+              onClick={() => setIsInscribirModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 font-medium rounded-lg hover:bg-blue-100 transition-colors text-sm"
+            >
+              <Plus size={16} /> Inscribir a Ciclo
+            </button>
+          )}
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           {inscripcionActual ? (
@@ -194,6 +224,33 @@ export function ExpedienteAlumnoPage() {
                 Grupo {inscripcionActual.grupo?.nombre || 'Sin grupo'}
                 <span className="text-gray-500 ml-2 font-normal">({inscripcionActual.ciclo.nombre})</span>
               </p>
+              {inscripcionActual.planPago ? (
+                <div className="mt-3 flex items-center justify-between bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                  <div className="text-sm font-medium text-blue-800">
+                    Plan de pagos asignado: {inscripcionActual.planPago.nombre}
+                  </div>
+                  <button
+                    onClick={() => handleQuitarPlan(inscripcionActual.inscripcionId)}
+                    disabled={quitarPlanMutation.isLoading}
+                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Quitar plan de pagos"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-3 flex items-center justify-between bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                  <div className="text-sm text-amber-800">
+                    <span className="font-semibold">Atención:</span> El alumno no tiene plan de pagos asignado.
+                  </div>
+                  <button
+                    onClick={() => setIsAsignarPlanModalOpen(true)}
+                    className="px-3 py-1.5 bg-amber-100 text-amber-700 font-medium rounded-lg hover:bg-amber-200 transition-colors text-sm"
+                  >
+                    Asignar Plan
+                  </button>
+                </div>
+              )}
             </div>
           ) : alumno.inscripciones && alumno.inscripciones.length > 0 ? (
             <div className="space-y-3">
@@ -205,6 +262,11 @@ export function ExpedienteAlumnoPage() {
                     Grupo {insc.grupo?.nombre || 'Sin grupo'}
                     <span className="text-gray-500 ml-2 font-normal">({insc.ciclo.nombre}) - {insc.estadoEnCiclo}</span>
                   </p>
+                  {insc.planPago && (
+                    <div className="mt-2 inline-flex items-center px-2.5 py-1 rounded-md bg-gray-200 text-gray-700 text-xs font-medium">
+                      Plan asignado: {insc.planPago.nombre}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -213,6 +275,54 @@ export function ExpedienteAlumnoPage() {
           )}
         </div>
       </div>
+
+      {/* Calendario de Pagos */}
+      {(alumno.calendariosPagos && alumno.calendariosPagos.length > 0) && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 text-emerald-700 font-semibold mb-4 px-1">
+            <Calculator size={20} />
+            <h2>Calendario de Pagos</h2>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 font-semibold text-gray-700">Mes</th>
+                    <th className="px-6 py-3 font-semibold text-gray-700">Concepto</th>
+                    <th className="px-6 py-3 font-semibold text-gray-700">Vencimiento</th>
+                    <th className="px-6 py-3 font-semibold text-gray-700">Monto</th>
+                    <th className="px-6 py-3 font-semibold text-gray-700">Estado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {alumno.calendariosPagos.map((pago: any) => (
+                    <tr key={pago.calendarioPagoId} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-3 font-medium text-gray-900">{pago.mes || '-'}</td>
+                      <td className="px-6 py-3 text-gray-600">{pago.concepto}</td>
+                      <td className="px-6 py-3 text-gray-600">
+                        {formatFecha(pago.fechaVencimiento)}
+                      </td>
+                      <td className="px-6 py-3 font-semibold text-gray-900">
+                        ${Number(pago.montoOriginal).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          pago.estadoCobro === 'PAGADO' ? 'bg-green-100 text-green-700' :
+                          pago.estadoCobro === 'VENCIDO' ? 'bg-red-100 text-red-700' :
+                          'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {pago.estadoCobro}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isVincularModalOpen && (
         <VincularTutorModal
@@ -227,6 +337,23 @@ export function ExpedienteAlumnoPage() {
             setIsVincularModalOpen(false);
             navigate('/tutores');
           }}
+        />
+      )}
+
+      {isInscribirModalOpen && (
+        <InscribirAlumnoModal
+          isOpen={isInscribirModalOpen}
+          alumnoId={alumnoId}
+          onClose={() => setIsInscribirModalOpen(false)}
+        />
+      )}
+
+      {isAsignarPlanModalOpen && inscripcionActual && (
+        <AsignarPlanPagoModal
+          isOpen={isAsignarPlanModalOpen}
+          alumnoId={alumnoId}
+          inscripcionId={inscripcionActual.inscripcionId}
+          onClose={() => setIsAsignarPlanModalOpen(false)}
         />
       )}
     </div>

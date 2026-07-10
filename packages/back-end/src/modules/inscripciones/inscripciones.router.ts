@@ -4,7 +4,8 @@ import { InscripcionesService } from './inscripciones.service';
 import { 
   createPlanPagoSchema, updatePlanPagoSchema, 
   createVentanaInscripcionSchema, updateVentanaInscripcionSchema, 
-  createInscripcionSchema, updateInscripcionSchema 
+  createInscripcionSchema, updateInscripcionSchema,
+  asignarPlanPagoSchema, quitarPlanPagoSchema, getTarifaColegiaturaSchema
 } from './inscripciones.schema';
 
 const lectura = protectedProcedure.use(hasModulePermission('Alumnos', false));
@@ -59,5 +60,17 @@ export const inscripcionesRouter = router({
 
   deleteInscripcion: escritura
     .input(z.number().int().positive())
-    .mutation(({ input }) => InscripcionesService.deleteInscripcion(input))
+    .mutation(({ input }) => InscripcionesService.deleteInscripcion(input)),
+
+  asignarPlanPago: escritura
+    .input(asignarPlanPagoSchema)
+    .mutation(({ input }) => InscripcionesService.asignarPlanPago(input)),
+
+  quitarPlanPago: escritura
+    .input(quitarPlanPagoSchema)
+    .mutation(({ input }) => InscripcionesService.quitarPlanPago(input)),
+
+  getTarifaColegiatura: lectura
+    .input(getTarifaColegiaturaSchema)
+    .query(({ input }) => InscripcionesService.getTarifaColegiatura(input))
 });

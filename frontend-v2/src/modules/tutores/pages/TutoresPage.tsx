@@ -28,6 +28,8 @@ export function TutoresPage() {
 
     if (filterFactura === 'FACTURA') {
       result = result.filter((t: any) => !!t.datosFiscales);
+    } else if (filterFactura === 'NO_FACTURA') {
+      result = result.filter((t: any) => !t.datosFiscales);
     }
 
     if (searchTerm) {
@@ -77,6 +79,7 @@ export function TutoresPage() {
           >
             <option value="ALL">Todos los padres</option>
             <option value="FACTURA">Requieren factura</option>
+            <option value="NO_FACTURA">No requieren factura</option>
           </select>
 
           <div className="flex-1"></div>

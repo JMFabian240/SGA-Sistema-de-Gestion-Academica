@@ -67,31 +67,15 @@ export class AlumnosService {
         });
 
         if (cicloActivo) {
-          // Buscar un plan de pago. Si no existe, crear uno por defecto temporal.
-          let planPago = await tx.planPago.findFirst({
-            where: { activo: true, eliminadoEn: null }
-          });
-          
-          if (!planPago) {
-            planPago = await tx.planPago.create({
-              data: {
-                nombre: 'Plan General (Automático)',
-                meses: 10,
-                montoMensual: 0
-              }
-            });
-          }
-
-          // Crear la inscripción
+          // Crear la inscripción académica sin plan de pagos financiero
           await tx.inscripcionCiclo.create({
             data: {
               alumnoId: alumno.alumnoId,
               cicloId: cicloActivo.cicloId,
               grupoId: grupoId,
-              planPagoId: planPago.planPagoId,
               fechaIngreso: new Date(),
               estadoEnCiclo: 'INSCRITO',
-              estadoFinanciero: 'AL_CORRIENTE',
+              estadoFinanciero: 'NO_APLICA',
               gradoId: gradoId
             }
           });
