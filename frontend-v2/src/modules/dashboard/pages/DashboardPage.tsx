@@ -16,8 +16,9 @@ export function DashboardPage() {
   const { data: kpisFinancieros, isLoading: loadingKpis } = trpc.dashboard.obtenerKpisFinancieros.useQuery(undefined, { enabled: isAdmin });
   const { data: ingresosChartData, isLoading: loadingChart } = trpc.dashboard.obtenerIngresosUltimos7Dias.useQuery(undefined, { enabled: isAdmin });
   const { data: ultimosPagos, isLoading: loadingPagos } = trpc.dashboard.obtenerUltimosPagos.useQuery(undefined, { enabled: isAdmin });
+  const { data: topDeudores, isLoading: loadingTopDeudores } = trpc.dashboard.obtenerTopDeudores.useQuery(undefined, { enabled: isAdmin });
 
-  const loading = loadingInscripcion || loadingKpis || loadingChart || loadingPagos;
+  const loading = loadingInscripcion || loadingKpis || loadingChart || loadingPagos || loadingTopDeudores;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
@@ -122,8 +123,24 @@ export function DashboardPage() {
                 <AlertTriangle className="text-red-500" size={18} />
                 <h3 className="font-bold text-sm text-gray-800">Top Deudores Críticos</h3>
               </div>
-              <div className="flex-1 flex items-center justify-center min-h-[200px]">
-                <p className="text-emerald-500 text-sm font-medium">Sin deudores.</p>
+              <div className="flex-1 space-y-0 divide-y divide-gray-100">
+                {topDeudores && topDeudores.length > 0 ? (
+                  topDeudores.map((deudor, i) => (
+                    <div key={i} className="flex justify-between items-center py-3">
+                      <div className="w-2/3">
+                        <p className="text-xs font-bold text-gray-800 truncate" title={deudor.nombreTutor}>{deudor.nombreTutor}</p>
+                        <p className="text-[10px] text-gray-500 truncate">Tutor de: {deudor.nombreAlumno}</p>
+                      </div>
+                      <p className="text-xs font-bold text-red-500 w-1/3 text-right">
+                        ${Number(deudor.deudaMonto).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex-1 flex items-center justify-center min-h-[180px]">
+                    <p className="text-emerald-500 text-sm font-medium">Sin deudores críticos.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

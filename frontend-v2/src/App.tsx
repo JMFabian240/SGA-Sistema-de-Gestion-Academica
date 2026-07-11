@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
 import { trpc } from './lib/trpc';
 import { router } from './router';
+import { Toaster } from 'react-hot-toast';
 
 // === CONFIGURACIÓN DE TRPC Y REACT QUERY ===
 const API_URL = import.meta.env.VITE_API_URL || '/trpc';
@@ -36,6 +37,7 @@ function App() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
+        <Toaster position="top-right" />
       </QueryClientProvider>
     </trpc.Provider>
   );

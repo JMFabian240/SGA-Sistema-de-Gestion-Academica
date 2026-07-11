@@ -6,11 +6,11 @@ describe('CalculadoraPagos', () => {
 
   it('debe calcular correctamente un plan de 10 meses sin Diciembre doble', () => {
     const plan = {
-      meses: 10,
-      montoMensual: 1000
+      meses: 10
     };
+    const tarifa = 1000;
 
-    const recibos = CalculadoraPagos.generarCalendario(plan, fechaIngreso);
+    const recibos = CalculadoraPagos.generarCalendario(plan, tarifa, fechaIngreso);
 
     expect(recibos.length).toBe(10);
     // Verificamos que arranque en Septiembre
@@ -28,11 +28,11 @@ describe('CalculadoraPagos', () => {
 
   it('debe calcular un plan de 12 meses con Agosto, Diciembre doble y Julio 0', () => {
     const plan = {
-      meses: 12,
-      montoMensual: 1000
+      meses: 12
     };
+    const tarifa = 1000;
 
-    const recibos = CalculadoraPagos.generarCalendario(plan, fechaIngreso);
+    const recibos = CalculadoraPagos.generarCalendario(plan, tarifa, fechaIngreso);
 
     // Son 12 recibos en arreglo físico
     expect(recibos.length).toBe(12);
@@ -55,12 +55,12 @@ describe('CalculadoraPagos', () => {
 
   it('debe aplicar el descuento de beca correctamente a las mensualidades (excepto Julio)', () => {
     const plan = {
-      meses: 12,
-      montoMensual: 1000
+      meses: 12
     };
+    const tarifa = 1000;
     const beca = { porcentajeDescuento: 15 }; // 15% de descuento
 
-    const recibos = CalculadoraPagos.generarCalendario(plan, fechaIngreso, beca);
+    const recibos = CalculadoraPagos.generarCalendario(plan, tarifa, fechaIngreso, beca);
 
     const ago = recibos.find(r => r.mes === 'Agosto');
     // 15% de 1000 = 150. Paga 850.
