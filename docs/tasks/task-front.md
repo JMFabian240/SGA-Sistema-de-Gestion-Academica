@@ -21,21 +21,20 @@ Este documento detalla el estado actual de la migración del sistema hacia **`fr
 A continuación se listan los módulos que se encuentran implementados en el backend y el frontend antiguo (`packages/front`), pero deben ser re-diseñados e integrados con la interfaz premium en `frontend-v2`:
 
 ### 1. Módulo de Pagos y Caja (Prioridad Alta)
-* [ ] **Caja / Registro de Pagos:** Vista para seleccionar un tutor/alumno, listar sus adeudos pendientes, e ingresar un cobro. Debe soportar:
+* [x] **Caja / Registro de Pagos:** Vista para seleccionar un tutor/alumno, listar sus adeudos pendientes, e ingresar un cobro. Debe soportar:
   * Aplicaciones detalladas a múltiples mensualidades/conceptos.
   * Generación y visualización automática del *Saldo a Favor* acumulado si el pago excede el total.
-* [ ] **Gestión de Tarifas:** CRUD para definir costos de colegiatura, inscripciones y otros conceptos parametrizados por Nivel Educativo y Ciclo Escolar.
-* [ ] **Calendario de Pagos:** Generación automática y manual de adeudos individuales o masivos para alumnos.
+* [X] **Gestión de Tarifas:** CRUD para definir costos de colegiatura, inscripciones y otros conceptos parametrizados por Nivel Educativo y Ciclo Escolar.
+* [x] **Calendario de Pagos:** Generación automática y manual de adeudos individuales o masivos para alumnos.
 
 ### 2. Módulo de Inscripciones y Ciclos
 * [x] **Ciclos Escolares:** Configuración de años escolares lectivos (ej: 2026-2027), marcas de ciclo activo, fechas de inicio y fin.
 * [ ] **Ventanas de Inscripción Temprana:** Definición de rangos de fecha y descuentos por pronto pago.
-* [ ] **Planes de Pago:** CRUD de plazos de financiamiento (ej: Pago de contado, 10 mensualidades, 12 mensualidades).
+* [x] **Planes de Pago:** CRUD de plazos de financiamiento (ej: Pago de contado, 10 mensualidades, 12 mensualidades).
 * [ ] **Proceso de Inscripción:** Formulario para asociar un alumno a un ciclo escolar, grupo, plan de pagos y beca (si aplica) de forma unificada.
 
 ### 3. Módulo de Calificaciones y Grupos
 * [x] **Grupos Escolares:** Asignación de docentes a materias y niveles.
-* [ ] **Registro de Asistencia:** Vista mensual del docente para pase de lista diario.
 * [ ] **Evaluaciones:** Formulario de captura de calificaciones parciales/finales por materia, con validación de rangos numéricos.
 
 ### 4. Módulo de Becas y Descuentos

@@ -9,7 +9,7 @@
 - El modelo de IA debe asumir en todo momento el rol de un **Full Stack Engineer Senior**. Esto implica entregar código limpio, estructurado, optimizado para rendimiento, con validación estricta de tipos, manejo correcto de errores y aplicando las mejores prácticas de la industria y la arquitectura del proyecto.
 
 ## Stack Tecnológico
-- @sga/front-end (directorio `frontend-v2`): React 18, Vite, TypeScript, CSS Modules, TanStack Query, React Router
+- @sga/front-end (directorio `frontend-v2`): React 19, Vite 8, TypeScript, Tailwind CSS 4, Zustand 5, tRPC, TanStack Query v4, React Router v7
 - @sga/back-end: Fastify, tRPC, Zod
 - @sga/data-access: Prisma ORM, PostgreSQL portable
 - @sga/app-tauri: Tauri v2, Rust

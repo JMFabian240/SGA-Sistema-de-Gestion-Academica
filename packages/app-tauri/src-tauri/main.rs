@@ -22,41 +22,60 @@ fn main() {
             let app_dir = app_handle.path_resolver().app_data_dir().unwrap();
             let db_dir = app_dir.join("database");
             
-            // 1. Inicializar clúster si no existe
-            if !db_dir.exists() {
-                println!("Inicializando clúster PostgreSQL en {:?}", db_dir);
-                std::fs::create_dir_all(&db_dir).unwrap();
-                
-                let (mut rx, child) = TauriCommand::new_sidecar("initdb")
-                    .expect("Failed to create initdb command")
-                    .args(&["-D", db_dir.to_str().unwrap(), "-U", "sga", "-E", "UTF8"])
+            // 1. Detectar Entorno y Variables
+            #[cfg(dev)]
+            let is_development = true;
+            #[cfg(not(dev))]
+            let is_development = false;
+
+            // En desarrollo, el equipo puede optar por usar Docker pasándolo como variable de entorno
+            let use_docker = is_development && std::env::var("USE_DOCKER").unwrap_or_else(|_| "false".to_string()) == "true";
+
+            let db_pid;
+            let database_url;
+
+            if use_docker {
+                println!("Modo Desarrollo: Variable USE_DOCKER detectada. Ignorando sidecars y conectando a Docker...");
+                db_pid = None;
+                // Credenciales del docker-compose.yml
+                database_url = "postgresql://sae_admin:SaeColegio2026@localhost:5433/sga_db".to_string();
+            } else {
+                println!("Iniciando Sidecars locales de PostgreSQL...");
+                // Inicializar clúster si no existe
+                if !db_dir.exists() {
+                    println!("Inicializando clúster PostgreSQL en {:?}", db_dir);
+                    std::fs::create_dir_all(&db_dir).unwrap();
+                    
+                    let (_, _) = TauriCommand::new_sidecar("initdb")
+                        .expect("Failed to create initdb command")
+                        .args(&["-D", db_dir.to_str().unwrap(), "-U", "sga", "-E", "UTF8"])
+                        .spawn()
+                        .expect("Failed to spawn initdb");
+                    
+                    let _ = Command::new("cmd")
+                        .args(["/C", "ping 127.0.0.1 -n 3 > nul"]) // Simulación de espera
+                        .status();
+                }
+
+                // Levantar PostgreSQL
+                println!("Levantando PostgreSQL...");
+                let (_, db_child) = TauriCommand::new_sidecar("postgres")
+                    .expect("Failed to create postgres command")
+                    .args(&["-D", db_dir.to_str().unwrap(), "-p", "5433"])
                     .spawn()
-                    .expect("Failed to spawn initdb");
+                    .expect("Failed to spawn postgres");
                 
-                // Esperar a que initdb termine de forma síncrona para simplificar
-                // (en un escenario real, leer rx hasta que termine)
-                let status = Command::new("cmd")
-                    .args(["/C", "ping 127.0.0.1 -n 3 > nul"]) // Simulación de espera o manejo real de PID
-                    .status();
+                db_pid = Some(db_child.pid());
+                // Credenciales del sidecar
+                database_url = "postgresql://sga:sga@localhost:5433/sga_db".to_string();
             }
 
-            // 2. Levantar PostgreSQL
-            println!("Levantando PostgreSQL...");
-            let (mut db_rx, db_child) = TauriCommand::new_sidecar("postgres")
-                .expect("Failed to create postgres command")
-                .args(&["-D", db_dir.to_str().unwrap(), "-p", "5433"])
-                .spawn()
-                .expect("Failed to spawn postgres");
-            
-            let db_pid = db_child.pid();
-
             // 3. Levantar Backend Fastify
-            // Le pasamos las variables de entorno necesarias
             println!("Levantando Backend Fastify...");
-            let (mut back_rx, back_child) = TauriCommand::new_sidecar("back")
+            let (_, back_child) = TauriCommand::new_sidecar("back")
                 .expect("Failed to create back command")
                 .envs(vec![
-                    ("DATABASE_URL".to_string(), "postgresql://sga:sga@localhost:5433/sga_db".to_string()),
+                    ("DATABASE_URL".to_string(), database_url),
                     ("TRPC_PORT".to_string(), "3000".to_string())
                 ].into_iter().collect())
                 .spawn()
@@ -65,7 +84,7 @@ fn main() {
             let back_pid = back_child.pid();
 
             app.manage(Arc::new(Mutex::new(AppState {
-                db_process: Some(db_pid),
+                db_process: db_pid, // None si es Docker, PID si es sidecar
                 back_process: Some(back_pid),
             })));
 

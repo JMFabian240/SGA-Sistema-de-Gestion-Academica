@@ -14,20 +14,31 @@ Utiliza una arquitectura "Todo en Uno" con Tauri Sidecars para ser distribuido c
 
 1. **Node.js** (v18+)
 2. **Rust** y dependencias para Tauri (v2)
-3. **PostgreSQL portable**: Debes obtener los binarios de PostgreSQL para Windows (`initdb.exe`, `postgres.exe`, `pg_ctl.exe` y sus DLLs) y colocarlos en la carpeta `packages/app-tauri/src-tauri/binaries/`. Nota: Cambiarles el nombre según tu configuración en `tauri.conf.json` (ej: `initdb-x86_64-pc-windows-msvc.exe`).
+3. **Base de Datos (Dos Opciones para Desarrollo):**
+   * **Opción A (Recomendada con Docker):** Debes tener Docker Desktop instalado.
+   * **Opción B (Sidecars Locales):** Si no usas Docker, debes obtener los binarios de PostgreSQL para tu sistema operativo (`initdb`, `postgres`, `pg_ctl`) y colocarlos en la carpeta `packages/app-tauri/src-tauri/binaries/` con el nombre de tu target triplet de Rust (ej: `initdb-x86_64-pc-windows-msvc.exe`).
 
 ## Entorno de Desarrollo
 
-1. Crea un archivo `.env` basado en `.env.example`:
+El proyecto está preparado para convivir dinámicamente entre desarrolladores que usan Docker y aquellos que prefieren binarios locales.
+
+1. **Configuración de Variables de Entorno:**
+   Crea un archivo `.env` basado en `.env.example`:
    ```bash
    cp .env.example .env
    ```
-2. Instala las dependencias:
+   **¡Importante para la Base de Datos!** 
+   * Si elegiste la **Opción A (Docker)**, agrega en tu terminal o en tu `.env` (si lo carga tu entorno) la variable `USE_DOCKER=true`. Esto le dirá a Tauri que ignore los binarios faltantes.
+   * Si elegiste la **Opción B (Binarios)**, asegúrate de que `USE_DOCKER` esté en `false` o no exista.
+
+2. **Levantar la Base de Datos (Si usas Docker):**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Instalar dependencias y levantar la aplicación:**
    ```bash
    npm install
-   ```
-3. Levanta la aplicación en desarrollo:
-   ```bash
    npm run dev:tauri
    ```
 

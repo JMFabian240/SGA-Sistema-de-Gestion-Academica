@@ -19,12 +19,12 @@ Este archivo contiene la lista de tareas técnicas pendientes para corregir los 
   - [ x] Si se selecciona **Plan 12 Meses**: Generar las mensualidades de modo que Diciembre contenga el cargo doble (diciembre + julio) y Julio se cree exento/sin cargo en el calendario.
 
 ## 3. Módulo de Calificaciones e Inscripción (Restricciones Académicas)
-- [ ] **Validación de Materias Reprobadas:**
-  - [ ] Modificar `createInscripcion` para consultar las calificaciones del alumno del ciclo anterior inmediato.
-  - [ ] Validar que no tenga ninguna calificación menor a 6.0 (curricular/extracurricular) o `NO_ACREDITADO` (taller). Si existe alguna, arrojar un `TRPCError` indicando la retención por reprobación.
-- [ ] **Validación de Grados Activos en Grupos:**
-  - [ ] Modificar `createGrupo` en `grupos.service.ts` para extraer el grado/semestre a partir de la propiedad `nombre` del grupo (ej. "1A" -> 1).
-  - [ ] Validar que el grado/semestre extraído esté habilitado/activo dentro de la propiedad `gradosPermitidos` del ciclo escolar asociado. Si no está permitido, lanzar un error descriptivo para impedir la creación.
+- [x] **Validación de Materias Reprobadas:**
+  - [x] Modificar `createInscripcion` para consultar las calificaciones del alumno del ciclo anterior inmediato.
+  - [x] Validar que no tenga ninguna calificación menor a 6.0 (curricular/extracurricular) o `NO_ACREDITADO` (taller). Si existe alguna, arrojar un `TRPCError` indicando la retención por reprobación.
+- [x] **Validación de Grados Activos en Grupos:**
+  - [x] Modificar `createGrupo` en `grupos.service.ts` para extraer el grado/semestre a partir de la propiedad `nombre` del grupo (ej. "1A" -> 1).
+  - [x] Validar que el grado/semestre extraído esté habilitado/activo dentro de la propiedad `gradosPermitidos` del ciclo escolar asociado. Si no está permitido, lanzar un error descriptivo para impedir la creación.
 
 ## 4. Módulo de Pagos (Convenios de Pago)
 - [ ] **Migración de Base de Datos:**

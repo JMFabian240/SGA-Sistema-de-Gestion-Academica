@@ -9,25 +9,24 @@ Guía para mantener la consistencia y arquitectura de la capa de UI.
 
 ## Tecnologías Principales
 
-- **React 18** + **Vite** + **TypeScript**
-- **CSS Modules** o Vanilla CSS (sin frameworks de UI estilo Tailwind a menos que se indique).
-  - Usar siempre las variables globales CSS definidas en `index.css` (ej. `var(--color-primary)`, `var(--color-bg)`, `var(--color-text)`, `var(--shadow-sm)`). No usar colores hardcodeados.
-  - Para diseños de layout (Sidebar/Header) basarse en los patrones establecidos ( Sidebar azul oscuro `--color-sidebar-bg`, Header fondo blanco).
-- **TanStack Query** (React Query) para manejo de estado asíncrono y caché del servidor.
-- **React Router** para navegación de vistas.
+- **React 19** + **Vite 8** + **TypeScript**
+- **Tailwind CSS 4** para los estilos y diseño de la UI (usando el plugin `@tailwindcss/vite`).
+  - Usar las clases utilitarias y variables definidas en el sistema de diseño (ver skill `front-sga-design`). No usar colores hardcodeados.
+  - Para diseños de layout (Sidebar/Header) basarse en los patrones establecidos.
+- **Zustand 5** para manejo de estado global en el cliente.
+- **TanStack Query v4** (React Query) para manejo de estado asíncrono y caché del servidor.
+- **React Router v7** para navegación de vistas.
 - **tRPC** para comunicación fuertemente tipada con el backend.
 
 ## Convenciones de Nombres y Estructura
 
 - Nombra los archivos de componentes en PascalCase: `MiComponente.tsx`.
-- Nombra los archivos de estilos usando módulos: `MiComponente.module.css`.
 - Nombra los hooks personalizados en camelCase empezando con `use`: `useUsuarios.ts`.
 - Estructura recomendada para un componente:
   ```
   components/
   └── MiComponente/
       ├── MiComponente.tsx
-      ├── MiComponente.module.css
       └── index.ts
   ```
 
@@ -50,19 +49,18 @@ Guía para mantener la consistencia y arquitectura de la capa de UI.
 ```tsx
 import React from 'react';
 import { trpc } from '../../utils/trpc';
-import styles from './UsuarioLista.module.css';
 
 export const UsuarioLista: React.FC = () => {
   const { data: usuarios, isLoading, error } = trpc.usuarios.listar.useQuery();
 
-  if (isLoading) return <div className={styles.loading}>Cargando...</div>;
-  if (error) return <div className={styles.error}>Error: {error.message}</div>;
+  if (isLoading) return <div className="text-gray-500">Cargando...</div>;
+  if (error) return <div className="text-red-500">Error: {error.message}</div>;
 
   return (
-    <ul className={styles.lista}>
+    <ul className="space-y-2">
       {usuarios?.map((u) => (
-        <li key={u.id} className={styles.item}>
-          {u.name} ({u.email})
+        <li key={u.id} className="p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+          <span className="font-medium text-gray-900">{u.name}</span> <span className="text-sm text-gray-500">({u.email})</span>
         </li>
       ))}
     </ul>
