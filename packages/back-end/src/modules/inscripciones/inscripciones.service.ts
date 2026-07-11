@@ -121,6 +121,7 @@ export class InscripcionesService {
           alumnoId: input.alumnoId,
           cicloId: input.cicloId,
           grupoId: input.grupoId,
+          planPagoId: null as any,
           estadoEnCiclo: input.estadoEnCiclo,
           estadoFinanciero: input.estadoFinanciero,
           esIngresoTardio: input.esIngresoTardio,
@@ -235,7 +236,7 @@ export class InscripcionesService {
       const inscActualizada = await tx.inscripcionCiclo.update({
         where: { inscripcionId: input.inscripcionId },
         data: { 
-          planPagoId: null,
+          planPagoId: null as any,
           estadoFinanciero: 'NO_APLICA'
         }
       });

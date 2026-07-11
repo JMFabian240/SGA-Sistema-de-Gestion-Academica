@@ -32,7 +32,7 @@ export const updateCalendarioPagoSchema = createCalendarioPagoSchema.partial().e
 });
 
 // Pagos
-const MetodoPagoEnum = z.enum(['EFECTIVO', 'DEPOSITO', 'TRANSFERENCIA', 'TARJETA_DEBITO', 'TARJETA_CREDITO']);
+const MetodoPagoEnum = z.enum(['DEPOSITO', 'TRANSFERENCIA', 'TARJETA_DEBITO', 'TARJETA_CREDITO']);
 
 export const aplicacionPagoInputSchema = z.object({
   calendarioPagoId: z.number().int().positive(),
