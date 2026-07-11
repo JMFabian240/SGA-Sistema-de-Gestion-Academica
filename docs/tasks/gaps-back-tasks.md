@@ -3,20 +3,20 @@
 Este archivo contiene la lista de tareas técnicas pendientes para corregir los gaps identificados en la auditoría general del backend y base de datos, las cuales se abordarán de forma diferida según las indicaciones del usuario.
 
 ## 1. Módulo de Becas y Promociones
-- [ ] **Migración de Base de Datos:**
-  - [ ] Agregar el campo `matrizPorcentajes Json?` al modelo `Beca` en `schema.prisma`.
-  - [ ] Ejecutar la migración con Prisma Migrate (`npx prisma migrate dev`).
-- [ ] **Zod Schemas:**
-  - [ ] Modificar `createBecaSchema` y `updateBecaSchema` en `becas.schema.ts` para validar la estructura del diccionario `matrizPorcentajes` (claves del tipo `"NivelId_Grado"`, valores entre 0 y 100).
-- [ ] **Lógica de Servicio (`becas.service.ts`):**
-  - [ ] Implementar la regla de exclusión mutua de becas/promociones: al asignar una promoción de inscripción, verificar que el alumno no posea ya una beca de hermanos activa, y viceversa.
-  - [ ] Programar la resolución del porcentaje aplicable basado en el `nivelId` y `grado` del alumno a partir del JSON de la matriz.
+- [x ] **Migración de Base de Datos:**
+  - [ x] Agregar el campo `matrizPorcentajes Json?` al modelo `Beca` en `schema.prisma`.
+  - [x ] Ejecutar la migración con Prisma Migrate (`npx prisma migrate dev`).
+- [ x] **Zod Schemas:**
+  - [ x] Modificar `createBecaSchema` y `updateBecaSchema` en `becas.schema.ts` para validar la estructura del diccionario `matrizPorcentajes` (claves del tipo `"NivelId_Grado"`, valores entre 0 y 100).
+- [ x] **Lógica de Servicio (`becas.service.ts`):**
+  - [x ] Implementar la regla de exclusión mutua de becas/promociones: al asignar una promoción de inscripción, verificar que el alumno no posea ya una beca de hermanos activa, y viceversa.
+  - [x ] Programar la resolución del porcentaje aplicable basado en el `nivelId` y `grado` del alumno a partir del JSON de la matriz.
 
 ## 2. Módulo de Inscripciones (Planes de Pago y Generación de Adeudos)
-- [ ] **Servicio de Automatización (`inscripciones.service.ts`):**
-  - [ ] Crear la función `generarCalendarioAdeudos(alumnoId, cicloId, planPagoId, grupoId)` para ejecutarse de forma atómica en la transacción de creación de inscripción (`createInscripcion`).
-  - [ ] Si se selecciona **Plan 10 Meses**: Crear 10 adeudos consecutivos por concepto de colegiatura con el monto mensual estándar.
-  - [ ] Si se selecciona **Plan 12 Meses**: Generar las mensualidades de modo que Diciembre contenga el cargo doble (diciembre + julio) y Julio se cree exento/sin cargo en el calendario.
+- [x ] **Servicio de Automatización (`inscripciones.service.ts`):**
+  - [x ] Crear la función `generarCalendarioAdeudos(alumnoId, cicloId, planPagoId, grupoId)` para ejecutarse de forma atómica en la transacción de creación de inscripción (`createInscripcion`).
+  - [x ] Si se selecciona **Plan 10 Meses**: Crear 10 adeudos consecutivos por concepto de colegiatura con el monto mensual estándar.
+  - [ x] Si se selecciona **Plan 12 Meses**: Generar las mensualidades de modo que Diciembre contenga el cargo doble (diciembre + julio) y Julio se cree exento/sin cargo en el calendario.
 
 ## 3. Módulo de Calificaciones e Inscripción (Restricciones Académicas)
 - [ ] **Validación de Materias Reprobadas:**
@@ -42,6 +42,6 @@ Este archivo contiene la lista de tareas técnicas pendientes para corregir los 
   - [ ] Permitir la consulta parametrizada para visualizar alumnos "Al Corriente" (PAGADO) e ingresos del día/mes.
 
 ## 6. Ajustes de Base de Datos y Zod
-- [ ] **Ampliar Conceptos:**
-  - [ ] Modificar los límites de longitud de la columna `concepto` en `Tarifa` (`VarChar(15)` -> `VarChar(100)`) y `CalendarioPago` (`VarChar(25)` -> `VarChar(100)`) en `schema.prisma`.
-  - [ ] Actualizar los esquemas Zod en `pagos.schema.ts` para admitir conceptos de mayor longitud.
+- [x ] **Ampliar Conceptos:**
+  - [x ] Modificar los límites de longitud de la columna `concepto` en `Tarifa` (`VarChar(15)` -> `VarChar(100)`) y `CalendarioPago` (`VarChar(25)` -> `VarChar(100)`) en `schema.prisma`.
+  - [x ] Actualizar los esquemas Zod en `pagos.schema.ts` para admitir conceptos de mayor longitud.
