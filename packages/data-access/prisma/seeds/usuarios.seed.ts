@@ -26,7 +26,7 @@ async function main() {
   const passwordHash = await bcrypt.hash('sandiego', 10);
 
   const nombres = ['Harry', 'Luis', 'Diana', 'Jessica', 'Pako'];
-  
+
   const rolesParaAsignar = [
     { rol: 'ADMIN', inicial: 'a' },
     { rol: 'GESTOR', inicial: 'g' },
@@ -36,8 +36,6 @@ async function main() {
   for (const nombre of nombres) {
     for (const r of rolesParaAsignar) {
       const nombreUsuario = `${nombre.toLowerCase()}.${r.inicial}`;
-      const correo = `${nombreUsuario}@colegio.edu`;
-
       const usuario = await prisma.usuario.upsert({
         where: { nombreUsuario },
         update: {
@@ -46,7 +44,6 @@ async function main() {
         create: {
           nombreUsuario,
           nombreCompleto: nombre,
-          correo,
           passwordHash,
           activo: true,
         },
@@ -72,6 +69,28 @@ async function main() {
         });
         console.log(` -> Rol ${r.rol} asignado.`);
       }
+
+      // Asignar permisos de módulo básicos para la interfaz
+      const modulos = ['Alumnos', 'Tutores', 'Grupos', 'Materias', 'Pagos', 'Configuracion', 'Usuarios'];
+      const nivelPermiso = r.rol === 'ADMIN' ? 'LECTURA_Y_ESCRITURA' : 'LECTURA';
+      
+      for (const mod of modulos) {
+        await prisma.usuarioPermisoModulo.upsert({
+          where: {
+            usuarioId_modulo: {
+              usuarioId: usuario.usuarioId,
+              modulo: mod
+            }
+          },
+          update: { nivel: nivelPermiso },
+          create: {
+            usuarioId: usuario.usuarioId,
+            modulo: mod,
+            nivel: nivelPermiso,
+          }
+        });
+      }
+      console.log(` -> Permisos de módulos asignados.`);
     }
   }
 

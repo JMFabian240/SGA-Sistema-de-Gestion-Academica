@@ -155,4 +155,21 @@ export class PagosRepository {
       return pago;
     });
   }
+
+  static async getReciboPago(pagoId: number) {
+    const pago = await prisma.pago.findUnique({
+      where: { pagoId },
+      include: {
+        alumno: {
+          select: { nombreCompleto: true }
+        },
+        aplicacionesPago: {
+          include: {
+            calendarioPago: true
+          }
+        }
+      }
+    });
+    return pago;
+  }
 }

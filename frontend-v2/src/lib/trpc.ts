@@ -1,12 +1,12 @@
 import { createTRPCReact } from '@trpc/react-query';
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import { createTRPCProxyClient, httpLink } from '@trpc/client';
 import type { AppRouter } from '../../../packages/back-end/src/router';
 
 export const trpc = createTRPCReact<AppRouter>();
 
 export const trpcVanilla = createTRPCProxyClient<AppRouter>({
   links: [
-    httpBatchLink({
+    httpLink({
       url: import.meta.env.VITE_API_URL || '/trpc',
       headers() {
         const token = localStorage.getItem('auth_token');

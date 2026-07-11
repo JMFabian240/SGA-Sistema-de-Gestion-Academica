@@ -90,7 +90,10 @@ export const dashboardRouter = router({
           }
         },
         include: {
-          alumno: true
+          alumno: true,
+          aplicacionesPago: {
+            include: { calendarioPago: true }
+          }
         },
         orderBy: {
           registradoEn: 'desc'
@@ -98,10 +101,120 @@ export const dashboardRouter = router({
         take: 5
       });
 
-      return pagos.map(p => ({
-        name: p.alumno.nombreCompleto,
-        type: 'Colegiatura',
-        amount: `$${Number(p.montoTotal).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
-      }));
+      return pagos.map(p => {
+        const conceptos = Array.from(new Set(p.aplicacionesPago.map(a => a.calendarioPago?.concepto || 'Pago'))).join(', ');
+
+        return {
+          name: p.alumno.nombreCompleto,
+          type: conceptos || 'Abono/Pago',
+          amount: `$${Number(p.montoTotal).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`
+        };
+      });
+    }),
+
+  obtenerTopDeudores: gestorProcedure
+    .query(async ({ ctx }) => {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      // 1. Obtener todos los adeudos vencidos o pendientes con fecha de vencimiento menor a hoy
+      const adeudosVencidos = await ctx.prisma.calendarioPago.findMany({
+        where: { 
+          OR: [
+            { estadoCobro: 'VENCIDO' },
+            { estadoCobro: 'PENDIENTE', fechaVencimiento: { lte: hoy } }
+          ],
+          eliminadoEn: null 
+        },
+        include: {
+          alumno: {
+            include: {
+              tutoresAlumnos: {
+                where: { esPrincipal: true },
+                include: { tutor: true }
+              }
+            }
+          }
+        }
+      });
+
+      // 2. Agrupar por tutor
+      const deudoresMap = new Map<number, { tutorId: number, nombreTutor: string, alumnoId: number, nombreAlumno: string, deudaMonto: number }>();
+
+      for (const a of adeudosVencidos) {
+        const relacionPrincipal = a.alumno.tutoresAlumnos[0];
+        if (!relacionPrincipal?.tutor) continue;
+
+        const { tutor } = relacionPrincipal;
+        
+        const current = deudoresMap.get(tutor.tutorId) || {
+          tutorId: tutor.tutorId,
+          nombreTutor: tutor.nombreCompleto,
+          alumnoId: a.alumno.alumnoId,
+          nombreAlumno: a.alumno.nombreCompleto,
+          deudaMonto: 0
+        };
+
+        current.deudaMonto += Number(a.saldoPendiente);
+        deudoresMap.set(tutor.tutorId, current);
+      }
+
+      // 3. Ordenar descendentemente por deuda y tomar el top 5
+      const topDeudores = Array.from(deudoresMap.values())
+        .sort((a, b) => b.deudaMonto - a.deudaMonto)
+        .slice(0, 5);
+
+      return topDeudores;
+    }),
+
+  obtenerCuentasPendientes: gestorProcedure
+    .query(async ({ ctx }) => {
+      // 1. Obtener todos los adeudos pendientes o vencidos
+      const adeudos = await ctx.prisma.calendarioPago.findMany({
+        where: { 
+          estadoCobro: { in: ['PENDIENTE', 'VENCIDO'] },
+          eliminadoEn: null 
+        },
+        include: {
+          alumno: {
+            include: {
+              nivel: true,
+              tutoresAlumnos: {
+                where: { esPrincipal: true },
+                include: { tutor: true }
+              }
+            }
+          }
+        }
+      });
+
+      // 2. Agrupar por alumno para no omitir a hermanos en distintos niveles
+      const pendientesMap = new Map<number, { tutorId: number, nombreTutor: string, alumnoId: number, nombreAlumno: string, deudaMonto: number, nivelNombre: string }>();
+
+      for (const a of adeudos) {
+        const relacionPrincipal = a.alumno.tutoresAlumnos[0];
+        const tutorId = relacionPrincipal?.tutor?.tutorId || -a.alumno.alumnoId;
+        const nombreTutor = relacionPrincipal?.tutor?.nombreCompleto || 'Sin Tutor Asignado';
+        const alumnoId = a.alumno.alumnoId;
+        
+        const current = pendientesMap.get(alumnoId) || {
+          tutorId: tutorId,
+          nombreTutor: nombreTutor,
+          alumnoId: alumnoId,
+          nombreAlumno: a.alumno.nombreCompleto,
+          deudaMonto: 0,
+          nivelNombre: a.alumno.nivel.nombre
+        };
+
+        current.deudaMonto += Number(a.saldoPendiente);
+        pendientesMap.set(alumnoId, current);
+      }
+
+      // 3. Ordenar descendentemente por deuda (sin límite)
+      const cuentasPendientes = Array.from(pendientesMap.values())
+        .filter(c => c.deudaMonto > 0)
+        .sort((a, b) => b.deudaMonto - a.deudaMonto);
+
+      return cuentasPendientes;
     }),
 });

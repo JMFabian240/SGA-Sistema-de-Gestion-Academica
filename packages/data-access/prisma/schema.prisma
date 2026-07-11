@@ -8,6 +8,662 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Rol {
+  rolId         Int          @id @default(autoincrement()) @map("rol_id")
+  codigo        String       @unique @db.VarChar(20)
+  nombre        String       @db.VarChar(60)
+  descripcion   String?
+  creadoEn      DateTime?    @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime?    @map("eliminado_en") @db.Timestamptz(6)
+  usuariosRoles UsuarioRol[]
+
+  @@map("rol")
+}
+
+model Usuario {
+  usuarioId                 Int                    @id @default(autoincrement()) @map("usuario_id")
+  nombreUsuario             String                 @unique @map("nombre_usuario") @db.VarChar(80)
+  nombreCompleto            String                 @map("nombre_completo") @db.VarChar(120)
+  telefono                  String?                @db.VarChar(15)
+  passwordHash              String                 @map("password_hash") @db.VarChar(255)
+  activo                    Boolean?               @default(true)
+  intentosFallidos          Int?                   @default(0) @map("intentos_fallidos")
+  bloqueadoHasta            DateTime?              @map("bloqueado_hasta") @db.Timestamptz(6)
+  ultimoAcceso              DateTime?              @map("ultimo_acceso") @db.Timestamptz(6)
+  debeCambiarPwd            Boolean?               @default(false) @map("debe_cambiar_pwd")
+  creadoEn                  DateTime?              @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn             DateTime?              @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn               DateTime?              @map("eliminado_en") @db.Timestamptz(6)
+  becasAsignadas            AsignacionBeca[]       @relation("BecaAsignadaPor")
+  becasRetiradas            AsignacionBeca[]       @relation("BecaRetiradaPor")
+  asistenciasRegistradas    Asistencia[]
+  calificacionesRegistradas Calificacion[]
+  documentosSubidos         Documento[]
+  gruposMaterias            GrupoMateria[]
+  intentosLogin             IntentoLogin[]
+  logsAuditoria             LogAuditoria[]
+  materiasDocente           Materia[]              @relation("MateriaDocente")
+  movimientosSaldo          MovimientoSaldo[]
+  pagosRegistrados          Pago[]
+  recargosModificados       Recargo[]
+  becasResueltas            SolicitudBeca[]        @relation("BecaResueltaPor")
+  solicitudesBeca           SolicitudBeca[]        @relation("BecaSolicitadaPor")
+  tokensRevocados           TokenRevocado[]
+  permisosModulos           UsuarioPermisoModulo[]
+  rolesAsignados            UsuarioRol[]           @relation("UsuarioAsignador")
+  roles                     UsuarioRol[]           @relation("UsuarioRoles")
+
+  @@map("usuario")
+}
+
+model UsuarioRol {
+  usuarioRolId  Int       @id @default(autoincrement()) @map("usuario_rol_id")
+  usuarioId     Int       @map("usuario_id")
+  rolId         Int       @map("rol_id")
+  asignadoEn    DateTime? @default(now()) @map("asignado_en") @db.Timestamptz(6)
+  asignadoPor   Int?      @map("asignado_por")
+  activo        Boolean?  @default(true)
+  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz(6)
+  asignador     Usuario?  @relation("UsuarioAsignador", fields: [asignadoPor], references: [usuarioId])
+  rol           Rol       @relation(fields: [rolId], references: [rolId])
+  usuario       Usuario   @relation("UsuarioRoles", fields: [usuarioId], references: [usuarioId])
+
+  @@unique([usuarioId, rolId])
+  @@map("usuario_rol")
+}
+
+model UsuarioPermisoModulo {
+  permisoId     Int          @id @default(autoincrement()) @map("permiso_id")
+  usuarioId     Int          @map("usuario_id")
+  modulo        String       @db.VarChar(30)
+  nivel         NivelPermiso
+  activo        Boolean?     @default(true)
+  creadoEn      DateTime?    @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  usuario       Usuario      @relation(fields: [usuarioId], references: [usuarioId])
+
+  @@unique([usuarioId, modulo])
+  @@map("usuario_permiso_modulo")
+}
+
+model IntentoLogin {
+  intentoId              Int       @id @default(autoincrement()) @map("intento_id")
+  usuarioId              Int?      @map("usuario_id")
+  nombreUsuarioIntentado String    @map("nombre_usuario_intentado") @db.VarChar(80)
+  exitoso                Boolean
+  direccionIp            String?   @map("direccion_ip") @db.VarChar(45)
+  userAgent              String?   @map("user_agent")
+  creadoEn               DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
+  usuario                Usuario?  @relation(fields: [usuarioId], references: [usuarioId])
+
+  @@map("intento_login")
+}
+
+model TokenRevocado {
+  id         BigInt    @id @default(autoincrement())
+  jti        String    @unique @db.VarChar(36)
+  usuarioId  Int       @map("usuario_id")
+  revocadoEn DateTime? @default(now()) @map("revocado_en") @db.Timestamptz(6)
+  expiraEn   DateTime  @map("expira_en") @db.Timestamptz(6)
+  usuario    Usuario   @relation(fields: [usuarioId], references: [usuarioId])
+
+  @@map("token_revocado")
+}
+
+model ConfiguracionGlobal {
+  configuracionId      Int       @id @map("configuracion_id")
+  montoRecargoDefecto  Decimal   @map("monto_recargo_defecto") @db.Decimal(12, 2)
+  diasGraciaRecargo    Int       @map("dias_gracia_recargo")
+  plazoInscripcionDias Int       @map("plazo_inscripcion_dias")
+  umbralesSmtpDias     Json      @map("umbrales_smtp_dias")
+  actualizadoEn        DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+
+  @@map("configuracion_global")
+}
+
+model LogAuditoria {
+  logId          BigInt    @id @default(autoincrement()) @map("log_id")
+  usuarioId      Int?      @map("usuario_id")
+  accion         String    @db.VarChar(10)
+  tablaAfectada  String    @map("tabla_afectada") @db.VarChar(60)
+  registroId     String    @map("registro_id") @db.VarChar(50)
+  valoresAntes   Json?     @map("valores_antes")
+  valoresDespues Json?     @map("valores_despues")
+  fechaHora      DateTime? @default(now()) @map("fecha_hora") @db.Timestamptz(6)
+  direccionIp    String?   @map("direccion_ip") @db.VarChar(45)
+  descripcion    String?
+  usuario        Usuario?  @relation(fields: [usuarioId], references: [usuarioId])
+
+  @@map("log_auditoria")
+}
+
+model NivelEducativo {
+  nivelId       Int       @id @default(autoincrement()) @map("nivel_id")
+  codigo        String    @unique @db.VarChar(15)
+  nombre        String    @db.VarChar(60)
+  rvoe          String?   @db.VarChar(40)
+  orden         Int
+  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz(6)
+  alumnos       Alumno[]
+  grados        Grado[]
+  grupos        Grupo[]
+  tarifas       Tarifa[]
+
+  @@map("nivel_educativo")
+}
+
+model Grado {
+  gradoId       Int                @id @default(autoincrement()) @map("grado_id")
+  nivelId       Int                @map("nivel_id")
+  numero        Int
+  nombre        String             @db.VarChar(50)
+  creadoEn      DateTime?          @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?          @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime?          @map("eliminado_en") @db.Timestamptz(6)
+  alumnos       Alumno[]
+  nivel         NivelEducativo     @relation(fields: [nivelId], references: [nivelId], onDelete: NoAction)
+  grupos        Grupo[]
+  inscripciones InscripcionCiclo[]
+  materias      Materia[]
+
+  @@map("grado")
+}
+
+model CicloEscolar {
+  cicloId             Int                          @id @default(autoincrement()) @map("ciclo_id")
+  nombre              String                       @db.VarChar(20)
+  fechaInicio         DateTime                     @map("fecha_inicio") @db.Date
+  fechaFin            DateTime                     @map("fecha_fin") @db.Date
+  activo              Boolean?                     @default(false)
+  creadoEn            DateTime?                    @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn       DateTime?                    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn         DateTime?                    @map("eliminado_en") @db.Timestamptz(6)
+  gradosPermitidos    Json?                        @map("grados_permitidos")
+  periodicidad        String                       @default("ANUAL") @db.VarChar(15)
+  asignacionesBeca    AsignacionBeca[]
+  calendariosPagos    CalendarioPago[]
+  grupos              Grupo[]
+  inscripciones       InscripcionCiclo[]
+  solicitudesBeca     SolicitudBeca[]
+  tarifas             Tarifa[]
+  ventanasInscripcion VentanaInscripcionTemprana[]
+
+  @@map("ciclo_escolar")
+}
+
+model Grupo {
+  grupoId       Int                @id @default(autoincrement()) @map("grupo_id")
+  nivelId       Int                @map("nivel_id")
+  cicloId       Int                @map("ciclo_id")
+  nombre        String             @db.VarChar(10)
+  cupoMaximo    Int                @map("cupo_maximo")
+  creadoEn      DateTime?          @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?          @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime?          @map("eliminado_en") @db.Timestamptz(6)
+  cerrado       Boolean?           @default(false)
+  gradoId       Int                @map("grado_id")
+  ciclo         CicloEscolar       @relation(fields: [cicloId], references: [cicloId], onDelete: NoAction)
+  grado         Grado              @relation(fields: [gradoId], references: [gradoId], onDelete: NoAction)
+  nivel         NivelEducativo     @relation(fields: [nivelId], references: [nivelId], onDelete: NoAction)
+  materias      GrupoMateria[]
+  inscripciones InscripcionCiclo[]
+
+  @@map("grupo")
+}
+
+model Materia {
+  materiaId      Int            @id @default(autoincrement()) @map("materia_id")
+  nombre         String         @db.VarChar(80)
+  clave          String         @unique @db.VarChar(20)
+  creadoEn       DateTime?      @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn  DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn    DateTime?      @map("eliminado_en") @db.Timestamptz(6)
+  gradoId        Int?           @map("grado_id")
+  docenteId      Int?           @map("docente_id")
+  tipo           String         @default("curricular") @db.VarChar(20)
+  gruposMaterias GrupoMateria[]
+  docente        Usuario?       @relation("MateriaDocente", fields: [docenteId], references: [usuarioId])
+  grado          Grado?         @relation(fields: [gradoId], references: [gradoId])
+
+  @@map("materia")
+}
+
+model GrupoMateria {
+  grupoMateriaId Int            @id @default(autoincrement()) @map("grupo_materia_id")
+  grupoId        Int            @map("grupo_id")
+  materiaId      Int            @map("materia_id")
+  docenteId      Int?           @map("docente_id")
+  asistencias    Asistencia[]
+  calificaciones Calificacion[]
+  docente        Usuario?       @relation(fields: [docenteId], references: [usuarioId])
+  grupo          Grupo          @relation(fields: [grupoId], references: [grupoId])
+  materia        Materia        @relation(fields: [materiaId], references: [materiaId])
+
+  @@unique([grupoId, materiaId])
+  @@map("grupo_materia")
+}
+
+model Tutor {
+  tutorId           Int               @id @default(autoincrement()) @map("tutor_id")
+  nombreCompleto    String            @map("nombre_completo") @db.VarChar(120)
+  correoElectronico String?           @map("correo_electronico") @db.VarChar(255)
+  telefono          String?           @db.VarChar(15)
+  direccion         String?
+  curp              String?           @db.VarChar(18)
+  requiereFactura   Boolean?          @default(false) @map("requiere_factura")
+  tipoPagoHabitual  String?           @map("tipo_pago_habitual") @db.VarChar(15)
+  saldoAFavor       Decimal?          @default(0) @map("saldo_a_favor") @db.Decimal(12, 2)
+  activo            Boolean?          @default(true)
+  creadoEn          DateTime?         @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn     DateTime?         @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn       DateTime?         @map("eliminado_en") @db.Timestamptz(6)
+  datosFiscales     DatosFiscales?
+  documentos        Documento[]
+  movimientosSaldo  MovimientoSaldo[]
+  notificaciones    Notificacion[]
+  pagos             Pago[]
+  tutoresAlumnos    TutorAlumno[]
+
+  @@map("tutor")
+}
+
+model DatosFiscales {
+  fiscalId          Int       @id @default(autoincrement()) @map("fiscal_id")
+  tutorId           Int       @unique @map("tutor_id")
+  rfc               String    @db.VarChar(13)
+  razonSocial       String    @map("razon_social") @db.VarChar(120)
+  regimenFiscal     String?   @map("regimen_fiscal") @db.VarChar(10)
+  usoCfdi           String?   @map("uso_cfdi") @db.VarChar(10)
+  direccionFiscal   String?   @map("direccion_fiscal")
+  codigoPostal      String?   @map("codigo_postal") @db.VarChar(10)
+  correoFacturacion String?   @map("correo_facturacion") @db.VarChar(255)
+  creadoEn          DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn     DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  tutor             Tutor     @relation(fields: [tutorId], references: [tutorId])
+
+  @@map("datos_fiscales")
+}
+
+model Alumno {
+  alumnoId            Int                @id @default(autoincrement()) @map("alumno_id")
+  matricula           String?            @unique @db.VarChar(30)
+  curp                String?            @unique @db.VarChar(18)
+  nombreCompleto      String             @map("nombre_completo") @db.VarChar(120)
+  fechaNacimiento     DateTime           @map("fecha_nacimiento") @db.Date
+  sexo                String             @db.Char(1)
+  nivelId             Int                @map("nivel_id")
+  estado              EstadoAlumno
+  fechaBaja           DateTime?          @map("fecha_baja") @db.Date
+  motivoBaja          String?            @map("motivo_baja")
+  diaLimitePago       Int?               @default(10) @map("dia_limite_pago")
+  personasAutorizadas Json?              @map("personas_autorizadas")
+  tipoSangre          String?            @map("tipo_sangre") @db.VarChar(10)
+  alergias            String?
+  padecimientos       String?
+  observaciones       String?
+  creadoEn            DateTime?          @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn       DateTime?          @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn         DateTime?          @map("eliminado_en") @db.Timestamptz(6)
+  gradoId             Int?               @map("grado_id")
+  grado               Grado?             @relation(fields: [gradoId], references: [gradoId])
+  nivel               NivelEducativo     @relation(fields: [nivelId], references: [nivelId], onDelete: NoAction)
+  asignacionesBeca    AsignacionBeca[]
+  asistencias         Asistencia[]
+  calendariosPagos    CalendarioPago[]
+  calificaciones      Calificacion[]
+  documentos          Documento[]
+  inscripciones       InscripcionCiclo[]
+  notificaciones      Notificacion[]
+  pagos               Pago[]
+  solicitudesBeca     SolicitudBeca[]
+  tutoresAlumnos      TutorAlumno[]
+
+  @@map("alumno")
+}
+
+model TutorAlumno {
+  tutorAlumnoId Int       @id @default(autoincrement()) @map("tutor_alumno_id")
+  tutorId       Int       @map("tutor_id")
+  alumnoId      Int       @map("alumno_id")
+  esPrincipal   Boolean?  @default(false) @map("es_principal")
+  parentesco    String    @db.VarChar(20)
+  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
+  alumno        Alumno    @relation(fields: [alumnoId], references: [alumnoId])
+  tutor         Tutor     @relation(fields: [tutorId], references: [tutorId])
+
+  @@unique([tutorId, alumnoId])
+  @@map("tutor_alumno")
+}
+
+model Tarifa {
+  tarifaId      Int            @id @default(autoincrement()) @map("tarifa_id")
+  cicloId       Int            @map("ciclo_id")
+  nivelId       Int            @map("nivel_id")
+  concepto      String         @db.VarChar(100)
+  monto         Decimal        @db.Decimal(12, 2)
+  descripcion   String?
+  activa        Boolean?       @default(true)
+  creadoEn      DateTime?      @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime?      @map("eliminado_en") @db.Timestamptz(6)
+  ciclo         CicloEscolar   @relation(fields: [cicloId], references: [cicloId])
+  nivel         NivelEducativo @relation(fields: [nivelId], references: [nivelId])
+
+  @@map("tarifa")
+}
+
+model PlanPago {
+  planPagoId     Int                @id @default(autoincrement()) @map("plan_pago_id")
+  nombre         String             @db.VarChar(40)
+  meses          Int
+  montoMensual   Decimal            @map("monto_mensual") @db.Decimal(12, 2)
+  montoDiciembre Decimal?           @map("monto_diciembre") @db.Decimal(12, 2)
+  descripcion    String?
+  activo         Boolean?           @default(true)
+  creadoEn       DateTime?          @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn  DateTime?          @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn    DateTime?          @map("eliminado_en") @db.Timestamptz(6)
+  inscripciones  InscripcionCiclo[]
+
+  @@map("plan_pago")
+}
+
+model InscripcionCiclo {
+  inscripcionId    Int          @id @default(autoincrement()) @map("inscripcion_id")
+  alumnoId         Int          @map("alumno_id")
+  cicloId          Int          @map("ciclo_id")
+  grupoId          Int?         @map("grupo_id")
+  planPagoId       Int?         @map("plan_pago_id")
+  fechaIngreso     DateTime     @map("fecha_ingreso") @db.Date
+  esIngresoTardio  Boolean?     @default(false) @map("es_ingreso_tardio")
+  estadoEnCiclo    String       @map("estado_en_ciclo") @db.VarChar(20)
+  estadoFinanciero String       @map("estado_financiero") @db.VarChar(20)
+  mesesAdeudo      Int?         @default(0) @map("meses_adeudo")
+  creadoEn         DateTime?    @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime?    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn      DateTime?    @map("eliminado_en") @db.Timestamptz(6)
+  gradoId          Int?         @map("grado_id")
+  alumno           Alumno       @relation(fields: [alumnoId], references: [alumnoId], onDelete: NoAction)
+  ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId], onDelete: NoAction)
+  grado            Grado?       @relation(fields: [gradoId], references: [gradoId], onDelete: NoAction)
+  grupo            Grupo?       @relation(fields: [grupoId], references: [grupoId], onDelete: NoAction)
+  planPago         PlanPago?    @relation(fields: [planPagoId], references: [planPagoId])
+
+  @@unique([alumnoId, cicloId])
+  @@map("inscripcion_ciclo")
+}
+
+model CalendarioPago {
+  calendarioPagoId Int              @id @default(autoincrement()) @map("calendario_pago_id")
+  alumnoId         Int              @map("alumno_id")
+  cicloId          Int              @map("ciclo_id")
+  concepto         String           @db.VarChar(100)
+  mes              String?          @db.VarChar(15)
+  fechaVencimiento DateTime         @map("fecha_vencimiento") @db.Date
+  montoOriginal    Decimal          @map("monto_original") @db.Decimal(12, 2)
+  montoPagado      Decimal?         @default(0) @map("monto_pagado") @db.Decimal(12, 2)
+  montoRecargo     Decimal?         @default(0) @map("monto_recargo") @db.Decimal(12, 2)
+  saldoPendiente   Decimal          @map("saldo_pendiente") @db.Decimal(12, 2)
+  estadoCobro      EstadoCobro      @map("estado_cobro")
+  liquidadoAt      DateTime?        @map("liquidado_at") @db.Timestamptz(6)
+  creadoEn         DateTime?        @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime?        @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn      DateTime?        @map("eliminado_en") @db.Timestamptz(6)
+  aplicacionesPago AplicacionPago[]
+  alumno           Alumno           @relation(fields: [alumnoId], references: [alumnoId])
+  ciclo            CicloEscolar     @relation(fields: [cicloId], references: [cicloId])
+  notificaciones   Notificacion[]
+  recargos         Recargo[]
+
+  @@map("calendario_pago")
+}
+
+model Pago {
+  pagoId           Int               @id @default(autoincrement()) @map("pago_id")
+  alumnoId         Int               @map("alumno_id")
+  tutorId          Int               @map("tutor_id")
+  fechaPago        DateTime          @map("fecha_pago") @db.Date
+  montoTotal       Decimal           @map("monto_total") @db.Decimal(12, 2)
+  metodoPago       MetodoPago        @map("metodo_pago")
+  aplicadoASaldo   Boolean?          @default(false) @map("aplicado_a_saldo")
+  requiereFactura  Boolean?          @default(false) @map("requiere_factura")
+  observaciones    String?
+  registradoPor    Int               @map("registrado_por")
+  registradoEn     DateTime?         @default(now()) @map("registrado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime?         @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  aplicacionesPago AplicacionPago[]
+  documentos       Documento[]
+  movimientosSaldo MovimientoSaldo[]
+  alumno           Alumno            @relation(fields: [alumnoId], references: [alumnoId])
+  registrador      Usuario           @relation(fields: [registradoPor], references: [usuarioId])
+  tutor            Tutor             @relation(fields: [tutorId], references: [tutorId])
+
+  @@map("pago")
+}
+
+model AplicacionPago {
+  aplicacionId     Int               @id @default(autoincrement()) @map("aplicacion_id")
+  pagoId           Int               @map("pago_id")
+  calendarioPagoId Int               @map("calendario_pago_id")
+  montoAplicado    Decimal           @map("monto_aplicado") @db.Decimal(12, 2)
+  aplicadoA        String            @map("aplicado_a") @db.VarChar(15)
+  creadoEn         DateTime?         @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn    DateTime?         @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  calendarioPago   CalendarioPago    @relation(fields: [calendarioPagoId], references: [calendarioPagoId])
+  pago             Pago              @relation(fields: [pagoId], references: [pagoId])
+  movimientosSaldo MovimientoSaldo[]
+
+  @@map("aplicacion_pago")
+}
+
+model Recargo {
+  recargoId          Int            @id @default(autoincrement()) @map("recargo_id")
+  calendarioPagoId   Int            @map("calendario_pago_id")
+  montoOriginal      Decimal        @map("monto_original") @db.Decimal(12, 2)
+  montoActual        Decimal        @map("monto_actual") @db.Decimal(12, 2)
+  estado             String         @db.VarChar(15)
+  motivoModificacion String?        @map("motivo_modificacion")
+  aplicadoEn         DateTime       @map("aplicado_en") @db.Date
+  modificadoPor      Int?           @map("modificado_por")
+  modificadoEn       DateTime?      @map("modificado_en") @db.Timestamptz(6)
+  actualizadoEn      DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  calendarioPago     CalendarioPago @relation(fields: [calendarioPagoId], references: [calendarioPagoId])
+  modificador        Usuario?       @relation(fields: [modificadoPor], references: [usuarioId])
+
+  @@map("recargo")
+}
+
+model MovimientoSaldo {
+  movimientoId  Int             @id @default(autoincrement()) @map("movimiento_id")
+  tutorId       Int             @map("tutor_id")
+  tipo          String          @db.VarChar(15)
+  monto         Decimal         @db.Decimal(12, 2)
+  pagoId        Int?            @map("pago_id")
+  aplicacionId  Int?            @map("aplicacion_id")
+  descripcion   String?
+  creadoPor     Int             @map("creado_por")
+  creadoEn      DateTime?       @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?       @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  aplicacion    AplicacionPago? @relation(fields: [aplicacionId], references: [aplicacionId])
+  creador       Usuario         @relation(fields: [creadoPor], references: [usuarioId])
+  pago          Pago?           @relation(fields: [pagoId], references: [pagoId])
+  tutor         Tutor           @relation(fields: [tutorId], references: [tutorId])
+
+  @@map("movimiento_saldo")
+}
+
+model Beca {
+  becaId        Int                          @id @default(autoincrement()) @map("beca_id")
+  nombreBeca    String                       @map("nombre_beca") @db.VarChar(60)
+  criterio      CriterioBeca
+  porcentaje    Decimal                      @db.Decimal(5, 2)
+  descripcion   String?
+  creadoEn      DateTime?                    @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?                    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime?                    @map("eliminado_en") @db.Timestamptz(6)
+  asignaciones  AsignacionBeca[]
+  solicitudes   SolicitudBeca[]
+  ventanas      VentanaInscripcionTemprana[]
+
+  @@map("beca")
+}
+
+model SolicitudBeca {
+  solicitudId     Int              @id @default(autoincrement()) @map("solicitud_id")
+  alumnoId        Int              @map("alumno_id")
+  becaId          Int              @map("beca_id")
+  cicloId         Int              @map("ciclo_id")
+  motivo          String?
+  estado          EstadoBeca
+  solicitadaPor   Int              @map("solicitada_por")
+  resueltaPor     Int?             @map("resuelta_por")
+  observaciones   String?
+  fechaSolicitud  DateTime?        @default(now()) @map("fecha_solicitud") @db.Timestamptz(6)
+  fechaResolucion DateTime?        @map("fecha_resolucion") @db.Timestamptz(6)
+  creadoEn        DateTime?        @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn   DateTime?        @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn     DateTime?        @map("eliminado_en") @db.Timestamptz(6)
+  asignaciones    AsignacionBeca[]
+  alumno          Alumno           @relation(fields: [alumnoId], references: [alumnoId])
+  beca            Beca             @relation(fields: [becaId], references: [becaId])
+  ciclo           CicloEscolar     @relation(fields: [cicloId], references: [cicloId])
+  resolvedor      Usuario?         @relation("BecaResueltaPor", fields: [resueltaPor], references: [usuarioId])
+  solicitador     Usuario          @relation("BecaSolicitadaPor", fields: [solicitadaPor], references: [usuarioId])
+
+  @@map("solicitud_beca")
+}
+
+model AsignacionBeca {
+  asignacionId    Int            @id @default(autoincrement()) @map("asignacion_id")
+  alumnoId        Int            @map("alumno_id")
+  becaId          Int            @map("beca_id")
+  cicloId         Int            @map("ciclo_id")
+  solicitudId     Int?           @map("solicitud_id")
+  estado          EstadoBeca
+  fechaAsignacion DateTime       @map("fecha_asignacion") @db.Date
+  fechaRetiro     DateTime?      @map("fecha_retiro") @db.Date
+  motivoRetiro    String?        @map("motivo_retiro")
+  asignadaPor     Int            @map("asignada_por")
+  retiradaPor     Int?           @map("retirada_por")
+  creadoEn        DateTime?      @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn   DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn     DateTime?      @map("eliminado_en") @db.Timestamptz(6)
+  alumno          Alumno         @relation(fields: [alumnoId], references: [alumnoId])
+  asignador       Usuario        @relation("BecaAsignadaPor", fields: [asignadaPor], references: [usuarioId])
+  beca            Beca           @relation(fields: [becaId], references: [becaId])
+  ciclo           CicloEscolar   @relation(fields: [cicloId], references: [cicloId])
+  retirador       Usuario?       @relation("BecaRetiradaPor", fields: [retiradaPor], references: [usuarioId])
+  solicitud       SolicitudBeca? @relation(fields: [solicitudId], references: [solicitudId])
+
+  @@map("asignacion_beca")
+}
+
+model VentanaInscripcionTemprana {
+  ventanaId     Int          @id @default(autoincrement()) @map("ventana_id")
+  cicloId       Int          @map("ciclo_id")
+  fechaInicio   DateTime     @map("fecha_inicio") @db.Date
+  fechaFin      DateTime     @map("fecha_fin") @db.Date
+  becaId        Int          @map("beca_id")
+  activa        Boolean?     @default(true)
+  creadoEn      DateTime?    @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime?    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn   DateTime?    @map("eliminado_en") @db.Timestamptz(6)
+  beca          Beca         @relation(fields: [becaId], references: [becaId])
+  ciclo         CicloEscolar @relation(fields: [cicloId], references: [cicloId])
+
+  @@map("ventana_inscripcion_temprana")
+}
+
+model Calificacion {
+  calificacionId     Int            @id @default(autoincrement()) @map("calificacion_id")
+  alumnoId           Int            @map("alumno_id")
+  grupoMateriaId     Int            @map("grupo_materia_id")
+  periodoId          Int            @map("periodo_id")
+  tipoEvaluacion     TipoEvaluacion @map("tipo_evaluacion")
+  valorNumerico      Decimal?       @map("valor_numerico") @db.Decimal(4, 2)
+  valorCualitativo   String?        @map("valor_cualitativo") @db.VarChar(5)
+  textoObservacion   String?        @map("texto_observacion")
+  textoRecomendacion String?        @map("texto_recomendacion")
+  cuentaParaPromedio Boolean?       @default(true) @map("cuenta_para_promedio")
+  registradaPor      Int            @map("registrada_por")
+  registradaEn       DateTime?      @default(now()) @map("registrada_en") @db.Timestamptz(6)
+  actualizadoEn      DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  alumno             Alumno         @relation(fields: [alumnoId], references: [alumnoId])
+  grupoMateria       GrupoMateria   @relation(fields: [grupoMateriaId], references: [grupoMateriaId])
+  registrador        Usuario        @relation(fields: [registradaPor], references: [usuarioId])
+
+  @@map("calificacion")
+}
+
+model Asistencia {
+  asistenciaId   Int          @id @default(autoincrement()) @map("asistencia_id")
+  alumnoId       Int          @map("alumno_id")
+  grupoMateriaId Int          @map("grupo_materia_id")
+  fecha          DateTime     @db.Date
+  estado         String       @db.VarChar(10)
+  justificacion  String?
+  registradaPor  Int          @map("registrada_por")
+  registradaEn   DateTime?    @default(now()) @map("registrada_en") @db.Timestamptz(6)
+  actualizadoEn  DateTime?    @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  alumno         Alumno       @relation(fields: [alumnoId], references: [alumnoId])
+  grupoMateria   GrupoMateria @relation(fields: [grupoMateriaId], references: [grupoMateriaId])
+  registrador    Usuario      @relation(fields: [registradaPor], references: [usuarioId])
+
+  @@map("asistencia")
+}
+
+model Documento {
+  documentoId    Int       @id @default(autoincrement()) @map("documento_id")
+  tipoDocumento  String    @map("tipo_documento") @db.VarChar(25)
+  nombreOriginal String    @map("nombre_original") @db.VarChar(255)
+  rutaAlmacen    String    @map("ruta_almacen")
+  mimeType       String    @map("mime_type") @db.VarChar(100)
+  tamanoBytes    BigInt    @map("tamano_bytes")
+  hashSha256     String?   @map("hash_sha256") @db.Char(64)
+  alumnoId       Int?      @map("alumno_id")
+  tutorId        Int?      @map("tutor_id")
+  pagoId         Int?      @map("pago_id")
+  subidoPor      Int       @map("subido_por")
+  subidoEn       DateTime? @default(now()) @map("subido_en") @db.Timestamptz(6)
+  actualizadoEn  DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  alumno         Alumno?   @relation(fields: [alumnoId], references: [alumnoId])
+  pago           Pago?     @relation(fields: [pagoId], references: [pagoId])
+  subidor        Usuario   @relation(fields: [subidoPor], references: [usuarioId])
+  tutor          Tutor?    @relation(fields: [tutorId], references: [tutorId])
+
+  @@map("documento")
+}
+
+model Notificacion {
+  notificacionId      Int              @id @default(autoincrement()) @map("notificacion_id")
+  tipo                TipoNotificacion
+  canal               String           @db.VarChar(10)
+  destinatarioTutorId Int?             @map("destinatario_tutor_id")
+  destinatarioEmail   String           @map("destinatario_email") @db.VarChar(255)
+  asunto              String           @db.VarChar(160)
+  cuerpo              String
+  estado              String           @db.VarChar(15)
+  intentos            Int?             @default(0)
+  errorUltimo         String?          @map("error_ultimo")
+  programadaPara      DateTime         @map("programada_para") @db.Timestamptz(6)
+  enviadaEn           DateTime?        @map("enviada_en") @db.Timestamptz(6)
+  alumnoId            Int?             @map("alumno_id")
+  calendarioPagoId    Int?             @map("calendario_pago_id")
+  creadaEn            DateTime?        @default(now()) @map("creada_en") @db.Timestamptz(6)
+  actualizadoEn       DateTime?        @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  eliminadoEn         DateTime?        @map("eliminado_en") @db.Timestamptz(6)
+  alumno              Alumno?          @relation(fields: [alumnoId], references: [alumnoId])
+  calendarioPago      CalendarioPago?  @relation(fields: [calendarioPagoId], references: [calendarioPagoId])
+  destinatarioTutor   Tutor?           @relation(fields: [destinatarioTutorId], references: [tutorId])
+
+  @@map("notificacion")
+}
+
 enum EstadoAlumno {
   ACTIVO
   BAJA_DEFINITIVA
@@ -17,6 +673,7 @@ enum EstadoAlumno {
 }
 
 enum MetodoPago {
+  EFECTIVO
   DEPOSITO
   TRANSFERENCIA
   TARJETA_DEBITO
@@ -66,703 +723,4 @@ enum NivelPermiso {
   LECTURA
   LECTURA_Y_ESCRITURA
   DENEGADO
-}
-
-model Rol {
-  rolId         Int       @id @default(autoincrement()) @map("rol_id")
-  codigo        String    @unique @db.VarChar(20)
-  nombre        String    @db.VarChar(60)
-  descripcion   String?
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  usuariosRoles UsuarioRol[]
-
-  @@map("rol")
-}
-
-model Usuario {
-  usuarioId        Int       @id @default(autoincrement()) @map("usuario_id")
-  nombreUsuario    String    @unique @map("nombre_usuario") @db.VarChar(80)
-  nombreCompleto   String    @map("nombre_completo") @db.VarChar(120)
-  telefono         String?   @db.VarChar(15)
-  passwordHash     String    @map("password_hash") @db.VarChar(255)
-  activo           Boolean?  @default(true)
-  intentosFallidos Int?      @default(0) @map("intentos_fallidos")
-  bloqueadoHasta   DateTime? @map("bloqueado_hasta") @db.Timestamptz
-  ultimoAcceso     DateTime? @map("ultimo_acceso") @db.Timestamptz
-  debeCambiarPwd   Boolean?  @default(false) @map("debe_cambiar_pwd")
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  roles          UsuarioRol[] @relation("UsuarioRoles")
-  rolesAsignados UsuarioRol[] @relation("UsuarioAsignador")
-
-  permisosModulos UsuarioPermisoModulo[]
-  intentosLogin   IntentoLogin[]
-  tokensRevocados TokenRevocado[]
-  logsAuditoria   LogAuditoria[]
-
-  gruposMaterias  GrupoMateria[]
-  pagosRegistrados Pago[]
-  recargosModificados Recargo[]
-  movimientosSaldo  MovimientoSaldo[]
-
-  solicitudesBeca SolicitudBeca[] @relation("BecaSolicitadaPor")
-  becasResueltas  SolicitudBeca[] @relation("BecaResueltaPor")
-  
-  becasAsignadas  AsignacionBeca[] @relation("BecaAsignadaPor")
-  becasRetiradas  AsignacionBeca[] @relation("BecaRetiradaPor")
-
-  calificacionesRegistradas Calificacion[]
-  asistenciasRegistradas    Asistencia[]
-  documentosSubidos         Documento[]
-  materiasDocente           Materia[] @relation("MateriaDocente")
-
-  @@map("usuario")
-}
-
-model UsuarioRol {
-  usuarioRolId  Int       @id @default(autoincrement()) @map("usuario_rol_id")
-  usuarioId     Int       @map("usuario_id")
-  rolId         Int       @map("rol_id")
-  asignadoEn    DateTime? @default(now()) @map("asignado_en") @db.Timestamptz
-  asignadoPor   Int?      @map("asignado_por")
-  activo        Boolean?  @default(true)
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  usuario       Usuario   @relation("UsuarioRoles", fields: [usuarioId], references: [usuarioId])
-  rol           Rol       @relation(fields: [rolId], references: [rolId])
-  asignador     Usuario?  @relation("UsuarioAsignador", fields: [asignadoPor], references: [usuarioId])
-
-  @@unique([usuarioId, rolId])
-  @@map("usuario_rol")
-}
-
-model UsuarioPermisoModulo {
-  permisoId     Int       @id @default(autoincrement()) @map("permiso_id")
-  usuarioId     Int       @map("usuario_id")
-  modulo        String    @db.VarChar(30)
-  nivel         NivelPermiso
-  activo        Boolean?  @default(true)
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  usuario       Usuario   @relation(fields: [usuarioId], references: [usuarioId])
-
-  @@unique([usuarioId, modulo])
-  @@map("usuario_permiso_modulo")
-}
-
-model IntentoLogin {
-  intentoId             Int       @id @default(autoincrement()) @map("intento_id")
-  usuarioId             Int?      @map("usuario_id")
-  nombreUsuarioIntentado String    @map("nombre_usuario_intentado") @db.VarChar(80)
-  exitoso               Boolean
-  direccionIp           String?   @map("direccion_ip") @db.VarChar(45)
-  userAgent             String?   @map("user_agent")
-  creadoEn              DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-
-  usuario               Usuario?  @relation(fields: [usuarioId], references: [usuarioId])
-
-  @@map("intento_login")
-}
-
-model TokenRevocado {
-  id           BigInt    @id @default(autoincrement())
-  jti          String    @unique @db.VarChar(36)
-  usuarioId    Int       @map("usuario_id")
-  revocadoEn   DateTime? @default(now()) @map("revocado_en") @db.Timestamptz
-  expiraEn     DateTime  @map("expira_en") @db.Timestamptz
-
-  usuario      Usuario   @relation(fields: [usuarioId], references: [usuarioId])
-
-  @@map("token_revocado")
-}
-
-model ConfiguracionGlobal {
-  configuracionId      Int       @id @map("configuracion_id")
-  montoRecargoDefecto  Decimal   @map("monto_recargo_defecto") @db.Decimal(12,2)
-  diasGraciaRecargo    Int       @map("dias_gracia_recargo")
-  plazoInscripcionDias Int       @map("plazo_inscripcion_dias")
-  umbralesSmtpDias     Json      @map("umbrales_smtp_dias")
-  actualizadoEn        DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  @@map("configuracion_global")
-}
-
-model LogAuditoria {
-  logId          BigInt    @id @default(autoincrement()) @map("log_id")
-  usuarioId      Int?      @map("usuario_id")
-  accion         String    @db.VarChar(10)
-  tablaAfectada  String    @map("tabla_afectada") @db.VarChar(60)
-  registroId     String    @map("registro_id") @db.VarChar(50)
-  valoresAntes   Json?     @map("valores_antes")
-  valoresDespues Json?     @map("valores_despues")
-  fechaHora      DateTime? @default(now()) @map("fecha_hora") @db.Timestamptz
-  direccionIp    String?   @map("direccion_ip") @db.VarChar(45)
-  descripcion    String?
-
-  usuario        Usuario?  @relation(fields: [usuarioId], references: [usuarioId])
-
-  @@map("log_auditoria")
-}
-
-model NivelEducativo {
-  nivelId       Int       @id @default(autoincrement()) @map("nivel_id")
-  codigo        String    @unique @db.VarChar(15)
-  nombre        String    @db.VarChar(60)
-  rvoe          String?   @db.VarChar(40)
-  orden         Int
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  grupos        Grupo[]
-  alumnos       Alumno[]
-  tarifas       Tarifa[]
-  grados        Grado[]
-
-  @@map("nivel_educativo")
-}
-
-model Grado {
-  gradoId       Int       @id @default(autoincrement()) @map("grado_id")
-  nivelId       Int       @map("nivel_id")
-  numero        Int
-  nombre        String    @db.VarChar(50)
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  nivel         NivelEducativo @relation(fields: [nivelId], references: [nivelId], onDelete: NoAction)
-  grupos        Grupo[]
-  alumnos       Alumno[]
-  inscripciones InscripcionCiclo[]
-  materias      Materia[]
-
-  @@map("grado")
-}
-
-model CicloEscolar {
-  cicloId       Int       @id @default(autoincrement()) @map("ciclo_id")
-  nombre        String    @db.VarChar(20)
-  fechaInicio   DateTime  @map("fecha_inicio") @db.Date
-  fechaFin      DateTime  @map("fecha_fin") @db.Date
-  activo        Boolean?  @default(false)
-  periodicidad  String    @default("ANUAL") @db.VarChar(15)
-  gradosPermitidos Json?   @map("grados_permitidos")
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  grupos        Grupo[]
-  inscripciones InscripcionCiclo[]
-  tarifas       Tarifa[]
-  calendariosPagos CalendarioPago[]
-  solicitudesBeca SolicitudBeca[]
-  asignacionesBeca AsignacionBeca[]
-  ventanasInscripcion VentanaInscripcionTemprana[]
-
-  @@map("ciclo_escolar")
-}
-
-model Grupo {
-  grupoId       Int       @id @default(autoincrement()) @map("grupo_id")
-  nivelId       Int       @map("nivel_id")
-  cicloId       Int       @map("ciclo_id")
-  gradoId       Int       @map("grado_id")
-  nombre        String    @db.VarChar(10)
-  cupoMaximo    Int       @map("cupo_maximo")
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-  cerrado       Boolean?  @default(false)
-
-  nivel         NivelEducativo @relation(fields: [nivelId], references: [nivelId], onDelete: NoAction)
-  ciclo         CicloEscolar   @relation(fields: [cicloId], references: [cicloId], onDelete: NoAction)
-  grado         Grado          @relation(fields: [gradoId], references: [gradoId], onDelete: NoAction)
-
-  materias      GrupoMateria[]
-  inscripciones InscripcionCiclo[]
-
-  @@map("grupo")
-}
-
-model Materia {
-  materiaId     Int       @id @default(autoincrement()) @map("materia_id")
-  nombre        String    @db.VarChar(80)
-  clave         String    @unique @db.VarChar(20)
-  gradoId       Int?      @map("grado_id")
-  tipo          String    @default("curricular") @db.VarChar(20)
-  docenteId     Int?      @map("docente_id")
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  grado          Grado?         @relation(fields: [gradoId], references: [gradoId], onDelete: SetNull)
-  docente        Usuario?       @relation("MateriaDocente", fields: [docenteId], references: [usuarioId], onDelete: SetNull)
-  gruposMaterias GrupoMateria[]
-
-  @@map("materia")
-}
-
-model GrupoMateria {
-  grupoMateriaId Int       @id @default(autoincrement()) @map("grupo_materia_id")
-  grupoId        Int       @map("grupo_id")
-  materiaId      Int       @map("materia_id")
-  docenteId      Int?      @map("docente_id")
-
-  grupo          Grupo     @relation(fields: [grupoId], references: [grupoId])
-  materia        Materia   @relation(fields: [materiaId], references: [materiaId])
-  docente        Usuario?  @relation(fields: [docenteId], references: [usuarioId])
-
-  calificaciones Calificacion[]
-  asistencias    Asistencia[]
-
-  @@unique([grupoId, materiaId])
-  @@map("grupo_materia")
-}
-
-model Tutor {
-  tutorId           Int       @id @default(autoincrement()) @map("tutor_id")
-  nombreCompleto    String    @map("nombre_completo") @db.VarChar(120)
-  correoElectronico String?   @map("correo_electronico") @db.VarChar(255)
-  telefono          String?   @db.VarChar(15)
-  direccion         String?
-  curp              String?   @db.VarChar(18)
-  requiereFactura   Boolean?  @default(false) @map("requiere_factura")
-  tipoPagoHabitual  String?   @map("tipo_pago_habitual") @db.VarChar(15)
-  saldoAFavor       Decimal?  @default(0) @map("saldo_a_favor") @db.Decimal(12,2)
-  activo            Boolean?  @default(true)
-  creadoEn          DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn     DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn       DateTime? @map("eliminado_en") @db.Timestamptz
-
-  datosFiscales     DatosFiscales?
-  tutoresAlumnos    TutorAlumno[]
-  pagos             Pago[]
-  movimientosSaldo  MovimientoSaldo[]
-  documentos        Documento[]
-  notificaciones    Notificacion[]
-
-  @@map("tutor")
-}
-
-model DatosFiscales {
-  fiscalId          Int       @id @default(autoincrement()) @map("fiscal_id")
-  tutorId           Int       @unique @map("tutor_id")
-  rfc               String    @db.VarChar(13)
-  razonSocial       String    @map("razon_social") @db.VarChar(120)
-  regimenFiscal     String?   @map("regimen_fiscal") @db.VarChar(10)
-  usoCfdi           String?   @map("uso_cfdi") @db.VarChar(10)
-  direccionFiscal   String?   @map("direccion_fiscal")
-  codigoPostal      String?   @map("codigo_postal") @db.VarChar(10)
-  correoFacturacion String?   @map("correo_facturacion") @db.VarChar(255)
-  creadoEn          DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn     DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  tutor             Tutor     @relation(fields: [tutorId], references: [tutorId])
-
-  @@map("datos_fiscales")
-}
-
-model Alumno {
-  alumnoId           Int       @id @default(autoincrement()) @map("alumno_id")
-  matricula          String?   @unique @db.VarChar(30)
-  curp               String    @unique @db.VarChar(18)
-  nombreCompleto     String    @map("nombre_completo") @db.VarChar(120)
-  fechaNacimiento    DateTime  @map("fecha_nacimiento") @db.Date
-  sexo               String    @db.Char(1)
-  nivelId            Int       @map("nivel_id")
-  gradoId            Int?      @map("grado_id")
-  estado             EstadoAlumno
-  fechaBaja          DateTime? @map("fecha_baja") @db.Date
-  motivoBaja         String?   @map("motivo_baja")
-  diaLimitePago      Int?      @default(10) @map("dia_limite_pago")
-  personasAutorizadas Json?    @map("personas_autorizadas")
-  tipoSangre         String?   @map("tipo_sangre") @db.VarChar(10)
-  alergias           String?
-  padecimientos      String?
-  observaciones      String?
-  creadoEn           DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn      DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn        DateTime? @map("eliminado_en") @db.Timestamptz
-
-  nivel              NivelEducativo @relation(fields: [nivelId], references: [nivelId], onDelete: NoAction)
-  grado              Grado?         @relation(fields: [gradoId], references: [gradoId], onDelete: SetNull)
-
-  tutoresAlumnos     TutorAlumno[]
-  inscripciones      InscripcionCiclo[]
-  calendariosPagos   CalendarioPago[]
-  pagos              Pago[]
-  solicitudesBeca    SolicitudBeca[]
-  asignacionesBeca   AsignacionBeca[]
-  calificaciones     Calificacion[]
-  asistencias        Asistencia[]
-  documentos         Documento[]
-  notificaciones     Notificacion[]
-
-  @@map("alumno")
-}
-
-model TutorAlumno {
-  tutorAlumnoId Int       @id @default(autoincrement()) @map("tutor_alumno_id")
-  tutorId       Int       @map("tutor_id")
-  alumnoId      Int       @map("alumno_id")
-  esPrincipal   Boolean?  @default(false) @map("es_principal")
-  parentesco    String    @db.VarChar(20)
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-
-  tutor         Tutor     @relation(fields: [tutorId], references: [tutorId])
-  alumno        Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-
-  @@unique([tutorId, alumnoId])
-  @@map("tutor_alumno")
-}
-
-model Tarifa {
-  tarifaId      Int       @id @default(autoincrement()) @map("tarifa_id")
-  cicloId       Int       @map("ciclo_id")
-  nivelId       Int       @map("nivel_id")
-  concepto      String    @db.VarChar(100)
-  monto         Decimal   @db.Decimal(12,2)
-  descripcion   String?
-  activa        Boolean?  @default(true)
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn   DateTime? @map("eliminado_en") @db.Timestamptz
-
-  ciclo         CicloEscolar   @relation(fields: [cicloId], references: [cicloId])
-  nivel         NivelEducativo @relation(fields: [nivelId], references: [nivelId])
-
-  @@map("tarifa")
-}
-
-model PlanPago {
-  planPagoId     Int       @id @default(autoincrement()) @map("plan_pago_id")
-  nombre         String    @db.VarChar(40)
-  meses          Int
-  montoMensual   Decimal   @map("monto_mensual") @db.Decimal(12,2)
-  montoDiciembre Decimal?  @map("monto_diciembre") @db.Decimal(12,2)
-  descripcion    String?
-  activo         Boolean?  @default(true)
-  creadoEn       DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn  DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn    DateTime? @map("eliminado_en") @db.Timestamptz
-
-  inscripciones  InscripcionCiclo[]
-
-  @@map("plan_pago")
-}
-
-model InscripcionCiclo {
-  inscripcionId    Int       @id @default(autoincrement()) @map("inscripcion_id")
-  alumnoId         Int       @map("alumno_id")
-  cicloId          Int       @map("ciclo_id")
-  grupoId          Int?      @map("grupo_id")
-  gradoId          Int?      @map("grado_id")
-  planPagoId       Int       @map("plan_pago_id")
-  fechaIngreso     DateTime  @map("fecha_ingreso") @db.Date
-  esIngresoTardio  Boolean?  @default(false) @map("es_ingreso_tardio")
-  estadoEnCiclo    String    @map("estado_en_ciclo") @db.VarChar(20)
-  estadoFinanciero String    @map("estado_financiero") @db.VarChar(20)
-  mesesAdeudo      Int?      @default(0) @map("meses_adeudo")
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  alumno           Alumno    @relation(fields: [alumnoId], references: [alumnoId], onDelete: NoAction)
-  ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId], onDelete: NoAction)
-  grupo            Grupo?    @relation(fields: [grupoId], references: [grupoId], onDelete: NoAction)
-  grado            Grado?    @relation(fields: [gradoId], references: [gradoId], onDelete: NoAction)
-  planPago         PlanPago  @relation(fields: [planPagoId], references: [planPagoId])
-
-  @@unique([alumnoId, cicloId])
-  @@map("inscripcion_ciclo")
-}
-
-model CalendarioPago {
-  calendarioPagoId Int       @id @default(autoincrement()) @map("calendario_pago_id")
-  alumnoId         Int       @map("alumno_id")
-  cicloId          Int       @map("ciclo_id")
-  concepto         String    @db.VarChar(100)
-  mes              String?   @db.VarChar(15)
-  fechaVencimiento DateTime  @map("fecha_vencimiento") @db.Date
-  montoOriginal    Decimal   @map("monto_original") @db.Decimal(12,2)
-  montoPagado      Decimal?  @default(0) @map("monto_pagado") @db.Decimal(12,2)
-  montoRecargo     Decimal?  @default(0) @map("monto_recargo") @db.Decimal(12,2)
-  saldoPendiente   Decimal   @map("saldo_pendiente") @db.Decimal(12,2)
-  estadoCobro      EstadoCobro @map("estado_cobro")
-  liquidadoAt      DateTime? @map("liquidado_at") @db.Timestamptz
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  alumno           Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-  ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId])
-
-  aplicacionesPago AplicacionPago[]
-  recargos         Recargo[]
-  notificaciones   Notificacion[]
-
-  @@map("calendario_pago")
-}
-
-model Pago {
-  pagoId          Int       @id @default(autoincrement()) @map("pago_id")
-  alumnoId        Int       @map("alumno_id")
-  tutorId         Int       @map("tutor_id")
-  fechaPago       DateTime  @map("fecha_pago") @db.Date
-  montoTotal      Decimal   @map("monto_total") @db.Decimal(12,2)
-  metodoPago      MetodoPago @map("metodo_pago")
-  aplicadoASaldo  Boolean?  @default(false) @map("aplicado_a_saldo")
-  observaciones   String?
-  registradoPor   Int       @map("registrado_por")
-  registradoEn    DateTime? @default(now()) @map("registrado_en") @db.Timestamptz
-  actualizadoEn   DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  alumno          Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-  tutor           Tutor     @relation(fields: [tutorId], references: [tutorId])
-  registrador     Usuario   @relation(fields: [registradoPor], references: [usuarioId])
-
-  aplicacionesPago AplicacionPago[]
-  movimientosSaldo MovimientoSaldo[]
-  documentos       Documento[]
-
-  @@map("pago")
-}
-
-model AplicacionPago {
-  aplicacionId     Int       @id @default(autoincrement()) @map("aplicacion_id")
-  pagoId           Int       @map("pago_id")
-  calendarioPagoId Int       @map("calendario_pago_id")
-  montoAplicado    Decimal   @map("monto_aplicado") @db.Decimal(12,2)
-  aplicadoA        String    @map("aplicado_a") @db.VarChar(15)
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  pago             Pago      @relation(fields: [pagoId], references: [pagoId])
-  calendarioPago   CalendarioPago @relation(fields: [calendarioPagoId], references: [calendarioPagoId])
-  movimientosSaldo MovimientoSaldo[]
-
-  @@map("aplicacion_pago")
-}
-
-model Recargo {
-  recargoId        Int       @id @default(autoincrement()) @map("recargo_id")
-  calendarioPagoId Int       @map("calendario_pago_id")
-  montoOriginal    Decimal   @map("monto_original") @db.Decimal(12,2)
-  montoActual      Decimal   @map("monto_actual") @db.Decimal(12,2)
-  estado           String    @db.VarChar(15)
-  motivoModificacion String? @map("motivo_modificacion")
-  aplicadoEn       DateTime  @map("aplicado_en") @db.Date
-  modificadoPor    Int?      @map("modificado_por")
-  modificadoEn     DateTime? @map("modificado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  calendarioPago   CalendarioPago @relation(fields: [calendarioPagoId], references: [calendarioPagoId])
-  modificador      Usuario?  @relation(fields: [modificadoPor], references: [usuarioId])
-
-  @@map("recargo")
-}
-
-model MovimientoSaldo {
-  movimientoId     Int       @id @default(autoincrement()) @map("movimiento_id")
-  tutorId          Int       @map("tutor_id")
-  tipo             String    @db.VarChar(15)
-  monto            Decimal   @db.Decimal(12,2)
-  pagoId           Int?      @map("pago_id")
-  aplicacionId     Int?      @map("aplicacion_id")
-  descripcion      String?
-  creadoPor        Int       @map("creado_por")
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  tutor            Tutor     @relation(fields: [tutorId], references: [tutorId])
-  pago             Pago?     @relation(fields: [pagoId], references: [pagoId])
-  aplicacion       AplicacionPago? @relation(fields: [aplicacionId], references: [aplicacionId])
-  creador          Usuario   @relation(fields: [creadoPor], references: [usuarioId])
-
-  @@map("movimiento_saldo")
-}
-
-model Beca {
-  becaId           Int       @id @default(autoincrement()) @map("beca_id")
-  nombreBeca       String    @map("nombre_beca") @db.VarChar(60)
-  criterio         CriterioBeca
-  porcentaje       Decimal   @db.Decimal(5,2)
-  descripcion      String?
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  solicitudes      SolicitudBeca[]
-  asignaciones     AsignacionBeca[]
-  ventanas         VentanaInscripcionTemprana[]
-
-  @@map("beca")
-}
-
-model SolicitudBeca {
-  solicitudId      Int       @id @default(autoincrement()) @map("solicitud_id")
-  alumnoId         Int       @map("alumno_id")
-  becaId           Int       @map("beca_id")
-  cicloId          Int       @map("ciclo_id")
-  motivo           String?
-  estado           EstadoBeca
-  solicitadaPor    Int       @map("solicitada_por")
-  resueltaPor      Int?      @map("resuelta_por")
-  observaciones    String?
-  fechaSolicitud   DateTime? @default(now()) @map("fecha_solicitud") @db.Timestamptz
-  fechaResolucion  DateTime? @map("fecha_resolucion") @db.Timestamptz
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  alumno           Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-  beca             Beca      @relation(fields: [becaId], references: [becaId])
-  ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId])
-  solicitador      Usuario   @relation("BecaSolicitadaPor", fields: [solicitadaPor], references: [usuarioId])
-  resolvedor       Usuario?  @relation("BecaResueltaPor", fields: [resueltaPor], references: [usuarioId])
-
-  asignaciones     AsignacionBeca[]
-
-  @@map("solicitud_beca")
-}
-
-model AsignacionBeca {
-  asignacionId     Int       @id @default(autoincrement()) @map("asignacion_id")
-  alumnoId         Int       @map("alumno_id")
-  becaId           Int       @map("beca_id")
-  cicloId          Int       @map("ciclo_id")
-  solicitudId      Int?      @map("solicitud_id")
-  estado           EstadoBeca
-  fechaAsignacion  DateTime  @map("fecha_asignacion") @db.Date
-  fechaRetiro      DateTime? @map("fecha_retiro") @db.Date
-  motivoRetiro     String?   @map("motivo_retiro")
-  asignadaPor      Int       @map("asignada_por")
-  retiradaPor      Int?      @map("retirada_por")
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  alumno           Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-  beca             Beca      @relation(fields: [becaId], references: [becaId])
-  ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId])
-  solicitud        SolicitudBeca? @relation(fields: [solicitudId], references: [solicitudId])
-  asignador        Usuario   @relation("BecaAsignadaPor", fields: [asignadaPor], references: [usuarioId])
-  retirador        Usuario?  @relation("BecaRetiradaPor", fields: [retiradaPor], references: [usuarioId])
-
-  @@map("asignacion_beca")
-}
-
-model VentanaInscripcionTemprana {
-  ventanaId        Int       @id @default(autoincrement()) @map("ventana_id")
-  cicloId          Int       @map("ciclo_id")
-  fechaInicio      DateTime  @map("fecha_inicio") @db.Date
-  fechaFin         DateTime  @map("fecha_fin") @db.Date
-  becaId           Int       @map("beca_id")
-  activa           Boolean?  @default(true)
-  creadoEn         DateTime? @default(now()) @map("creado_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  ciclo            CicloEscolar @relation(fields: [cicloId], references: [cicloId])
-  beca             Beca      @relation(fields: [becaId], references: [becaId])
-
-  @@map("ventana_inscripcion_temprana")
-}
-
-model Calificacion {
-  calificacionId   Int       @id @default(autoincrement()) @map("calificacion_id")
-  alumnoId         Int       @map("alumno_id")
-  grupoMateriaId   Int       @map("grupo_materia_id")
-  periodoId        Int       @map("periodo_id")
-  tipoEvaluacion   TipoEvaluacion @map("tipo_evaluacion")
-  valorNumerico    Decimal?  @map("valor_numerico") @db.Decimal(4,2)
-  valorCualitativo String?   @map("valor_cualitativo") @db.VarChar(5)
-  textoObservacion String?   @map("texto_observacion")
-  textoRecomendacion String? @map("texto_recomendacion")
-  cuentaParaPromedio Boolean? @default(true) @map("cuenta_para_promedio")
-  registradaPor    Int       @map("registrada_por")
-  registradaEn     DateTime? @default(now()) @map("registrada_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  alumno           Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-  grupoMateria     GrupoMateria @relation(fields: [grupoMateriaId], references: [grupoMateriaId])
-  registrador      Usuario   @relation(fields: [registradaPor], references: [usuarioId])
-
-  @@map("calificacion")
-}
-
-model Asistencia {
-  asistenciaId     Int       @id @default(autoincrement()) @map("asistencia_id")
-  alumnoId         Int       @map("alumno_id")
-  grupoMateriaId   Int       @map("grupo_materia_id")
-  fecha            DateTime  @db.Date
-  estado           String    @db.VarChar(10)
-  justificacion    String?
-  registradaPor    Int       @map("registrada_por")
-  registradaEn     DateTime? @default(now()) @map("registrada_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  alumno           Alumno    @relation(fields: [alumnoId], references: [alumnoId])
-  grupoMateria     GrupoMateria @relation(fields: [grupoMateriaId], references: [grupoMateriaId])
-  registrador      Usuario   @relation(fields: [registradaPor], references: [usuarioId])
-
-  @@map("asistencia")
-}
-
-model Documento {
-  documentoId      Int       @id @default(autoincrement()) @map("documento_id")
-  tipoDocumento    String    @map("tipo_documento") @db.VarChar(25)
-  nombreOriginal   String    @map("nombre_original") @db.VarChar(255)
-  rutaAlmacen      String    @map("ruta_almacen")
-  mimeType         String    @map("mime_type") @db.VarChar(100)
-  tamanoBytes      BigInt    @map("tamano_bytes")
-  hashSha256       String?   @map("hash_sha256") @db.Char(64)
-  alumnoId         Int?      @map("alumno_id")
-  tutorId          Int?      @map("tutor_id")
-  pagoId           Int?      @map("pago_id")
-  subidoPor        Int       @map("subido_por")
-  subidoEn         DateTime? @default(now()) @map("subido_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-
-  alumno           Alumno?   @relation(fields: [alumnoId], references: [alumnoId])
-  tutor            Tutor?    @relation(fields: [tutorId], references: [tutorId])
-  pago             Pago?     @relation(fields: [pagoId], references: [pagoId])
-  subidor          Usuario   @relation(fields: [subidoPor], references: [usuarioId])
-
-  @@map("documento")
-}
-
-model Notificacion {
-  notificacionId   Int       @id @default(autoincrement()) @map("notificacion_id")
-  tipo             TipoNotificacion
-  canal            String    @db.VarChar(10)
-  destinatarioTutorId Int?   @map("destinatario_tutor_id")
-  destinatarioEmail String   @map("destinatario_email") @db.VarChar(255)
-  asunto           String    @db.VarChar(160)
-  cuerpo           String
-  estado           String    @db.VarChar(15)
-  intentos         Int?      @default(0)
-  errorUltimo      String?   @map("error_ultimo")
-  programadaPara   DateTime  @map("programada_para") @db.Timestamptz
-  enviadaEn        DateTime? @map("enviada_en") @db.Timestamptz
-  alumnoId         Int?      @map("alumno_id")
-  calendarioPagoId Int?      @map("calendario_pago_id")
-  creadaEn         DateTime? @default(now()) @map("creada_en") @db.Timestamptz
-  actualizadoEn    DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz
-  eliminadoEn      DateTime? @map("eliminado_en") @db.Timestamptz
-
-  destinatarioTutor Tutor?   @relation(fields: [destinatarioTutorId], references: [tutorId])
-  alumno           Alumno?   @relation(fields: [alumnoId], references: [alumnoId])
-  calendarioPago   CalendarioPago? @relation(fields: [calendarioPagoId], references: [calendarioPagoId])
-
-  @@map("notificacion")
 }

@@ -32,7 +32,6 @@ export const createInscripcionSchema = z.object({
   alumnoId: z.number().int().positive(),
   cicloId: z.number().int().positive(),
   grupoId: z.number().int().positive().optional().nullable(),
-  planPagoId: z.number().int().positive(),
   fechaIngreso: z.string().datetime(),
   esIngresoTardio: z.boolean().default(false),
   estadoEnCiclo: z.string().min(1).max(20), // ej. 'INSCRITO', 'BAJA', etc.
@@ -43,10 +42,36 @@ export const updateInscripcionSchema = createInscripcionSchema.partial().extend(
   inscripcionId: z.number().int().positive()
 });
 
+export const inscribirExpressSchema = z.object({
+  alumnoId: z.number().int().positive(),
+  cicloId: z.number().int().positive(),
+  grupoId: z.number().int().positive(),
+  becaId: z.number().int().positive().optional().nullable()
+});
+
+export const asignarPlanPagoSchema = z.object({
+  inscripcionId: z.number().int().positive(),
+  planPagoId: z.number().int().positive()
+});
+
+export const quitarPlanPagoSchema = z.object({
+  inscripcionId: z.number().int().positive()
+});
+
+export const getTarifaColegiaturaSchema = z.object({
+  inscripcionId: z.number().int().positive()
+});
+
 // Export Types
 export type CreatePlanPagoInput = z.infer<typeof createPlanPagoSchema>;
 export type UpdatePlanPagoInput = z.infer<typeof updatePlanPagoSchema>;
 export type CreateVentanaInscripcionInput = z.infer<typeof createVentanaInscripcionSchema>;
 export type UpdateVentanaInscripcionInput = z.infer<typeof updateVentanaInscripcionSchema>;
+
+
 export type CreateInscripcionInput = z.infer<typeof createInscripcionSchema>;
 export type UpdateInscripcionInput = z.infer<typeof updateInscripcionSchema>;
+export type InscribirExpressInput = z.infer<typeof inscribirExpressSchema>;
+export type AsignarPlanPagoInput = z.infer<typeof asignarPlanPagoSchema>;
+export type QuitarPlanPagoInput = z.infer<typeof quitarPlanPagoSchema>;
+export type GetTarifaColegiaturaInput = z.infer<typeof getTarifaColegiaturaSchema>;

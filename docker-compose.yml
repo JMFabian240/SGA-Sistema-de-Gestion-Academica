@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: sga_postgres_db
+    environment:
+      POSTGRES_USER: sae_admin
+      POSTGRES_PASSWORD: SaeColegio2026
+      POSTGRES_DB: sga_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - sga_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  sga_postgres_data:

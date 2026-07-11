@@ -7,6 +7,7 @@ import { createContext } from './context';
 export function buildServer() {
   const server = fastify({
     logger: true,
+    bodyLimit: 15 * 1024 * 1024 // 15MB
   });
 
   server.register(cors, {

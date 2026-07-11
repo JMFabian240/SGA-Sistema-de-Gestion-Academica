@@ -1,7 +1,17 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GruposListPage } from './GruposListPage';
 import { MemoryRouter } from 'react-router-dom';
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual as any,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 // Mock de iconos
 vi.mock('lucide-react', () => ({
@@ -32,6 +42,9 @@ vi.mock('../components/AsignarMateriaModal', () => ({
   ) : null
 }));
 
+const mockConfirm = vi.fn();
+window.confirm = mockConfirm;
+
 // Mock de tRPC
 const mockGetCiclos = vi.fn();
 const mockGetNiveles = vi.fn();
@@ -39,12 +52,17 @@ const mockGetGrados = vi.fn();
 const mockGetMaterias = vi.fn();
 const mockGetGrupos = vi.fn();
 const mockGetInscripciones = vi.fn();
+const mockDeleteGrupo = vi.fn();
+const mockUpdateMateria = vi.fn();
 
 vi.mock('../../../lib/trpc', () => {
   return {
     trpc: {
       useUtils: () => ({
-        grupos: { getMaterias: { invalidate: vi.fn() }, getGrupos: { invalidate: vi.fn() } },
+        grupos: { 
+          getGrupos: { invalidate: vi.fn() },
+          getMaterias: { invalidate: vi.fn() }
+        },
         inscripciones: { getInscripciones: { invalidate: vi.fn() } }
       }),
       grupos: {
@@ -53,8 +71,8 @@ vi.mock('../../../lib/trpc', () => {
         getGrados: { useQuery: () => mockGetGrados() },
         getMaterias: { useQuery: () => mockGetMaterias() },
         getGrupos: { useQuery: () => mockGetGrupos() },
-        updateMateria: { useMutation: () => ({ mutate: vi.fn() }) },
-        deleteGrupo: { useMutation: () => ({ mutate: vi.fn() }) }
+        deleteGrupo: { useMutation: () => ({ mutate: mockDeleteGrupo }) },
+        updateMateria: { useMutation: () => ({ mutate: mockUpdateMateria }) }
       },
       inscripciones: {
         getInscripciones: { useQuery: () => mockGetInscripciones() }
@@ -66,12 +84,30 @@ vi.mock('../../../lib/trpc', () => {
 describe('GruposListPage Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetCiclos.mockReturnValue({ data: [{ cicloId: 1, activo: true, periodicidad: 'ANUAL' }] });
-    mockGetNiveles.mockReturnValue({ data: [{ nivelId: 1, nombre: 'Primaria', codigo: 'PRI' }] });
-    mockGetGrados.mockReturnValue({ data: [{ gradoId: 1, numero: 1, nombre: 'Primero', nivelId: 1 }] });
-    mockGetMaterias.mockReturnValue({ data: [] });
-    mockGetGrupos.mockReturnValue({ data: [] });
-    mockGetInscripciones.mockReturnValue({ data: [], isLoading: false });
+    
+    mockGetCiclos.mockReturnValue({
+      data: [{ cicloId: 1, nombre: '2024-2025', activo: true, periodicidad: 'ANUAL' }]
+    });
+
+    mockGetNiveles.mockReturnValue({
+      data: [{ nivelId: 1, nombre: 'Primaria', codigo: 'PRI' }]
+    });
+
+    mockGetGrados.mockReturnValue({
+      data: [{ gradoId: 1, nivelId: 1, nombre: 'Primer Grado', numero: 1 }]
+    });
+
+    mockGetMaterias.mockReturnValue({
+      data: []
+    });
+
+    mockGetGrupos.mockReturnValue({
+      data: [{ grupoId: 1, gradoId: 1, cicloId: 1, nombre: '1A', cupoMaximo: 30, estado: 'ACTIVO' }]
+    });
+
+    mockGetInscripciones.mockReturnValue({
+      data: [], isLoading: false
+    });
   });
 
   it('debería renderizar la vista de malla curricular (Niveles y Grados) por defecto', () => {
@@ -83,7 +119,22 @@ describe('GruposListPage Component', () => {
 
     expect(screen.getByText('Grados Académicos')).toBeInTheDocument();
     expect(screen.getByText('Primaria')).toBeInTheDocument();
-    expect(screen.getByText('Primero')).toBeInTheDocument();
+    expect(screen.getByText('Primer Grado')).toBeInTheDocument();
+  });
+
+  it('debería mostrar los grupos y materias al seleccionar un grado', async () => {
+    render(
+      <MemoryRouter>
+        <GruposListPage />
+      </MemoryRouter>
+    );
+
+    const gradoCard = screen.getByText('Primer Grado');
+    fireEvent.click(gradoCard);
+
+    await waitFor(() => {
+      expect(screen.getByText('Grupo 1A')).toBeInTheDocument();
+    });
   });
 
   it('debería cambiar a la vista detallada al hacer clic en un grado', () => {
@@ -93,11 +144,10 @@ describe('GruposListPage Component', () => {
       </MemoryRouter>
     );
 
-    const gradoCard = screen.getByText('Primero');
+    const gradoCard = screen.getByText('Primer Grado');
     fireEvent.click(gradoCard);
 
-    // In detail view, we have h1 "Primero" and p "Primaria"
-    expect(screen.getAllByText('Primero').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Primer Grado').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /agregar grupo/i })).toBeInTheDocument();
   });
 
@@ -108,7 +158,7 @@ describe('GruposListPage Component', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText('Primero')); // Entrar a vista detallada
+    fireEvent.click(screen.getByText('Primer Grado'));
 
     const btnNuevaSeccion = screen.getByRole('button', { name: /agregar grupo/i });
     fireEvent.click(btnNuevaSeccion);
@@ -123,8 +173,8 @@ describe('GruposListPage Component', () => {
       </MemoryRouter>
     );
 
-    fireEvent.click(screen.getByText('Primero')); // Entrar
-    expect(screen.getAllByText('Primero').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByText('Primer Grado'));
+    expect(screen.getAllByText('Primer Grado').length).toBeGreaterThan(0);
 
     const btnVolver = screen.getByTestId('arrow-left-icon').closest('button');
     if (btnVolver) fireEvent.click(btnVolver);

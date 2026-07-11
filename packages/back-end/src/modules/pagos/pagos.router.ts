@@ -4,7 +4,8 @@ import { PagosService } from './pagos.service';
 import { 
   createTarifaSchema, updateTarifaSchema, 
   createCalendarioPagoSchema, updateCalendarioPagoSchema, 
-  registrarPagoSchema 
+  registrarPagoSchema, createCargoExtraordinarioSchema,
+  adjuntarComprobanteSchema
 } from './pagos.schema';
 
 const lectura = protectedProcedure.use(hasModulePermission('Pagos', false));
@@ -50,14 +51,38 @@ export const pagosRouter = router({
     .input(updateCalendarioPagoSchema)
     .mutation(({ input }) => PagosService.updateAdeudo(input)),
 
-  // --- Registro de Pagos ---
   registrarPago: escritura
     .input(registrarPagoSchema)
     .mutation(({ input, ctx }) => {
-      // Tomar el registradorId directamente del token JWT decodificado en ctx
       const registradorId = (ctx as any).user?.usuarioId;
       if (!registradorId) throw new Error("No user in context");
       
       return PagosService.registrarPago(input, registradorId);
-    })
+    }),
+
+  // --- Comprobantes Adjuntos ---
+  adjuntarComprobante: escritura
+    .input(adjuntarComprobanteSchema)
+    .mutation(async ({ input, ctx }) => {
+      const registradorId = (ctx as any).user?.usuarioId;
+      if (!registradorId) throw new Error("No user in context");
+      return PagosService.adjuntarComprobante(input, registradorId);
+    }),
+
+  getComprobanteBase64: lectura
+    .input(z.object({ pagoId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      return PagosService.getComprobanteBase64(input.pagoId);
+    }),
+
+  getReciboPago: lectura
+    .input(z.object({ pagoId: z.number().int().positive() }))
+    .query(({ input }) => {
+      return PagosService.getReciboPago(input.pagoId);
+    }),
+
+  // --- Cargos Extraordinarios ---
+  createCargoExtraordinario: escritura
+    .input(createCargoExtraordinarioSchema)
+    .mutation(({ input }) => PagosService.createCargoExtraordinario(input))
 });

@@ -111,7 +111,10 @@ export function GruposListPage() {
 
   const getAlumnosGrado = (gradoId: number, nivelCodigo: string) => {
     const cycleId = getCicloIdForNivel(nivelCodigo);
-    return todasLasInscripciones?.filter(i => i.gradoId === gradoId && i.cicloId === cycleId) || [];
+    return todasLasInscripciones?.filter(i => 
+      (i.grupo?.gradoId === gradoId || i.alumno?.gradoId === gradoId) && 
+      i.cicloId === cycleId
+    ) || [];
   };
 
   const getGruposGrado = (gradoId: number, nivelCodigo: string) => {

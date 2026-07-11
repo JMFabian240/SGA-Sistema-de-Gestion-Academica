@@ -5,7 +5,20 @@ export class TutoresRepository {
     return prisma.tutor.findMany({
       where: { eliminadoEn: null },
       include: {
-        datosFiscales: true
+        datosFiscales: true,
+        tutoresAlumnos: {
+          include: {
+            alumno: {
+              include: {
+                calendariosPagos: {
+                  where: {
+                    estadoCobro: 'VENCIDO'
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: { nombreCompleto: 'asc' }
     });
@@ -24,7 +37,25 @@ export class TutoresRepository {
         datosFiscales: true,
         tutoresAlumnos: {
           include: {
-            alumno: true
+            alumno: {
+              include: {
+                nivel: true,
+                grado: true,
+                inscripciones: {
+                  where: {
+                    estadoEnCiclo: 'INSCRITO',
+                    eliminadoEn: null,
+                    ciclo: { activo: true }
+                  },
+                  include: {
+                    grupo: {
+                      include: { grado: true }
+                    },
+                    ciclo: true
+                  }
+                }
+              }
+            }
           }
         }
       }

@@ -144,6 +144,22 @@ describe('AlumnosService (Unit)', () => {
       expect(prismaMock.tutorAlumno.create).toHaveBeenCalled();
     });
 
+    it('debería forzar a esPrincipal: true si el alumno no tenía tutores principales', async () => {
+      // Simulamos que el alumno no tiene tutores principales (findFirst devuelve null)
+      prismaMock.tutorAlumno.findFirst.mockResolvedValue(null);
+      prismaMock.tutorAlumno.findUnique.mockResolvedValue(null);
+      prismaMock.tutorAlumno.create.mockResolvedValue({} as any);
+      prismaMock.tutorAlumno.updateMany.mockResolvedValue({ count: 0 } as any);
+
+      // Enviamos esPrincipal: false explícitamente
+      await AlumnosService.linkTutor({ tutorId: 2, alumnoId: 1, parentesco: 'Tutor', esPrincipal: false });
+
+      // Verificamos que se haya invocado create con esPrincipal: true
+      expect(prismaMock.tutorAlumno.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ esPrincipal: true })
+      });
+    });
+
     it('unlinkTutor debería borrar la relación', async () => {
       prismaMock.tutorAlumno.delete.mockResolvedValue({} as any);
       await AlumnosService.unlinkTutor({ tutorAlumnoId: 1 });
