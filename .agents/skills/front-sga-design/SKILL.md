@@ -289,7 +289,7 @@ className="px-4 py-2 rounded-xl border border-gray-200
 
 ## 8. Flujo de Trabajo para Nuevos Componentes
 
-1. **Verificar primero** si el componente existe en `frontend-v2/src/components/ui/` o si el patrón está en una página existente.
+1. **Verificar primero** si el componente existe en `packages/front-end/src/components/ui/` o si el patrón está en una página existente.
 2. **Derivar** colores y espaciados exclusivamente de las tablas de esta skill.
 3. **Generar un wireframe textual** (en Markdown) del componente antes de escribir JSX, si es una pantalla nueva.
 4. **Pedir aprobación** del wireframe al usuario antes de codificar, si hay incertidumbre en el diseño.

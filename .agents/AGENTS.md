@@ -9,7 +9,7 @@
 - El modelo de IA debe asumir en todo momento el rol de un **Full Stack Engineer Senior**. Esto implica entregar código limpio, estructurado, optimizado para rendimiento, con validación estricta de tipos, manejo correcto de errores y aplicando las mejores prácticas de la industria y la arquitectura del proyecto.
 
 ## Stack Tecnológico
-- @sga/front-end (directorio `frontend-v2`): React 19, Vite 8, TypeScript, Tailwind CSS 4, Zustand 5, tRPC, TanStack Query v4, React Router v7
+- @sga/front-end (directorio `packages/front-end`): React 19, Vite 8, TypeScript, Tailwind CSS 4, Zustand 5, tRPC, TanStack Query v4, React Router v7
 - @sga/back-end: Fastify, tRPC, Zod
 - @sga/data-access: Prisma ORM, PostgreSQL portable
 - @sga/app-tauri: Tauri v2, Rust
@@ -46,7 +46,7 @@ Usuario → React (TanStack Query)
 - **Creación de Directorios:** Si vas a crear archivos relacionados, crea un subdirectorio específico para separarlos y estructurar el contenido de forma lógica, evitando dejar archivos revueltos o sueltos.
 
 ## Reglas por Capa
-- **CRÍTICO - FRONTEND ACTIVO**: Cuando se pida modificar o crear algo en el frontend o UI, los cambios DEBEN hacerse EXCLUSIVAMENTE en el directorio `frontend-v2`. El paquete `packages/front-end` es legacy (obsoleto) y NO debe ser modificado a menos que se te indique explícitamente.
+- **CRÍTICO - FRONTEND ACTIVO**: Cuando se pida modificar o crear algo en el frontend o UI, los cambios DEBEN hacerse EXCLUSIVAMENTE en el directorio `packages/front-end`. Este es el único frontend activo del proyecto.
 - @sga/front-end: NUNCA importar PrismaClient directamente
 - @sga/back-end: TODA comunicación con BD va por data-access
 - @sga/data-access: única capa que conecta a PostgreSQL
@@ -118,7 +118,7 @@ Las skills de diseño han sido analizadas y están diseñadas para complementars
 
 ### 1. Consistencia Técnica y Tipado E2E
 * **Cambios en Base de Datos**: Si modificas [schema.prisma](file:///c:/Users/josem/Documents/San_Diego/sga/packages/data-access/prisma/schema.prisma), debes regenerar los tipos ejecutando `npx prisma generate` en `packages/data-access`. Debes ajustar de inmediato los archivos `*.schema.ts`, `*.repository.ts` y `*.service.ts` en `packages/back-end` para evitar errores de compilación de TypeScript.
-* **Cambios en la API (tRPC)**: Si alteras o renombras endpoints en `packages/back-end/src/modules/*/` o en router.ts, debes corregir la importación de `AppRouter` únicamente en el frontend activo (`frontend-v2`) y adaptar sus correspondientes llamadas del cliente de tRPC. El paquete legacy `packages/front-end` NO debe ser modificado.
+* **Cambios en la API (tRPC)**: Si alteras o renombras endpoints en `packages/back-end/src/modules/*/` o en router.ts, debes corregir la importación de `AppRouter` únicamente en el frontend activo (`packages/front-end`) y adaptar sus correspondientes llamadas del cliente de tRPC.
 * **Empaquetado de Tauri (Sidecars)**: Al realizar modificaciones en `packages/back-end`, debes compilar de nuevo el binario sidecar ejecutable ejecutando `npm run build:sidecar` en `packages/back-end` para que Tauri empaquete la versión de backend más reciente.
 
 ### 2. Consistencia en Cascada de Reglas de Negocio

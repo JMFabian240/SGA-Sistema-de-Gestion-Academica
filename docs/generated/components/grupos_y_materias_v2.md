@@ -1,4 +1,4 @@
-# Documentación del Módulo: Grupos y Materias (frontend-v2)
+# Documentación del Módulo: Grupos y Materias (packages/front-end)
 
 Este módulo gestiona la estructura de grupos y el catálogo de asignaturas del Colegio San Diego en la nueva interfaz unificada.
 
@@ -9,7 +9,7 @@ Este módulo gestiona la estructura de grupos y el catálogo de asignaturas del 
 El módulo de Grupos se encuentra organizado de la siguiente manera dentro del frontend:
 
 ```text
-frontend-v2/src/modules/grupos/
+packages/front-end/src/modules/grupos/
 ├── components/
 │   ├── GrupoFormModal.tsx           # Creación y edición de un grupo individual
 │   ├── InicializarGruposModal.tsx   # Configuración y selección de grupos a inicializar

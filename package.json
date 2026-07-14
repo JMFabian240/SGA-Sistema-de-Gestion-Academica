@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:front-end": "npm run dev --workspace=@sga/front",
+    "dev:front-end": "npm run dev --workspace=@sga/front-end",
     "dev:back-end": "npm run dev --workspace=@sga/back-end",
     "dev:tauri": "npm run tauri dev --workspace=@sga/app-tauri",
     "dev": "npm run dev:back-end & npm run dev:front-end",
@@ -16,7 +16,7 @@
     "db:studio": "npm run db:studio --workspace=@sga/data-access",
     "test:e2e": "npm run test --workspace=@sga/e2e",
     "test:e2e:ui": "npm run test:ui --workspace=@sga/e2e",
-    "validate": "npm run db:generate && npm run build:back && npm run build --workspace=@sga/front && npm run build --workspace=@sga/front-end"
+    "validate": "npm run db:generate && npm run build:back && npm run build --workspace=@sga/front-end"
   },
   "overrides": {
     "react": "^19.2.7",

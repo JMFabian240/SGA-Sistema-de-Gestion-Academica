@@ -127,11 +127,11 @@ Crea o modifica los siguientes archivos en `packages/back-end/src/modules/[modul
 
 ### FASE 4 — Frontend
 
-**Objetivo:** Construir la interfaz de usuario en el `frontend-v2`.
+**Objetivo:** Construir la interfaz de usuario en `packages/front-end`.
 Usa las reglas de la skill `front-react-trpc` (Front-End Skill) **y** la skill `front-sga-design`
 para garantizar la identidad visual del sistema.
 
-Estructura a crear en `frontend-v2/src/modules/[modulo]/`:
+Estructura a crear en `packages/front-end/src/modules/[modulo]/`:
 
 ```
 [modulo]/
@@ -159,8 +159,8 @@ Estructura a crear en `frontend-v2/src/modules/[modulo]/`:
   ```
 - Las páginas son "contenedores finos": importan hooks y componentes,
   no contienen lógica de negocio ni llamadas directas a tRPC.
-- Registrar la nueva ruta en `frontend-v2/src/router/index.tsx`.
-- Agregar el enlace al menú lateral en `frontend-v2/src/components/layout/Sidebar.tsx`.
+- Registrar la nueva ruta en `packages/front-end/src/router/index.tsx`.
+- Agregar el enlace al menú lateral en `packages/front-end/src/components/layout/Sidebar.tsx`.
 
 **Checklist de diseño (obligatorio, basado en `front-sga-design`):**
 - [ ] Colores: solo de la paleta Navy / Crimson / grises neutros.

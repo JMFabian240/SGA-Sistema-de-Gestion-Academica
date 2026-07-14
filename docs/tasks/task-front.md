@@ -1,10 +1,10 @@
-# Control de Tareas - Migración y Desarrollo del Frontend (`frontend-v2`)
+# Control de Tareas - Desarrollo del Frontend (`packages/front-end`)
 
-Este documento detalla el estado actual de la migración del sistema hacia **`frontend-v2`** (basado en Vite, React, Tailwind CSS v4, Lucide Icons y tRPC), comparándolo con el frontend anterior (`packages/front`) y los requerimientos del backend en PostgreSQL.
+Este documento detalla el estado actual del desarrollo del sistema en **`packages/front-end`** (basado en Vite, React, Tailwind CSS v4, Lucide Icons y tRPC).
 
 ---
 
-## 🚀 Módulos Completados e Integrados en `frontend-v2`
+## 🚀 Módulos Completados e Integrados en `packages/front-end`
 
 | Módulo / Característica | Estado técnico | Detalle / Conexión a Base de Datos |
 | :--- | :---: | :--- |
@@ -16,9 +16,9 @@ Este documento detalla el estado actual de la migración del sistema hacia **`fr
 
 ---
 
-## ⏳ Módulos Pendientes de Migración a `frontend-v2`
+## ⏳ Módulos Pendientes en `packages/front-end`
 
-A continuación se listan los módulos que se encuentran implementados en el backend y el frontend antiguo (`packages/front`), pero deben ser re-diseñados e integrados con la interfaz premium en `frontend-v2`:
+A continuación se listan los módulos que se encuentran implementados en el backend, pero pendientes de diseño e integración con la interfaz premium en `packages/front-end`:
 
 ### 1. Módulo de Pagos y Caja (Prioridad Alta)
 * [x] **Caja / Registro de Pagos:** Vista para seleccionar un tutor/alumno, listar sus adeudos pendientes, e ingresar un cobro. Debe soportar:

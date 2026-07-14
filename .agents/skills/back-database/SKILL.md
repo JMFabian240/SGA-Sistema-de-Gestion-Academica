@@ -101,5 +101,5 @@ if (process.env.NODE_ENV !== 'production') {
 |---|---|
 | `@sga/data-access` | ✅ Es la fuente de verdad |
 | `@sga/back-end` | ✅ Solo importa `prisma` desde `@sga/data-access` |
-| `@sga/front-end` / `frontend-v2` | ❌ PROHIBIDO |
+| `@sga/front-end` (`packages/front-end`) | ❌ PROHIBIDO |
 | `@sga/app-tauri` | ❌ PROHIBIDO (solo orquesta procesos) |

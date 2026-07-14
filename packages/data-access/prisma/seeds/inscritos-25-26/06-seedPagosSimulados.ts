@@ -6,7 +6,7 @@ export const seedCalendarioPagos = async (prisma: PrismaClient) => {
   console.log('--- 06 Simulando Pagos y Morosidad ---');
 
   const { alumnosList } = parseExcel();
-  
+
   const alumnosDB = await prisma.alumno.findMany({ include: { tutoresAlumnos: true } });
 
   for (const row of alumnosList) {
@@ -42,7 +42,8 @@ export const seedCalendarioPagos = async (prisma: PrismaClient) => {
           calendarioPagoId: adeudoSeptiembre.calendarioPagoId,
           montoAplicado: Number(adeudoSeptiembre.saldoPendiente),
           aplicadoA: 'CAPITAL'
-        }]
+        }],
+        requiereFactura: false
       }, 1);
     }
   }

@@ -15,7 +15,7 @@ Esta auditoría técnica general tiene como objetivo diagnosticar el estado del 
 
 > [!IMPORTANT]
 > **Riesgo Crítico 1: Desalineación en el Wrapper de Escritorio (Tauri)**
-> La configuración de compilación de Tauri en [tauri.conf.json](file:///c:/Users/josem/Documents/San_Diego/sga/packages/app-tauri/src-tauri/tauri.conf.json) apunta al paquete `@sga/front-end`, el cual es un placeholder vacío. Esto causa que cualquier distribución compilada muestre una pantalla en blanco en lugar de la aplicación real, cuya interfaz de producción se está migrando en [frontend-v2](file:///c:/Users/josem/Documents/San_Diego/sga/frontend-v2).
+> La configuración de compilación de Tauri en [tauri.conf.json](file:///c:/Users/josem/Documents/San_Diego/sga/packages/app-tauri/src-tauri/tauri.conf.json) apuntaba al paquete `@sga/front-end` (legacy). Esto ha sido resuelto: el frontend activo ahora se encuentra en [packages/front-end](file:///c:/Users/josem/Documents/San_Diego/sga/packages/front-end).
 
 > [!WARNING]
 > **Riesgo Crítico 2: Error EPERM de Bloqueo de Prisma en Windows**
@@ -72,7 +72,7 @@ Evaluación lógica sobre [packages/back-end](file:///c:/Users/josem/Documents/S
 | **Grupos (`grupos.service.ts`)** | Falta validar que el grado del grupo esté activo en las propiedades del ciclo. | Medio | Bajo | Agregar parseo del nombre del grupo y comparación con `gradosPermitidos` del ciclo en `createGrupo`. |
 
 ### 3. Capa Frontend (Vite / React 19 / Tailwind CSS v4)
-Evaluación sobre la nueva base [frontend-v2](file:///c:/Users/josem/Documents/San_Diego/sga/frontend-v2):
+Evaluación sobre la base activa [packages/front-end](file:///c:/Users/josem/Documents/San_Diego/sga/packages/front-end):
 
 | Módulo / Componente | Deuda Técnica / Hallazgo | Impacto | Esfuerzo | Remediación Sugerida |
 | :--- | :--- | :---: | :---: | :--- |
@@ -84,7 +84,7 @@ Evaluación sobre [packages/app-tauri](file:///c:/Users/josem/Documents/San_Dieg
 
 | Módulo / Componente | Deuda Técnica / Hallazgo | Impacto | Esfuerzo | Remediación Sugerida |
 | :--- | :--- | :---: | :---: | :--- |
-| **Tauri Build (`tauri.conf.json`)** | Comandos y rutas de compilación apuntan a `@sga/front-end` (inexistente/vacío), resultando en compilaciones vacías en producción. | Crítico | Bajo | Modificar `beforeDevCommand`, `beforeBuildCommand` y `distDir` para apuntar a la ruta compilada de `frontend-v2`. |
+| **Tauri Build (`tauri.conf.json`)** | Comandos y rutas de compilación deben apuntar a `packages/front-end` (frontend activo unificado). | Crítico | Bajo | Modificar `beforeDevCommand`, `beforeBuildCommand` y `distDir` para apuntar a la ruta compilada de `packages/front-end`. |
 | **Validación local (`validate` script)** | El comando `prisma generate` falla recurrentemente por bloqueo `EPERM` en Windows. | Medio | Bajo | Cerrar el servidor de desarrollo y procesos de node/IDE que retengan el dll antes de ejecutar validaciones. |
 
 ---
@@ -120,7 +120,7 @@ A continuación se detallan los tiempos de respuesta estimados y los umbrales es
 ## VII. Plan de Acción
 
 ### Fase 1: Estabilización del Entorno y Compilación
-1. Modificar [`tauri.conf.json`](file:///c:/Users/josem/Documents/San_Diego/sga/packages/app-tauri/src-tauri/tauri.conf.json) para que ensamble y empaquete correctamente la nueva aplicación [`frontend-v2`](file:///c:/Users/josem/Documents/San_Diego/sga/frontend-v2).
+1. Verificar que [`tauri.conf.json`](file:///c:/Users/josem/Documents/San_Diego/sga/packages/app-tauri/src-tauri/tauri.conf.json) ensamble y empaquete correctamente la aplicación en [`packages/front-end`](file:///c:/Users/josem/Documents/San_Diego/sga/packages/front-end).
 2. Crear un script que evite el bloqueo `EPERM` de Prisma cerrando procesos abiertos en Windows durante el ciclo `validate`.
 
 ### Fase 2: Corrección de Gaps Críticos de Backend
@@ -141,5 +141,5 @@ A continuación se detallan los tiempos de respuesta estimados y los umbrales es
 - [ ] Migración del esquema Prisma con campo `matrizPorcentajes` in `Beca`.
 - [ ] Implementación de transacción atómica para calendario de pagos.
 - [ ] Implementación de validaciones académicas de inscripción.
-- [ ] Migración visual de Caja de Cobro premium y estado Zustand a frontend-v2.
+- [ ] Migración visual de Caja de Cobro premium y estado Zustand a `packages/front-end`.
 - [ ] Pruebas E2E completas integrando Tauri sidecars en entorno portable de Windows.
