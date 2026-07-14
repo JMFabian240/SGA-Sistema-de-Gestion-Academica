@@ -17,8 +17,8 @@ export function ExpedienteAlumnoPage() {
   const [isAsignarPlanModalOpen, setIsAsignarPlanModalOpen] = useState(false);
 
   const alumnoId = parseInt(id || '0', 10);
-  
-  const { data: alumno, isLoading, error, isSuccess } = trpc.alumnos.getById.useQuery(alumnoId, {
+
+  const { data: alumno, isLoading, error } = trpc.alumnos.getById.useQuery(alumnoId, {
     enabled: !!alumnoId,
   });
 
@@ -94,7 +94,7 @@ export function ExpedienteAlumnoPage() {
     try {
       const data = await utils.pagos.getComprobanteBase64.fetch({ pagoId });
       toast.dismiss(toastId);
-      
+
       const base64Data = data.base64.split(',')[1];
       const binaryStr = window.atob(base64Data);
       const len = binaryStr.length;
@@ -102,11 +102,11 @@ export function ExpedienteAlumnoPage() {
       for (let i = 0; i < len; i++) {
         bytes[i] = binaryStr.charCodeAt(i);
       }
-      
+
       const blob = new Blob([bytes], { type: data.mime });
       const blobUrl = URL.createObjectURL(blob);
       window.open(blobUrl, '_blank');
-      
+
       // Cleanup de la URL (opcional, aunque si se recarga se borra sola, un timeout simple sirve)
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
     } catch (error: any) {
@@ -133,7 +133,7 @@ export function ExpedienteAlumnoPage() {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-gray-500">
         <p>No se pudo cargar el expediente del alumno.</p>
-        <button 
+        <button
           onClick={() => navigate('/alumnos')}
           className="mt-4 px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
         >
@@ -286,7 +286,7 @@ export function ExpedienteAlumnoPage() {
           {inscripcionActual ? (
             <div className="p-4 border border-gray-100 rounded-xl bg-gray-50/50">
               <p className="font-semibold text-gray-900">
-                {inscripcionActual.grupo?.grado?.nombre || alumno.grado?.nombre || 'Grado sin asignar'} 
+                {inscripcionActual.grupo?.grado?.nombre || alumno.grado?.nombre || 'Grado sin asignar'}
                 {' - '}
                 Grupo {inscripcionActual.grupo?.nombre || 'Sin grupo'}
                 <span className="text-gray-500 ml-2 font-normal">({inscripcionActual.ciclo.nombre})</span>
@@ -324,7 +324,7 @@ export function ExpedienteAlumnoPage() {
               {alumno.inscripciones.map((insc: any) => (
                 <div key={insc.inscripcionId} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 opacity-75">
                   <p className="font-semibold text-gray-900">
-                    {insc.grupo?.grado?.nombre || alumno.grado?.nombre || 'Grado sin asignar'} 
+                    {insc.grupo?.grado?.nombre || alumno.grado?.nombre || 'Grado sin asignar'}
                     {' - '}
                     Grupo {insc.grupo?.nombre || 'Sin grupo'}
                     <span className="text-gray-500 ml-2 font-normal">({insc.ciclo.nombre}) - {insc.estadoEnCiclo}</span>
@@ -394,7 +394,7 @@ export function ExpedienteAlumnoPage() {
                       <td className="px-6 py-3">
                         {pago.aplicacionesPago?.[0]?.pago && (
                           pago.aplicacionesPago[0].pago.documentos && pago.aplicacionesPago[0].pago.documentos.length > 0 ? (
-                            <button 
+                            <button
                               onClick={() => handleVerComprobante(pago.aplicacionesPago[0].pago.pagoId)}
                               className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                               title="Ver Comprobante"
@@ -404,9 +404,9 @@ export function ExpedienteAlumnoPage() {
                           ) : (
                             <label className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-600 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-blue-600 transition-colors text-sm font-medium" title="Adjuntar comprobante a este pago">
                               <UploadCloud size={16} /> Adjuntar
-                              <input 
-                                type="file" 
-                                className="hidden" 
+                              <input
+                                type="file"
+                                className="hidden"
                                 accept="image/*,.pdf"
                                 onChange={(e) => handleAdjuntar(pago.aplicacionesPago[0].pago.pagoId, e)}
                               />
@@ -416,11 +416,10 @@ export function ExpedienteAlumnoPage() {
                         {!pago.aplicacionesPago?.[0]?.pago && <span className="text-gray-400">-</span>}
                       </td>
                       <td className="px-6 py-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          pago.estadoCobro === 'PAGADO' ? 'bg-green-100 text-green-700' :
-                          pago.estadoCobro === 'VENCIDO' ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${pago.estadoCobro === 'PAGADO' ? 'bg-green-100 text-green-700' :
+                            pago.estadoCobro === 'VENCIDO' ? 'bg-red-100 text-red-700' :
+                              'bg-yellow-100 text-yellow-700'
+                          }`}>
                           {pago.estadoCobro}
                         </span>
                       </td>
