@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const createPlanPagoSchema = z.object({
   nombre: z.string().min(1, 'Nombre es requerido').max(40),
   meses: z.number().int().positive('Los meses deben ser mayor a 0'),
-  montoMensual: z.number().positive(),
+  montoMensual: z.number().nonnegative().default(0),
   montoDiciembre: z.number().nonnegative().optional().nullable(),
   descripcion: z.string().optional().nullable(),
   activo: z.boolean().default(true)
