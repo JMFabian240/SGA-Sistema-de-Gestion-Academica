@@ -80,9 +80,7 @@ export function AsignarPlanPagoModal({ inscripcionId, alumnoId, isOpen, onClose 
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {planes?.filter(p => !p.eliminadoEn).map(plan => {
-                const montoAnual = tarifaBase * 12;
-                const mensualidad10 = montoAnual / 10;
-                const pagoMensual = plan.meses === 12 ? tarifaBase : mensualidad10;
+                const pagoMensual = tarifaBase / plan.meses;
                 
                 return (
                   <div 
@@ -96,9 +94,6 @@ export function AsignarPlanPagoModal({ inscripcionId, alumnoId, isOpen, onClose 
                   >
                     <div className="font-bold text-gray-800">{plan.nombre}</div>
                     <div className="text-xs text-gray-500 mt-1">{plan.meses} mensualidades de ${pagoMensual.toLocaleString('en-US')}</div>
-                    {plan.meses === 12 && (
-                      <div className="text-xs text-amber-600 mt-1 font-medium">* Diciembre doble. Julio exento.</div>
-                    )}
                   </div>
                 );
               })}
@@ -109,12 +104,11 @@ export function AsignarPlanPagoModal({ inscripcionId, alumnoId, isOpen, onClose 
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
               <h4 className="text-sm font-bold text-emerald-900 mb-2">Simulación del Calendario</h4>
               <p className="text-xs text-emerald-700 mb-2">
-                Se generarán <b>{planSeleccionado.meses === 12 ? 11 : 10} recibos</b> de colegiatura automáticamente. 
-                {planSeleccionado.meses === 12 && " Diciembre generará una cuota especial doble."}
+                Se generarán <b>{planSeleccionado.meses} recibos</b> de colegiatura automáticamente. 
               </p>
               <div className="text-xs text-emerald-800 bg-white/50 p-2 rounded flex justify-between border border-emerald-100/50 mt-2">
                 <span>Costo Total Anual:</span>
-                <span className="font-bold">${(tarifaBase * 12).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="font-bold">${(tarifaBase).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           )}

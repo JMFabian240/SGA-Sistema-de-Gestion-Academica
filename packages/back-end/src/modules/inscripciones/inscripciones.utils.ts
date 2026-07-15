@@ -43,12 +43,12 @@ export class CalculadoraPagos {
     const mesesToUse = plan.meses === 12 ? meses12 : meses10;
     const adeudos: any[] = [];
     
-    // Buscar la tarifa de colegiatura anual
+    // La tarifa que está configurada en la BD es la Anual
     const tarifaColegiatura = tarifas.find(t => t.concepto.toUpperCase() === 'COLEGIATURA');
     const tarifaAnualColegiatura = tarifaColegiatura ? tarifaColegiatura.monto : 0;
     
-    const montoBase12 = tarifaAnualColegiatura / 12;
-    const montoBase10 = tarifaAnualColegiatura / 10;
+    // Dividir entre la cantidad de meses del plan escogido
+    const montoMensualColegiatura = tarifaAnualColegiatura / plan.meses;
     
     // Pagos Únicos (solo se cobran en el primer mes)
     const conceptosUnicos = ['INSCRIPCION', 'INSCRIPCIÓN', 'ARANCELES', 'MATERIALES', 'LIBROS'];
@@ -79,20 +79,8 @@ export class CalculadoraPagos {
     // Generar mensualidades de Colegiatura
     for (let i = 0; i < mesesToUse.length; i++) {
       const mesStr = mesesToUse[i];
-      let monto = 0;
-      
-      // Reglas de negocio Colegiatura
-      if (plan.meses === 12) {
-        if (mesStr === 'Diciembre') {
-          monto = montoBase12 * 2; // Julio se suma a Diciembre
-        } else if (mesStr === 'Julio') {
-          monto = 0;
-        } else {
-          monto = montoBase12;
-        }
-      } else {
-        monto = montoBase10;
-      }
+      // Regla general: la colegiatura se divide de manera equitativa entre los meses del plan
+      let monto = montoMensualColegiatura;
 
       // Aplicar beca solo a colegiatura
       if (beca && beca.porcentajeDescuento > 0 && monto > 0) {

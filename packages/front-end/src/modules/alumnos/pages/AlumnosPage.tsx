@@ -20,11 +20,13 @@ export function AlumnosPage() {
   const utils = trpc.useUtils();
   const { data: alumnos, isLoading, refetch } = trpc.alumnos.getAll.useQuery();
   const updateAlumnoMutation = trpc.alumnos.update.useMutation();
+  const deleteAlumnoMutation = trpc.alumnos.delete.useMutation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [alumnoParaTutor, setAlumnoParaTutor] = useState<number | null>(null);
   const [isVincularModalOpen, setIsVincularModalOpen] = useState(false);
   const [isNuevoTutorModalOpen, setIsNuevoTutorModalOpen] = useState(false);
+  const [isEnFlujoNuevoAlumno, setIsEnFlujoNuevoAlumno] = useState(false);
   const [editingAlumno, setEditingAlumno] = useState<any>(null);
 
   // Filters state
@@ -325,6 +327,7 @@ export function AlumnosPage() {
           setIsModalOpen(false);
           refetch();
           setAlumnoParaTutor(alumnoId);
+          setIsEnFlujoNuevoAlumno(true);
           setIsVincularModalOpen(true);
         }}
       />
@@ -334,12 +337,23 @@ export function AlumnosPage() {
           isOpen={isVincularModalOpen}
           alumnoId={alumnoParaTutor}
           onClose={() => {
-            setIsVincularModalOpen(false);
-            setAlumnoParaTutor(null);
+            if (isEnFlujoNuevoAlumno) {
+              if (window.confirm('El alumno no puede registrarse sin un tutor. Si cancelas, el registro del alumno será eliminado. ¿Deseas cancelar?')) {
+                deleteAlumnoMutation.mutate(alumnoParaTutor);
+                setIsVincularModalOpen(false);
+                setAlumnoParaTutor(null);
+                setIsEnFlujoNuevoAlumno(false);
+                refetch();
+              }
+            } else {
+              setIsVincularModalOpen(false);
+              setAlumnoParaTutor(null);
+            }
           }}
           onSuccess={() => {
             setIsVincularModalOpen(false);
             setAlumnoParaTutor(null);
+            setIsEnFlujoNuevoAlumno(false);
             refetch();
           }}
           onRegistrarPadre={() => {
@@ -355,11 +369,13 @@ export function AlumnosPage() {
           alumnoId={alumnoParaTutor}
           onClose={() => {
             setIsNuevoTutorModalOpen(false);
+            // Regresamos al modal de vincular para que siga en el flujo
             setIsVincularModalOpen(true);
           }}
           onSuccess={() => {
             setIsNuevoTutorModalOpen(false);
             setAlumnoParaTutor(null);
+            setIsEnFlujoNuevoAlumno(false);
             refetch();
           }}
         />
