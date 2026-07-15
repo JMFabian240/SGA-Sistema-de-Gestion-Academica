@@ -99,8 +99,11 @@ async function main() {
     ]},
     { codigo: 'BAC', nombre: 'Bachillerato', orden: 4, grados: [
       { nombre: '1° Semestre', numero: 1 },
+      { nombre: '2° Semestre', numero: 2 },
       { nombre: '3° Semestre', numero: 3 },
+      { nombre: '4° Semestre', numero: 4 },
       { nombre: '5° Semestre', numero: 5 },
+      { nombre: '6° Semestre', numero: 6 },
     ]},
   ];
 
