@@ -192,9 +192,17 @@ export class ImportacionesService {
           });
           if (!nivel) throw new Error(`El Nivel Educativo '${row['Nivel Educativo Destino']}' no existe.`);
 
-          const grado = await tx.grado.findFirst({
+          let grado = await tx.grado.findFirst({
             where: { nombre: { equals: row['Grado Destino'], mode: 'insensitive' }, nivelId: nivel.nivelId }
           });
+          if (!grado) {
+             const numeroGrado = parseInt(row['Grado Destino'].replace(/\D/g, ''));
+             if (!isNaN(numeroGrado)) {
+                grado = await tx.grado.findFirst({
+                   where: { numero: numeroGrado, nivelId: nivel.nivelId }
+                });
+             }
+          }
           if (!grado) throw new Error(`El Grado '${row['Grado Destino']}' no existe en este Nivel.`);
 
           const grupo = await tx.grupo.findFirst({
@@ -293,7 +301,7 @@ export class ImportacionesService {
           if (!inscripcion) {
             // Verificar cupo
             const inscripcionesGrupo = await tx.inscripcionCiclo.count({
-              where: { grupoId: grupo.grupoId, estadoEnCiclo: 'ACTIVO' }
+              where: { grupoId: grupo.grupoId, estadoEnCiclo: 'INSCRITO' }
             });
             if (inscripcionesGrupo >= grupo.cupoMaximo) {
               throw new Error(`El grupo ${grupo.nombre} ya ha alcanzado su cupo máximo de ${grupo.cupoMaximo}`);
@@ -317,7 +325,7 @@ export class ImportacionesService {
                 gradoId: grado.gradoId,
                 grupoId: grupo.grupoId,
                 planPagoId: planPagoId,
-                estadoEnCiclo: 'ACTIVO',
+                estadoEnCiclo: 'INSCRITO',
                 estadoFinanciero: 'AL_CORRIENTE',
                 fechaIngreso: new Date()
               }

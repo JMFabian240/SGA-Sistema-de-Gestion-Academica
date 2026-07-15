@@ -11,4 +11,7 @@ ANUAL,Primaria,6° Grado,P,40
 ANUAL,Secundaria,1° Grado,S,40
 ANUAL,Secundaria,2° Grado,S,40
 ANUAL,Secundaria,3° Grado,S,40
-SEMESTRAL,Bachillerato,9° Semestre,B,40
+SEMESTRAL,Bachillerato,1° Semestre,B,40
+SEMESTRAL,Bachillerato,3° Semestre,B,40
+SEMESTRAL,Bachillerato,5° Semestre,B,40
+,,,,

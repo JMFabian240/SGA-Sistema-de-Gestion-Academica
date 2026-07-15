@@ -38,7 +38,7 @@ export class ReportesRepository {
 
   static async getInscripcionesActivas(grupoId: number) {
     return prisma.inscripcionCiclo.findMany({
-      where: { grupoId, estadoEnCiclo: 'ACTIVO' },
+      where: { grupoId, estadoEnCiclo: 'INSCRITO' },
       include: { alumno: true }
     });
   }

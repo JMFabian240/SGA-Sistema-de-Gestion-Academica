@@ -70,13 +70,13 @@ export function ImportacionDatosPanel({ }: { ciclos: any[] }) {
     formData.append('file', archivo);
 
     try {
-      let endpoint = 'http://localhost:3001/api/importaciones/catalogo';
+      let endpoint = '/api/importaciones/catalogo';
       if (flujoSeleccionado === 'INSCRIPCIONES') {
-        endpoint = 'http://localhost:3001/api/importaciones/inscripciones';
+        endpoint = '/api/importaciones/inscripciones';
       } else if (flujoSeleccionado === 'PAGOS') {
-        endpoint = 'http://localhost:3001/api/importaciones/pagos';
+        endpoint = '/api/importaciones/pagos';
       } else if (flujoSeleccionado === 'SALDOS') {
-        endpoint = 'http://localhost:3001/api/importaciones/saldos';
+        endpoint = '/api/importaciones/saldos';
       }
 
       const response = await fetch(endpoint, {

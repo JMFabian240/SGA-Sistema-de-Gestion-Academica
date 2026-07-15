@@ -21,7 +21,9 @@
     "bcryptjs": "^3.0.3",
     "fastify": "^4.24.0",
     "jsonwebtoken": "^9.0.3",
+    "mnemonist": "^0.39.6",
     "papaparse": "^5.5.4",
+    "vary": "^1.1.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
