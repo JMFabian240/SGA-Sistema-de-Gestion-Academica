@@ -52,7 +52,7 @@ export function NuevoTutorModal({ isOpen, alumnoId, onClose, onSuccess }: NuevoT
   const linkTutorMutation = trpc.alumnos.linkTutor.useMutation();
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       requiereFactura: false
     }

@@ -154,7 +154,7 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
       tutorId,
       fechaPago: new Date().toISOString(),
       montoTotal: monto,
-      metodoPago,
+      metodoPago: metodoPago as any,
       requiereFactura,
       observaciones: observaciones || undefined,
       aplicadoASaldo: false,

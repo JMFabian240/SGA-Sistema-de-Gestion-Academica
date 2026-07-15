@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExpedienteAlumnoPage } from './ExpedienteAlumnoPage';
 import { BrowserRouter } from 'react-router-dom';
-import React from 'react';
 
 // Mocks
 vi.mock('react-router-dom', async () => {

@@ -8,8 +8,9 @@ import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
 import { CicloFormModal } from '../components/CicloFormModal';
+import { ImportacionDatosPanel } from '../components/ImportacionDatosPanel';
 
-type TabType = 'ciclos' | 'tarifas' | 'cierre';
+type TabType = 'ciclos' | 'tarifas' | 'cierre' | 'importacion';
 
 export function ConfiguracionPage() {
   const [activeTab, setActiveTab] = useState<TabType>('ciclos');
@@ -324,6 +325,16 @@ export function ConfiguracionPage() {
           }`}
         >
           Operaciones de Ciclo
+        </button>
+        <button
+          onClick={() => setActiveTab('importacion')}
+          className={`px-6 py-3 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
+            activeTab === 'importacion'
+              ? 'border-red-600 text-red-600'
+              : 'border-transparent text-gray-500 hover:text-navy-800'
+          }`}
+        >
+          Importación de Datos
         </button>
       </div>
 
@@ -975,6 +986,10 @@ export function ConfiguracionPage() {
           </div>
         </div>
       </Modal>
+
+      {activeTab === 'importacion' && (
+        <ImportacionDatosPanel ciclos={ciclos || []} />
+      )}
     </div>
   );
 }
