@@ -111,7 +111,7 @@ export function GruposListPage() {
 
   const getAlumnosGrado = (gradoId: number, nivelCodigo: string) => {
     const cycleId = getCicloIdForNivel(nivelCodigo);
-    return todasLasInscripciones?.filter(i => 
+    return (todasLasInscripciones as any[])?.filter((i: any) => 
       (i.grupo?.gradoId === gradoId || i.alumno?.gradoId === gradoId) && 
       i.cicloId === cycleId
     ) || [];

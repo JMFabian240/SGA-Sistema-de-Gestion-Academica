@@ -3,7 +3,8 @@ import cors from '@fastify/cors';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import { appRouter } from './router';
 import { createContext } from './context';
-
+import multipart from '@fastify/multipart';
+import { importacionesController } from './modules/importaciones/importaciones.controller';
 export function buildServer() {
   const server = fastify({
     logger: true,
@@ -26,6 +27,14 @@ export function buildServer() {
   server.get('/', async () => {
     return { status: 'SGA API is running' };
   });
+
+  server.register(multipart, {
+    limits: {
+      fileSize: 15 * 1024 * 1024, // 15MB
+    }
+  });
+
+  server.register(importacionesController, { prefix: '/api/importaciones' });
 
   server.setErrorHandler((error, request, reply) => {
     server.log.error(error);

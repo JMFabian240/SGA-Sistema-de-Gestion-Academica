@@ -25,7 +25,7 @@ export function CajaPage() {
 
   // Filtrar en memoria por simplicidad para la UI rápida
   const alumnosFiltrados = searchTerm.length > 2
-    ? alumnos.filter(a =>
+    ? (alumnos as any[]).filter((a: any) =>
       a.nombreCompleto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.matricula?.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -93,7 +93,7 @@ export function CajaPage() {
     refetchAdeudos(); // Recargar el estado de cuenta
   };
 
-  const alumnoSeleccionado = alumnos.find(a => a.alumnoId === selectedAlumnoId);
+  const alumnoSeleccionado = (alumnos as any[]).find((a: any) => a.alumnoId === selectedAlumnoId);
 
   return (
     <div className="h-full flex flex-col p-6 max-w-7xl mx-auto w-full gap-6">

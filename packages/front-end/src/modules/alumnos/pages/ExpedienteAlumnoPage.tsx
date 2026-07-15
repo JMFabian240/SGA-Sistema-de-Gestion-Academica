@@ -48,7 +48,7 @@ export function ExpedienteAlumnoPage() {
 
   const inscripcionActual = useMemo(() => {
     if (!alumno?.inscripciones) return null;
-    return alumno.inscripciones.find(i => i.estadoEnCiclo === 'INSCRITO' && i.ciclo.activo);
+    return (alumno as any).inscripciones.find((i: any) => i.estadoEnCiclo === 'INSCRITO' && i.ciclo.activo);
   }, [alumno]);
 
   const quitarPlanMutation = trpc.inscripciones.quitarPlanPago.useMutation({

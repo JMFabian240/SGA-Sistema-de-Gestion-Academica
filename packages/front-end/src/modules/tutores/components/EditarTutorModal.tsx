@@ -45,7 +45,7 @@ export function EditarTutorModal({ isOpen, onClose, tutor }: EditarTutorModalPro
   const utils = trpc.useUtils();
 
   const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<EditarTutorForm>({
-    resolver: zodResolver(editarTutorSchema),
+    resolver: zodResolver(editarTutorSchema) as any,
     defaultValues: {
       nombreCompleto: '',
       correoElectronico: '',

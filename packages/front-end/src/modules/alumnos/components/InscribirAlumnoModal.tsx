@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Calendar, BookOpen, Calculator, Save } from 'lucide-react';
+import { X, Calendar, BookOpen, Save } from 'lucide-react';
 import { trpc } from '../../../lib/trpc';
 
 interface InscribirAlumnoModalProps {
@@ -18,14 +18,14 @@ export function InscribirAlumnoModal({ alumnoId, isOpen, onClose }: InscribirAlu
   const [errorMsg, setErrorMsg] = useState('');
 
   // Queries
-  const { data: ciclos } = trpc.configuracion.getCiclos.useQuery();
-  const { data: grupos } = trpc.grupos.getAll.useQuery();
+  const { data: ciclos } = trpc.grupos.getCiclos.useQuery();
+  const { data: grupos } = trpc.grupos.getGrupos.useQuery();
 
   const createMutation = trpc.inscripciones.createInscripcion.useMutation({
     onSuccess: () => {
       setIsSubmitting(false);
       window.alert('Inscripción realizada. Calendario de pagos generado.');
-      utils.alumnos.getDetail.invalidate(alumnoId);
+      utils.alumnos.getById.invalidate(alumnoId);
       onClose();
     },
     onError: (err) => {
@@ -37,7 +37,7 @@ export function InscribirAlumnoModal({ alumnoId, isOpen, onClose }: InscribirAlu
   if (!isOpen) return null;
 
   // Filtrar grupos activos del ciclo seleccionado
-  const gruposDisponibles = grupos?.filter(g => 
+  const gruposDisponibles = grupos?.filter((g: any) => 
     !g.eliminadoEn && !g.cerrado && g.cicloId === Number(cicloId)
   ) || [];
 
@@ -96,7 +96,7 @@ export function InscribirAlumnoModal({ alumnoId, isOpen, onClose }: InscribirAlu
                 required
               >
                 <option value="">Selecciona un ciclo activo</option>
-                {ciclos?.filter(c => c.activo && !c.eliminadoEn).map(c => (
+                {ciclos?.filter((c: any) => c.activo && !c.eliminadoEn).map((c: any) => (
                   <option key={c.cicloId} value={c.cicloId}>{c.nombre}</option>
                 ))}
               </select>
@@ -115,7 +115,7 @@ export function InscribirAlumnoModal({ alumnoId, isOpen, onClose }: InscribirAlu
                 required
               >
                 <option value="">Selecciona el grupo</option>
-                {gruposDisponibles.map(g => (
+                {gruposDisponibles?.map((g: any) => (
                   <option key={g.grupoId} value={g.grupoId}>{g.nombre} (Cupo: {g.cupoMaximo})</option>
                 ))}
               </select>
