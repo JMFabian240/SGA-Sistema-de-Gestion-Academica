@@ -175,10 +175,27 @@ export class GruposService {
   }
 
   static async createCiclo(input: CreateCicloEscolarInput) {
+    let gradosPermitidos = input.gradosPermitidos;
+    
+    if (!gradosPermitidos) {
+      const per = input.periodicidad || 'ANUAL';
+      const nivCodigos = per === 'ANUAL' ? ['PRE', 'PRI', 'SEC'] : ['BAC'];
+      const grados = await prisma.grado.findMany({
+        where: { nivel: { codigo: { in: nivCodigos } }, eliminadoEn: null }
+      });
+      gradosPermitidos = grados.reduce((acc, curr) => {
+        const nId = curr.nivelId.toString();
+        if (!acc[nId]) acc[nId] = [];
+        acc[nId].push(curr.gradoId);
+        return acc;
+      }, {} as Record<string, number[]>);
+    }
+
     const c = await GruposRepository.createCiclo({
       ...input,
       fechaInicio: new Date(input.fechaInicio),
-      fechaFin: new Date(input.fechaFin)
+      fechaFin: new Date(input.fechaFin),
+      gradosPermitidos
     });
     return {
       ...c,
