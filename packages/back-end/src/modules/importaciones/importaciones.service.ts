@@ -47,27 +47,29 @@ export class ImportacionesService {
           }
           
           const cicloId = ciclo.cicloId;
+          const countNiveles = await tx.nivelEducativo.count();
+          const countGrados = await tx.grado.count();
+
           // 1. Find or create Nivel Educativo
-          // Using a generic mapping for "codigo" based on name, or expecting it from frontend.
-          // For simplicity, we create if it doesn't exist.
           let nivel = await tx.nivelEducativo.findFirst({
             where: { nombre: { equals: row['Nivel Educativo'], mode: 'insensitive' } }
           });
           
           if (!nivel) {
             const defaultCodigo = row['Nivel Educativo'].substring(0, 3).toUpperCase();
-            // Let's check if codigo exists to avoid unique constraint error
-            const existingNivel = await tx.nivelEducativo.findUnique({ where: { codigo: defaultCodigo }});
-            if (existingNivel) {
-               nivel = existingNivel; // Re-use if code matched (fallback)
-            } else {
-               nivel = await tx.nivelEducativo.create({
-                 data: {
-                   codigo: defaultCodigo,
-                   nombre: row['Nivel Educativo'],
-                   orden: 99
-                 }
-               });
+            nivel = await tx.nivelEducativo.findUnique({ where: { codigo: defaultCodigo }});
+            
+            if (!nivel) {
+              if (countNiveles > 0) {
+                 throw new Error(`El nivel educativo "${row['Nivel Educativo']}" no existe en el sistema. Debe usar los nombres exactos o registrarlo primero.`);
+              }
+              nivel = await tx.nivelEducativo.create({
+                data: {
+                  codigo: defaultCodigo,
+                  nombre: row['Nivel Educativo'],
+                  orden: 99
+                }
+              });
             }
           }
 
@@ -80,6 +82,18 @@ export class ImportacionesService {
           });
 
           if (!grado) {
+             const numeroGrado = parseInt(row['Grado'].replace(/\D/g, ''));
+             if (!isNaN(numeroGrado)) {
+                grado = await tx.grado.findFirst({
+                   where: { numero: numeroGrado, nivelId: nivel.nivelId }
+                });
+             }
+          }
+
+          if (!grado) {
+            if (countGrados > 0) {
+              throw new Error(`El grado "${row['Grado']}" no existe en el nivel "${nivel.nombre}". Debe usar los nombres/números exactos o registrarlo primero.`);
+            }
             grado = await tx.grado.create({
               data: {
                 nombre: row['Grado'],
