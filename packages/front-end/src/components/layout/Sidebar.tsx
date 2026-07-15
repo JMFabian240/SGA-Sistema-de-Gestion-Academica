@@ -12,7 +12,9 @@ export function Sidebar() {
   };
 
   const hasPermiso = (modulo: string) => {
-    if (!user || !user.permisosModulos) return false;
+    if (!user) return false;
+    if (user.role === 'ADMIN' || user.roles?.includes('ADMIN')) return true;
+    if (!user.permisosModulos) return false;
     const p = user.permisosModulos.find((m: any) => m.modulo === modulo);
     return p && p.nivel !== 'DENEGADO';
   };

@@ -15,7 +15,7 @@ describe('Auth Router (Integration)', () => {
     const caller = appRouter.createCaller(ctx);
 
     await expect(caller.auth.login({ identificador: '', contrasena: '123' }))
-      .rejects.toThrowError(/El identificador \(correo o usuario\) debe tener al menos 3 caracteres/);
+      .rejects.toThrowError(/El nombre de usuario debe tener al menos 3 caracteres/);
   });
 
   it('debería retornar un token válido si las credenciales son correctas', async () => {
