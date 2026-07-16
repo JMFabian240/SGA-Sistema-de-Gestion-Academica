@@ -122,7 +122,16 @@ export class PagosService {
 
       for (const adeudo of adeudos) {
         // Buscar cuál debería ser el monto actual según la calculadora
-        const ideal = adeudosIdeales.find((a: any) => a.concepto === adeudo.concepto);
+        const ideal = adeudosIdeales.find((a: any) => {
+          if (a.concepto === adeudo.concepto) return true;
+          // Si el CSV guardó "Colegiatura" y el ideal generó "Colegiatura Septiembre", los hacemos coincidir por mes
+          if (a.mes && adeudo.mes && a.mes === adeudo.mes && 
+              a.concepto.toUpperCase().includes('COLEGIATURA') && 
+              adeudo.concepto.toUpperCase().includes('COLEGIATURA')) {
+            return true;
+          }
+          return false;
+        });
         if (!ideal) continue; // Si no hay ideal, no se recalcula
 
         const nuevaTarifa = ideal.montoOriginal;

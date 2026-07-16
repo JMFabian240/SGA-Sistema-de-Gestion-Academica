@@ -74,8 +74,8 @@ export function AlumnosPage() {
 
       const nivelA = a.nivel?.nombre || '';
       const nivelB = b.nivel?.nombre || '';
-      const rankA = nivelRanking[nivelA] || 99;
-      const rankB = nivelRanking[nivelB] || 99;
+      const rankA = nivelRanking[nivelA.toUpperCase()] || 99;
+      const rankB = nivelRanking[nivelB.toUpperCase()] || 99;
 
       if (rankA !== rankB) return rankA - rankB;
 
@@ -94,7 +94,7 @@ export function AlumnosPage() {
   // Derived filter options based on available data
   const availableNiveles = useMemo(() => {
     const niveles = Array.from(new Set((alumnos as any[])?.map(a => a.nivel?.nombre).filter(Boolean)));
-    return niveles.sort((a, b) => (nivelRanking[a as string] || 99) - (nivelRanking[b as string] || 99));
+    return niveles.sort((a, b) => (nivelRanking[(a as string).toUpperCase()] || 99) - (nivelRanking[(b as string).toUpperCase()] || 99));
   }, [alumnos]);
   
   const availableGrados = useMemo(() => {
