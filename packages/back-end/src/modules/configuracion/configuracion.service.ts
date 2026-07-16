@@ -1,49 +1,37 @@
 import { TRPCError } from '@trpc/server';
-import { type UpdateConfigInput } from './configuracion.schema';
+import { type UpdateConfigInput, type CreateConfiguracionRecargoInput, type UpdateConfiguracionRecargoInput } from './configuracion.schema';
 import { ConfiguracionRepository } from './configuracion.repository';
 
 export class ConfiguracionService {
-  // Siempre asumiremos que la configuración global tiene el ID 1 (Single Row)
   private static CONFIG_ID = 1;
 
-  /**
-   * Obtiene la configuración global actual
-   */
   static async getConfiguracion() {
     let config = await ConfiguracionRepository.findConfiguracion(this.CONFIG_ID);
 
     if (!config) {
-      // Si no existe, creamos una por defecto
       config = await ConfiguracionRepository.createConfiguracion({
         configuracionId: this.CONFIG_ID,
-        montoRecargoDefecto: 400.00,
-        diasGraciaRecargo: 5,
         plazoInscripcionDias: 60,
-        umbralesSmtpDias: [5, 3, 1] // Umbrales por defecto en la DB (JSON)
+        umbralesSmtpDias: [5, 3, 1],
+        fechaVencimientoDefecto: null
       });
     }
 
     return {
       configuracionId: config.configuracionId,
-      montoRecargoDefecto: Number(config.montoRecargoDefecto),
-      diasGraciaRecargo: config.diasGraciaRecargo,
+      fechaVencimientoDefecto: config.fechaVencimientoDefecto ? config.fechaVencimientoDefecto.toISOString() : null,
       plazoInscripcionDias: config.plazoInscripcionDias,
       umbralesSmtpDias: config.umbralesSmtpDias as number[],
       actualizadoEn: config.actualizadoEn
     };
   }
 
-  /**
-   * Actualiza la configuración global
-   */
   static async updateConfiguracion(input: UpdateConfigInput) {
-    // Asegurarse de que exista primero
     await this.getConfiguracion();
 
     try {
       const updatedConfig = await ConfiguracionRepository.updateConfiguracion(this.CONFIG_ID, {
-        montoRecargoDefecto: input.montoRecargoDefecto !== undefined ? input.montoRecargoDefecto : undefined,
-        diasGraciaRecargo: input.diasGraciaRecargo,
+        fechaVencimientoDefecto: input.fechaVencimientoDefecto !== undefined ? (input.fechaVencimientoDefecto ? new Date(input.fechaVencimientoDefecto) : null) : undefined,
         plazoInscripcionDias: input.plazoInscripcionDias,
         umbralesSmtpDias: input.umbralesSmtpDias ? input.umbralesSmtpDias : undefined,
         actualizadoEn: new Date()
@@ -51,8 +39,7 @@ export class ConfiguracionService {
 
       return {
         configuracionId: updatedConfig.configuracionId,
-        montoRecargoDefecto: Number(updatedConfig.montoRecargoDefecto),
-        diasGraciaRecargo: updatedConfig.diasGraciaRecargo,
+        fechaVencimientoDefecto: updatedConfig.fechaVencimientoDefecto ? updatedConfig.fechaVencimientoDefecto.toISOString() : null,
         plazoInscripcionDias: updatedConfig.plazoInscripcionDias,
         umbralesSmtpDias: updatedConfig.umbralesSmtpDias as number[],
         actualizadoEn: updatedConfig.actualizadoEn
@@ -61,6 +48,56 @@ export class ConfiguracionService {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Error al actualizar la configuración global'
+      });
+    }
+  }
+
+  // --- Recargos ---
+  static async getRecargos() {
+    try {
+      const recargos = await ConfiguracionRepository.getRecargos();
+      return recargos.map((r: any) => ({
+        ...r,
+        monto: Number(r.monto)
+      }));
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error al obtener configuraciones de recargos'
+      });
+    }
+  }
+
+  static async createRecargo(input: CreateConfiguracionRecargoInput) {
+    try {
+      const nuevo = await ConfiguracionRepository.createRecargo({
+        conceptoPago: input.conceptoPago,
+        monto: input.monto,
+        diasGracia: input.diasGracia,
+        activo: true
+      });
+      return { ...nuevo, monto: Number(nuevo.monto) };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error al crear configuración de recargo'
+      });
+    }
+  }
+
+  static async updateRecargo(input: UpdateConfiguracionRecargoInput) {
+    try {
+      const data: any = { actualizadoEn: new Date() };
+      if (input.monto !== undefined) data.monto = input.monto;
+      if (input.diasGracia !== undefined) data.diasGracia = input.diasGracia;
+      if (input.activo !== undefined) data.activo = input.activo;
+
+      const actualizado = await ConfiguracionRepository.updateRecargo(input.id, data);
+      return { ...actualizado, monto: Number(actualizado.monto) };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error al actualizar configuración de recargo'
       });
     }
   }

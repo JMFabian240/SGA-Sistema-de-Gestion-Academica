@@ -6,6 +6,7 @@ export const createTarifaSchema = z.object({
   nivelId: z.number().int().positive(),
   concepto: z.string().min(1).max(100),
   monto: z.number().nonnegative('El monto no puede ser negativo'),
+  fechaVencimiento: z.string().datetime().nullable().optional(),
   descripcion: z.string().optional(),
   activa: z.boolean().optional()
 });

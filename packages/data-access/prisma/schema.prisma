@@ -114,12 +114,11 @@ model TokenRevocado {
 }
 
 model ConfiguracionGlobal {
-  configuracionId      Int       @id @map("configuracion_id")
-  montoRecargoDefecto  Decimal   @map("monto_recargo_defecto") @db.Decimal(12, 2)
-  diasGraciaRecargo    Int       @map("dias_gracia_recargo")
-  plazoInscripcionDias Int       @map("plazo_inscripcion_dias")
-  umbralesSmtpDias     Json      @map("umbrales_smtp_dias")
-  actualizadoEn        DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  configuracionId         Int       @id @map("configuracion_id")
+  fechaVencimientoDefecto DateTime? @map("fecha_vencimiento_defecto") @db.Date
+  plazoInscripcionDias    Int       @map("plazo_inscripcion_dias")
+  umbralesSmtpDias        Json      @map("umbrales_smtp_dias")
+  actualizadoEn           DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
 
   @@map("configuracion_global")
 }
@@ -341,12 +340,13 @@ model TutorAlumno {
 }
 
 model Tarifa {
-  tarifaId      Int            @id @default(autoincrement()) @map("tarifa_id")
-  cicloId       Int            @map("ciclo_id")
-  nivelId       Int            @map("nivel_id")
-  concepto      String         @db.VarChar(100)
-  monto         Decimal        @db.Decimal(12, 2)
-  descripcion   String?
+  tarifaId         Int            @id @default(autoincrement()) @map("tarifa_id")
+  cicloId          Int            @map("ciclo_id")
+  nivelId          Int            @map("nivel_id")
+  concepto         String         @db.VarChar(100)
+  monto            Decimal        @db.Decimal(12, 2)
+  fechaVencimiento DateTime?      @map("fecha_vencimiento") @db.Date
+  descripcion      String?
   activa        Boolean?       @default(true)
   creadoEn      DateTime?      @default(now()) @map("creado_en") @db.Timestamptz(6)
   actualizadoEn DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
@@ -723,4 +723,16 @@ enum NivelPermiso {
   LECTURA
   LECTURA_Y_ESCRITURA
   DENEGADO
+}
+
+model ConfiguracionRecargo {
+  id            Int       @id @default(autoincrement()) @map("configuracion_recargo_id")
+  conceptoPago  String    @map("concepto_pago") @db.VarChar(100)
+  monto         Decimal   @db.Decimal(12, 2)
+  diasGracia    Int       @map("dias_gracia")
+  activo        Boolean?  @default(true)
+  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+
+  @@map("configuracion_recargo")
 }

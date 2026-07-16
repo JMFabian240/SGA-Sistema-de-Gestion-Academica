@@ -48,7 +48,53 @@ export function ConfiguracionPage() {
   // --- Tarifas de Cobro (ANUAL) ---
   const [selectedCicloId, setSelectedCicloId] = useState<number | undefined>(undefined);
   const { data: niveles, isLoading: loadingNiveles } = trpc.grupos.getNiveles.useQuery();
+  
   const { data: configuracionGlobal } = trpc.configuracion.get.useQuery();
+  const updateConfiguracionMutation = trpc.configuracion.update.useMutation({
+    onSuccess: () => {
+      utils.configuracion.get.invalidate();
+    }
+  });
+
+  const { data: recargos, isLoading: loadingRecargos } = trpc.configuracion.getRecargos.useQuery();
+  const createRecargoMutation = trpc.configuracion.createRecargo.useMutation({
+    onSuccess: () => {
+      utils.configuracion.getRecargos.invalidate();
+    }
+  });
+  const updateRecargoMutation = trpc.configuracion.updateRecargo.useMutation({
+    onSuccess: () => {
+      utils.configuracion.getRecargos.invalidate();
+    }
+  });
+
+  const [editandoConfiguracion, setEditandoConfiguracion] = useState(false);
+  const [configValores, setConfigValores] = useState({
+    fechaVencimientoDefecto: '',
+    plazoInscripcionDias: '0'
+  });
+
+  useEffect(() => {
+    if (configuracionGlobal) {
+      setConfigValores({
+        fechaVencimientoDefecto: configuracionGlobal.fechaVencimientoDefecto ? configuracionGlobal.fechaVencimientoDefecto.split('T')[0] : '',
+        plazoInscripcionDias: configuracionGlobal.plazoInscripcionDias.toString()
+      });
+    }
+  }, [configuracionGlobal]);
+
+  const handleSaveConfiguracion = async () => {
+    try {
+      await updateConfiguracionMutation.mutateAsync({
+        fechaVencimientoDefecto: configValores.fechaVencimientoDefecto ? new Date(configValores.fechaVencimientoDefecto).toISOString() : null,
+        plazoInscripcionDias: parseInt(configValores.plazoInscripcionDias, 10)
+      });
+      setEditandoConfiguracion(false);
+    } catch (error) {
+      console.error(error);
+      alert('Error al guardar la configuración');
+    }
+  };
   
   const { data: tarifas, isLoading: loadingTarifas } = trpc.pagos.getTarifas.useQuery(
     selectedCicloId ? { cicloId: selectedCicloId } : undefined,
@@ -696,33 +742,167 @@ export function ConfiguracionPage() {
                 </div>
                 
                 {configuracionGlobal ? (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-orange-800">Recargo por Atraso</span>
-                        <span className="text-xs font-bold text-orange-700">${configuracionGlobal.montoRecargoDefecto.toFixed(2)}</span>
+                  editandoConfiguracion ? (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 space-y-2">
+                        <label className="text-sm font-bold text-orange-800">Fecha de Vencimiento Global</label>
+                        <Input
+                          type="date"
+                          value={configValores.fechaVencimientoDefecto}
+                          onChange={(e) => setConfigValores({ ...configValores, fechaVencimientoDefecto: e.target.value })}
+                          className="bg-white text-xs h-8"
+                        />
+                        <p className="text-xs text-orange-700 mt-1">Aplica a todos los montos sin fecha específica.</p>
                       </div>
-                      <p className="text-xs text-orange-700">Se aplica después de {configuracionGlobal.diasGraciaRecargo} días de gracia.</p>
+                      <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2">
+                        <label className="text-sm font-bold text-blue-800">Plazo Inscripción (días)</label>
+                        <Input
+                          type="number"
+                          value={configValores.plazoInscripcionDias}
+                          onChange={(e) => setConfigValores({ ...configValores, plazoInscripcionDias: e.target.value })}
+                          className="bg-white text-xs h-8"
+                        />
+                      </div>
                     </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-orange-800">Fecha Vencimiento</span>
+                          <span className="text-xs font-bold text-orange-700">{configuracionGlobal.fechaVencimientoDefecto ? new Date(configuracionGlobal.fechaVencimientoDefecto).toLocaleDateString() : 'No definida'}</span>
+                        </div>
+                        <p className="text-xs text-orange-700">Aplica a montos sin fecha específica.</p>
+                      </div>
 
-                    <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-blue-800">Plazo Inscripción/Materiales</span>
-                        <span className="text-xs font-bold text-blue-700">{configuracionGlobal.plazoInscripcionDias} días</span>
+                      <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-blue-800">Plazo Inscripción/Materiales</span>
+                          <span className="text-xs font-bold text-blue-700">{configuracionGlobal.plazoInscripcionDias} días</span>
+                        </div>
+                        <p className="text-xs text-blue-700">Días permitidos antes del vencimiento.</p>
                       </div>
-                      <p className="text-xs text-blue-700">Días hábiles permitidos antes del vencimiento.</p>
                     </div>
-                  </div>
+                  )
                 ) : (
                   <div className="text-center text-gray-400 text-sm py-4">Cargando configuración...</div>
                 )}
                 
-                <button
-                  disabled
-                  className="w-full py-2 border border-dashed border-gray-300 rounded-xl text-xs font-semibold text-gray-500 hover:bg-gray-50 cursor-not-allowed text-center mt-2"
-                >
-                  Modificar (Sección Global)
-                </button>
+                {editandoConfiguracion ? (
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      className="w-full py-2 rounded-xl text-xs"
+                      onClick={() => {
+                        setEditandoConfiguracion(false);
+                        setConfigValores({
+                          fechaVencimientoDefecto: configuracionGlobal?.fechaVencimientoDefecto ? configuracionGlobal.fechaVencimientoDefecto.split('T')[0] : '',
+                          plazoInscripcionDias: configuracionGlobal?.plazoInscripcionDias.toString() || '0'
+                        });
+                      }}
+                      disabled={updateConfiguracionMutation.isLoading}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="primary"
+                      className="w-full py-2 rounded-xl text-xs"
+                      onClick={handleSaveConfiguracion}
+                      isLoading={updateConfiguracionMutation.isLoading}
+                    >
+                      Guardar
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setEditandoConfiguracion(true)}
+                    className="w-full py-2 border border-dashed border-navy-300 rounded-xl text-xs font-semibold text-navy-600 hover:bg-navy-50 text-center mt-2"
+                  >
+                    Modificar Configuración
+                  </button>
+                )}
+              </div>
+
+              {/* Recargos Personalizados */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="text-navy-600" size={18} />
+                    <h4 className="font-bold text-navy-800">Recargos por Concepto</h4>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="text-xs px-3 py-1 h-auto"
+                    onClick={() => {
+                      const concepto = prompt('Concepto de pago (ej. COLEGIATURA, INSCRIPCION):');
+                      if (!concepto) return;
+                      const monto = prompt('Monto del recargo ($):');
+                      if (!monto || isNaN(Number(monto))) return;
+                      const dias = prompt('Días de gracia (naturales) a partir de la fecha de vencimiento:');
+                      if (!dias || isNaN(Number(dias))) return;
+                      createRecargoMutation.mutate({
+                        conceptoPago: concepto.toUpperCase(),
+                        monto: Number(monto),
+                        diasGracia: Number(dias)
+                      });
+                    }}
+                  >
+                    <Plus size={14} className="mr-1" /> Añadir
+                  </Button>
+                </div>
+                
+                {loadingRecargos ? (
+                  <div className="text-center text-gray-400 text-sm py-4">Cargando recargos...</div>
+                ) : recargos && recargos.length > 0 ? (
+                  <div className="space-y-2">
+                    {recargos.map((r: any) => (
+                      <div key={r.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                        <div>
+                          <p className="text-sm font-bold text-navy-800">{r.conceptoPago}</p>
+                          <p className="text-xs text-gray-500">
+                            Recargo: <span className="font-semibold text-red-600">${r.monto}</span> • Gracia: {r.diasGracia} días
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const monto = prompt('Nuevo monto del recargo ($):', r.monto.toString());
+                              if (!monto || isNaN(Number(monto))) return;
+                              const dias = prompt('Nuevos días de gracia:', r.diasGracia.toString());
+                              if (!dias || isNaN(Number(dias))) return;
+                              updateRecargoMutation.mutate({
+                                id: r.id,
+                                monto: Number(monto),
+                                diasGracia: Number(dias)
+                              });
+                            }}
+                            className="p-1.5 text-navy-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            title="Editar recargo"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`¿Seguro que deseas eliminar el recargo para ${r.conceptoPago}?`)) {
+                                updateRecargoMutation.mutate({
+                                  id: r.id,
+                                  activo: false
+                                });
+                              }
+                            }}
+                            className="p-1.5 text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            title="Eliminar recargo"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400 text-xs py-4 border-2 border-dashed border-gray-100 rounded-xl">
+                    No hay recargos personalizados configurados.
+                  </div>
+                )}
               </div>
 
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-3">

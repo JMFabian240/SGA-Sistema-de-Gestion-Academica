@@ -17,4 +17,23 @@ export class ConfiguracionRepository {
       data
     });
   }
+
+  // --- Recargos ---
+  static async getRecargos() {
+    return prisma.configuracionRecargo.findMany({
+      where: { activo: true },
+      orderBy: { creadoEn: 'desc' }
+    });
+  }
+
+  static async createRecargo(data: Prisma.ConfiguracionRecargoCreateInput) {
+    return prisma.configuracionRecargo.create({ data });
+  }
+
+  static async updateRecargo(id: number, data: Prisma.ConfiguracionRecargoUpdateInput) {
+    return prisma.configuracionRecargo.update({
+      where: { id },
+      data
+    });
+  }
 }

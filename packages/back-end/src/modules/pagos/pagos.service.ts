@@ -18,12 +18,22 @@ export class PagosService {
   }
 
   static async createTarifa(input: CreateTarifaInput) {
-    return PagosRepository.createTarifa(input);
+    const data: any = { ...input };
+    if (input.fechaVencimiento) {
+      data.fechaVencimiento = new Date(input.fechaVencimiento);
+    } else {
+      data.fechaVencimiento = null;
+    }
+    return PagosRepository.createTarifa(data);
   }
 
   static async updateTarifa(input: UpdateTarifaInput) {
-    const { tarifaId, ...data } = input;
-    return PagosRepository.updateTarifa(tarifaId, { ...data, actualizadoEn: new Date() });
+    const { tarifaId, fechaVencimiento, ...data } = input;
+    const updateData: any = { ...data, actualizadoEn: new Date() };
+    if (fechaVencimiento !== undefined) {
+      updateData.fechaVencimiento = fechaVencimiento ? new Date(fechaVencimiento) : null;
+    }
+    return PagosRepository.updateTarifa(tarifaId, updateData);
   }
 
   static async deleteTarifa(tarifaId: number) {
