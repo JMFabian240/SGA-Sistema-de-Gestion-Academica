@@ -53,6 +53,10 @@ export function InscribirAlumnoModal({ alumnoId, isOpen, onClose }: InscribirAlu
 
   if (!isOpen) return null;
 
+  const nivelesFiltrados = niveles?.filter((n: any) => 
+    grupos?.some((g: any) => g.nivelId === n.nivelId && !g.eliminadoEn && !g.cerrado && activoCicloIds.includes(g.cicloId))
+  );
+
   const gradosFiltrados = grados?.filter((g: any) => g.nivelId.toString() === nivelId) || [];
 
   // Filtrar grupos activos que pertenezcan a CUALQUIER ciclo activo, del nivel y grado seleccionados
@@ -133,7 +137,7 @@ export function InscribirAlumnoModal({ alumnoId, isOpen, onClose }: InscribirAlu
                 required
               >
                 <option value="">Selecciona el nivel</option>
-                {niveles?.map((n: any) => (
+                {nivelesFiltrados?.map((n: any) => (
                   <option key={n.nivelId} value={n.nivelId.toString()}>{n.nombre}</option>
                 ))}
               </select>

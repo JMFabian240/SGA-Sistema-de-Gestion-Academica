@@ -51,6 +51,11 @@ export function EditarAlumnoModal({ isOpen, onClose, alumno }: EditarAlumnoModal
 
   const watchNivelId = watch('nivelId');
   const watchGradoId = watch('gradoId');
+
+  const nivelesFiltrados = niveles?.filter(n => 
+    grupos?.some(g => g.nivelId === n.nivelId)
+  );
+
   const gradosFiltrados = grados?.filter(g => g.nivelId.toString() === watchNivelId);
   const gruposFiltrados = grupos?.filter(g => g.gradoId.toString() === watchGradoId && g.nivelId.toString() === watchNivelId);
 
@@ -202,7 +207,7 @@ export function EditarAlumnoModal({ isOpen, onClose, alumno }: EditarAlumnoModal
                   className={`w-full px-3 py-2 rounded-xl border ${errors.nivelId ? 'border-red-300 focus:ring-red-500' : 'border-gray-200 focus:ring-blue-500'} focus:ring-2 focus:ring-opacity-20 outline-none text-sm bg-white`}
                 >
                   <option value="">Selecciona Niv...</option>
-                  {niveles?.map(n => (
+                  {nivelesFiltrados?.map(n => (
                     <option key={n.nivelId} value={n.nivelId.toString()}>{n.nombre}</option>
                   ))}
                 </select>
