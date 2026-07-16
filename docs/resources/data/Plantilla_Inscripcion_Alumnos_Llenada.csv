@@ -1,13 +1,13 @@
 Tipo de Ciclo,Matricula,CURP Alumno,Nombre Alumno,Fecha Nacimiento,Sexo,Estado Alumno,Nombre Tutor,Parentesco,Telefono Tutor,Correo Tutor,Nivel Educativo Destino,Grado Destino,Grupo Destino,Plan de Pago Asignado
 ANUAL,MAT-0001,P396C30RUHV6H23CW5,ADRIAN GABRIEL CASTELLANOS VARGAS,07/02/2023,F,ACTIVO,Silvia Rodriguez Perez,PADRE,9217722097,silvia.rodriguez.per40@ejemplo.com,Preescolar,1,K,Plan 10 Meses
 ANUAL,MAT-0002,I0BIIK1P4J8H57WT0J,ELIAS DANIEL CRUZ LOPEZ,09/07/2023,F,ACTIVO,Martha Martinez Cruz,PADRE,9213280100,martha.martinez.cruz30@ejemplo.com,Preescolar,1,K,Plan 10 Meses
-ANUAL,MAT-0003,HFCV327N3IWXE9LJ10,HELENA POBLETE PEÑA,11/10/2023,M,ACTIVO,Javier Alvarez Castillo,MADRE,9213642644,javier.alvarez.casti5@ejemplo.com,Preescolar,1,K,Plan 12 Meses
-ANUAL,MAT-250001,4ROBD7OGTNOUBC4Z62,DANAE GARCÍA JIMÉNEZ,15/11/2022,F,ACTIVO,Ana Gutierrez Martinez,MADRE,9215749278,ana.gutierrez.martin53@ejemplo.com,Preescolar,2,K,Plan 12 Meses
+ANUAL,MAT-0003,HFCV327N3IWXE9LJ10,HELENA POBLETE PE�A,11/10/2023,M,ACTIVO,Javier Alvarez Castillo,MADRE,9213642644,javier.alvarez.casti5@ejemplo.com,Preescolar,1,K,Plan 12 Meses
+ANUAL,MAT-250001,4ROBD7OGTNOUBC4Z62,DANAE GARCÍA JIMENEZ,15/11/2022,F,ACTIVO,Ana Gutierrez Martinez,MADRE,9215749278,ana.gutierrez.martin53@ejemplo.com,Preescolar,2,K,Plan 12 Meses
 ANUAL,MAT-250002,QPNLOONSM751C7GDDL,SARA ANALI CRUZ PORTILLA,10/03/2022,F,ACTIVO,Humberto Romero Ramirez,PADRE,9215889300,humberto.romero.rami47@ejemplo.com,Preescolar,2,K,Plan 12 Meses
 ANUAL,MAT-250003,J6K54BX1HKAYLV4O6Q,JOHANA CRUZ MURGIA,10/05/2022,F,ACTIVO,Rafael Diaz Flores,PADRE,9219529172,rafael.diaz.flores3@ejemplo.com,Preescolar,2,K,Plan 10 Meses
 ANUAL,MAT-250004,34MKADXXXMU5QBI201,GAEL SANDOVAL GARCIA,21/10/2022,F,ACTIVO,Rafael Rodriguez Gonzalez,MADRE,9216684377,rafael.rodriguez.gon18@ejemplo.com,Preescolar,2,K,Plan 10 Meses
 ANUAL,MAT-250005,KYV9WCOSDLPBAHSHLF,AITANA REBECA FERNÁNDEZ CRUZ,02/12/2022,F,ACTIVO,Roberto Reyes Torres,PADRE,9218465701,roberto.reyes.torres1@ejemplo.com,Preescolar,2,K,Plan 12 Meses
-ANUAL,MAT-260001,AN4ORQ1IWVUT9YYV12,CARLA SOFÍA JIMÉNEZ CRUZ,20/01/2021,M,ACTIVO,Laura Gonzalez Gonzalez,PADRE,9216802698,laura.gonzalez.gonza45@ejemplo.com,Preescolar,3,K,Plan 10 Meses
+ANUAL,MAT-260001,AN4ORQ1IWVUT9YYV12,CARLA SOFÍA JIMENEZ CRUZ,20/01/2021,M,ACTIVO,Laura Gonzalez Gonzalez,PADRE,9216802698,laura.gonzalez.gonza45@ejemplo.com,Preescolar,3,K,Plan 10 Meses
 ANUAL,MAT-250006,OTS41UYSDOLAJEX6YX,ELISA ABIGAIL ALONSO ZAMORA,20/09/2021,F,ACTIVO,Alicia Torres Romero,MADRE,9211915924,alicia.torres.romero13@ejemplo.com,Preescolar,3,K,Plan 10 Meses
 ANUAL,MAT-260002,9S770QABM39BB1VHSU,NAYAN MARIN MARTINEZ,18/11/2021,F,ACTIVO,Enrique Gomez Diaz,TUTOR,9214423738,enrique.gomez.diaz17@ejemplo.com,Preescolar,3,K,Plan 10 Meses
 ANUAL,MAT-260003,IBMTAG2XCJOWMA1UA5,KAI DE MARIA HERNADEZ ROMÁN,06/12/2021,M,ACTIVO,Veronica Lopez Diaz,TUTOR,9211048879,veronica.lopez.diaz51@ejemplo.com,Preescolar,3,K,Plan 10 Meses
@@ -169,7 +169,7 @@ ANUAL,MAT-0167,QAYANLDD2365I7Q68H,ROMINA GONZALEZ HERNANDEZ,24/06/2012,M,ACTIVO,
 ANUAL,MAT-0168,MOMKVFEKOAEVI5Y1B3,KARLA VALENTINA ROSALES SAN JUAN,20/09/2012,M,ACTIVO,Carmen Martinez Perez,PADRE,9215443066,carmen.martinez.pere39@ejemplo.com,Secundaria,3,S,Plan 10 Meses
 ANUAL,MAT-0169,01F4PAQAHNBVIQOEGU,EMILIO ESTRADA CABRERA,26/09/2012,M,ACTIVO,Claudia Ramirez Morales,PADRE,9218958556,claudia.ramirez.mora71@ejemplo.com,Secundaria,3,S,Plan 10 Meses
 ANUAL,MAT-0170,MULOH9S4XC05V9C89W,PAOLA AYALETH POLA CARDENAS,10/04/2012,F,ACTIVO,Carmen Martinez Martinez,TUTOR,9212005397,carmen.martinez.mart38@ejemplo.com,Secundaria,3,S,Plan 10 Meses
-SEMESTRAL,MAT-0171,4ERMMEK6JHY1KKKRUN,ANA ISABEL RODRIGUEZ CASTILLO,26/09/2009,F,ACTIVO,Carmen Ramirez Vargas,MADRE,9216187334,carmen.ramirez.varga69@ejemplo.com,Bachillerato,3 Semestre,B,Plan 10 Meses
-SEMESTRAL,MAT-0172,X1817RQ95Y66S32G6F,ABRIL YATZIL CRUZ ARIZPE,02/01/2009,M,ACTIVO,Roberto Reyes Torres,PADRE,9218465701,roberto.reyes.torres1@ejemplo.com,Bachillerato,3 Semestre,B,Plan 10 Meses
-SEMESTRAL,MAT-0173,4LYS6QB1HO0BNU49G8,NAHOMI CRUZ GOMEZ,14/09/2009,F,ACTIVO,Gabriela Castillo Torres,TUTOR,9214423069,gabriela.castillo.to31@ejemplo.com,Bachillerato,3 Semestre,B,Plan 12 Meses
-SEMESTRAL,MAT-0174,U3KLD8JPQQ4SHUV3U0,IVANNA PAULINA ALCEDA GUILLEN,28/06/2009,F,ACTIVO,Ricardo Ortiz Garcia,MADRE,9212182563,ricardo.ortiz.garcia52@ejemplo.com,Bachillerato,3 Semestre,B,Plan 10 Meses
+SEMESTRAL,MAT-0171,4ERMMEK6JHY1KKKRUN,ANA ISABEL RODRIGUEZ CASTILLO,26/09/2009,F,ACTIVO,Carmen Ramirez Vargas,MADRE,9216187334,carmen.ramirez.varga69@ejemplo.com,Bachillerato,6 Semestre,B,Plan 10 Meses
+SEMESTRAL,MAT-0172,X1817RQ95Y66S32G6F,ABRIL YATZIL CRUZ ARIZPE,02/01/2009,M,ACTIVO,Roberto Reyes Torres,PADRE,9218465701,roberto.reyes.torres1@ejemplo.com,Bachillerato,6 Semestre,B,Plan 10 Meses
+SEMESTRAL,MAT-0173,4LYS6QB1HO0BNU49G8,NAHOMI CRUZ GOMEZ,14/09/2009,F,ACTIVO,Gabriela Castillo Torres,TUTOR,9214423069,gabriela.castillo.to31@ejemplo.com,Bachillerato,6 Semestre,B,Plan 12 Meses
+SEMESTRAL,MAT-0174,U3KLD8JPQQ4SHUV3U0,IVANNA PAULINA ALCEDA GUILLEN,28/06/2009,F,ACTIVO,Ricardo Ortiz Garcia,MADRE,9212182563,ricardo.ortiz.garcia52@ejemplo.com,Bachillerato,6 Semestre,B,Plan 10 Meses

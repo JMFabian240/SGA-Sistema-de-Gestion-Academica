@@ -230,11 +230,19 @@ export class ImportacionesService {
           }
 
           if (!alumno) {
-            const fechaNacimiento = new Date(row['Fecha Nacimiento']);
+            let fechaRaw = row['Fecha Nacimiento'];
+            if (fechaRaw && fechaRaw.includes('/')) {
+              const parts = fechaRaw.split('/');
+              if (parts.length === 3) {
+                // Convertir DD/MM/YYYY a YYYY-MM-DD
+                fechaRaw = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              }
+            }
+            const fechaNacimiento = new Date(fechaRaw);
+            
             if (isNaN(fechaNacimiento.getTime())) {
               throw new Error(`Fecha de nacimiento inválida: '${row['Fecha Nacimiento']}'`);
             }
-
             alumno = await tx.alumno.create({
               data: {
                 nombreCompleto: row['Nombre Alumno'],

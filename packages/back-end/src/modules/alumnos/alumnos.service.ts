@@ -1,4 +1,4 @@
-import { prisma } from '@sga/data-access';
+import { prisma, EstadoCobro } from '@sga/data-access';
 import { TRPCError } from '@trpc/server';
 import { AlumnosRepository } from './alumnos.repository';
 import type {
@@ -240,7 +240,7 @@ export class AlumnosService {
               const pagosPendientes = await tx.calendarioPago.findMany({
                 where: {
                   alumnoId,
-                  estadoCobro: { in: ['PENDIENTE', 'ABONO'] } as any,
+                  estadoCobro: { in: [EstadoCobro.PENDIENTE, EstadoCobro.VENCIDO] },
                   eliminadoEn: null
                 }
               });
@@ -255,7 +255,7 @@ export class AlumnosService {
                     cicloId: cicloActivo.cicloId,
                     montoOriginal: nuevoMontoOriginal,
                     saldoPendiente: nuevoSaldoPendiente,
-                    estadoCobro: nuevoSaldoPendiente === 0 ? 'PAGADO' : pago.estadoCobro,
+                    estadoCobro: nuevoSaldoPendiente === 0 ? EstadoCobro.PAGADO : pago.estadoCobro,
                     actualizadoEn: new Date()
                   }
                 });
