@@ -4,6 +4,8 @@ export const updateConfigSchema = z.object({
   fechaVencimientoDefecto: z.string().datetime().nullable().optional(),
   plazoInscripcionDias: z.number().int().min(1, 'El plazo de inscripción debe ser al menos 1 día').optional(),
   umbralesSmtpDias: z.array(z.number().int().min(0)).max(5, 'Máximo 5 umbrales permitidos').optional(),
+  montoRecargoDefecto: z.number().min(0).optional(),
+  diasGraciaRecargo: z.number().int().min(0).optional(),
 });
 
 export type UpdateConfigInput = z.infer<typeof updateConfigSchema>;

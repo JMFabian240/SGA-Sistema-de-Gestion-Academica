@@ -240,7 +240,7 @@ export class AlumnosService {
               const pagosPendientes = await tx.calendarioPago.findMany({
                 where: {
                   alumnoId,
-                  estadoCobro: { in: ['PENDIENTE', 'ABONO'] },
+                  estadoCobro: { in: ['PENDIENTE', 'ABONO'] } as any,
                   eliminadoEn: null
                 }
               });

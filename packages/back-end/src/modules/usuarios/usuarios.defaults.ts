@@ -19,10 +19,10 @@ export function getDefaultPermissions(roles: string[]): { modulo: string, nivel:
     return MODULOS_SISTEMA.map(m => ({ modulo: m, nivel: NivelPermiso.LECTURA_Y_ESCRITURA }));
   }
 
-  // Gestor: Acceso total excepto a configuraciones sensibles
+  // Gestor: Acceso total excepto a usuarios (permite Configuración para poder ver la pantalla y editar Tarifas)
   if (roles.includes('GESTOR')) {
     return MODULOS_SISTEMA.map(m => {
-      if (['Usuarios', 'Configuracion'].includes(m)) return { modulo: m, nivel: NivelPermiso.DENEGADO };
+      if (['Usuarios'].includes(m)) return { modulo: m, nivel: NivelPermiso.DENEGADO };
       return { modulo: m, nivel: NivelPermiso.LECTURA_Y_ESCRITURA };
     });
   }

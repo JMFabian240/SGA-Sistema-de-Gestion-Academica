@@ -13,7 +13,9 @@ export class ConfiguracionService {
         configuracionId: this.CONFIG_ID,
         plazoInscripcionDias: 60,
         umbralesSmtpDias: [5, 3, 1],
-        fechaVencimientoDefecto: null
+        fechaVencimientoDefecto: null,
+        montoRecargoDefecto: 400,
+        diasGraciaRecargo: 5
       });
     }
 
@@ -22,6 +24,8 @@ export class ConfiguracionService {
       fechaVencimientoDefecto: config.fechaVencimientoDefecto ? config.fechaVencimientoDefecto.toISOString() : null,
       plazoInscripcionDias: config.plazoInscripcionDias,
       umbralesSmtpDias: config.umbralesSmtpDias as number[],
+      montoRecargoDefecto: Number(config.montoRecargoDefecto),
+      diasGraciaRecargo: config.diasGraciaRecargo,
       actualizadoEn: config.actualizadoEn
     };
   }
@@ -34,7 +38,9 @@ export class ConfiguracionService {
         fechaVencimientoDefecto: input.fechaVencimientoDefecto !== undefined ? (input.fechaVencimientoDefecto ? new Date(input.fechaVencimientoDefecto) : null) : undefined,
         plazoInscripcionDias: input.plazoInscripcionDias,
         umbralesSmtpDias: input.umbralesSmtpDias ? input.umbralesSmtpDias : undefined,
-        actualizadoEn: new Date()
+        actualizadoEn: new Date(),
+        ...(input.montoRecargoDefecto !== undefined && { montoRecargoDefecto: input.montoRecargoDefecto }),
+        ...(input.diasGraciaRecargo !== undefined && { diasGraciaRecargo: input.diasGraciaRecargo })
       });
 
       return {
@@ -42,6 +48,8 @@ export class ConfiguracionService {
         fechaVencimientoDefecto: updatedConfig.fechaVencimientoDefecto ? updatedConfig.fechaVencimientoDefecto.toISOString() : null,
         plazoInscripcionDias: updatedConfig.plazoInscripcionDias,
         umbralesSmtpDias: updatedConfig.umbralesSmtpDias as number[],
+        montoRecargoDefecto: Number(updatedConfig.montoRecargoDefecto),
+        diasGraciaRecargo: updatedConfig.diasGraciaRecargo,
         actualizadoEn: updatedConfig.actualizadoEn
       };
     } catch (error) {

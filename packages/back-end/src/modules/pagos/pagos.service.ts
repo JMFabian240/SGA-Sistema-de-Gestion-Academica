@@ -18,21 +18,13 @@ export class PagosService {
   }
 
   static async createTarifa(input: CreateTarifaInput) {
-    const data: any = { ...input };
-    if (input.fechaVencimiento) {
-      data.fechaVencimiento = new Date(input.fechaVencimiento);
-    } else {
-      data.fechaVencimiento = null;
-    }
-    return PagosRepository.createTarifa(data);
+    const { fechaVencimiento, ...dataToSave } = input as any;
+    return PagosRepository.createTarifa(dataToSave);
   }
 
   static async updateTarifa(input: UpdateTarifaInput) {
     const { tarifaId, fechaVencimiento, ...data } = input;
     const updateData: any = { ...data, actualizadoEn: new Date() };
-    if (fechaVencimiento !== undefined) {
-      updateData.fechaVencimiento = fechaVencimiento ? new Date(fechaVencimiento) : null;
-    }
     return PagosRepository.updateTarifa(tarifaId, updateData);
   }
 
@@ -115,7 +107,7 @@ export class PagosService {
         where: {
           alumnoId,
           cicloId: inscripcion.cicloId,
-          estadoCobro: { in: ['PENDIENTE', 'ABONO'] },
+          estadoCobro: { in: ['PENDIENTE', 'ABONO'] } as any,
           eliminadoEn: null
         },
         orderBy: { fechaVencimiento: 'asc' },

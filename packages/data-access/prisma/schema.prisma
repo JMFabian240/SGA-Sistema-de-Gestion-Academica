@@ -115,12 +115,26 @@ model TokenRevocado {
 
 model ConfiguracionGlobal {
   configuracionId         Int       @id @map("configuracion_id")
-  fechaVencimientoDefecto DateTime? @map("fecha_vencimiento_defecto") @db.Date
+  fechaVencimientoDefecto DateTime? @map("fecha_vencimiento_defecto")
+  montoRecargoDefecto     Decimal   @map("monto_recargo_defecto") @db.Decimal(12, 2)
+  diasGraciaRecargo       Int       @map("dias_gracia_recargo")
   plazoInscripcionDias    Int       @map("plazo_inscripcion_dias")
   umbralesSmtpDias        Json      @map("umbrales_smtp_dias")
   actualizadoEn           DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
 
   @@map("configuracion_global")
+}
+
+model ConfiguracionRecargo {
+  id            Int       @id @default(autoincrement())
+  conceptoPago  String    @map("concepto_pago") @db.VarChar(100)
+  monto         Decimal   @db.Decimal(12, 2)
+  diasGracia    Int       @map("dias_gracia")
+  activo        Boolean   @default(true)
+  creadoEn      DateTime  @default(now()) @map("creado_en") @db.Timestamptz(6)
+  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+
+  @@map("configuracion_recargo")
 }
 
 model LogAuditoria {
@@ -340,13 +354,12 @@ model TutorAlumno {
 }
 
 model Tarifa {
-  tarifaId         Int            @id @default(autoincrement()) @map("tarifa_id")
-  cicloId          Int            @map("ciclo_id")
-  nivelId          Int            @map("nivel_id")
-  concepto         String         @db.VarChar(100)
-  monto            Decimal        @db.Decimal(12, 2)
-  fechaVencimiento DateTime?      @map("fecha_vencimiento") @db.Date
-  descripcion      String?
+  tarifaId      Int            @id @default(autoincrement()) @map("tarifa_id")
+  cicloId       Int            @map("ciclo_id")
+  nivelId       Int            @map("nivel_id")
+  concepto      String         @db.VarChar(100)
+  monto         Decimal        @db.Decimal(12, 2)
+  descripcion   String?
   activa        Boolean?       @default(true)
   creadoEn      DateTime?      @default(now()) @map("creado_en") @db.Timestamptz(6)
   actualizadoEn DateTime?      @default(now()) @map("actualizado_en") @db.Timestamptz(6)
@@ -431,11 +444,11 @@ model Pago {
   montoTotal       Decimal           @map("monto_total") @db.Decimal(12, 2)
   metodoPago       MetodoPago        @map("metodo_pago")
   aplicadoASaldo   Boolean?          @default(false) @map("aplicado_a_saldo")
-  requiereFactura  Boolean?          @default(false) @map("requiere_factura")
   observaciones    String?
   registradoPor    Int               @map("registrado_por")
   registradoEn     DateTime?         @default(now()) @map("registrado_en") @db.Timestamptz(6)
   actualizadoEn    DateTime?         @default(now()) @map("actualizado_en") @db.Timestamptz(6)
+  requiereFactura  Boolean?          @default(false) @map("requiere_factura")
   aplicacionesPago AplicacionPago[]
   documentos       Documento[]
   movimientosSaldo MovimientoSaldo[]
@@ -673,16 +686,16 @@ enum EstadoAlumno {
 }
 
 enum MetodoPago {
-  EFECTIVO
+  DEPOSITO
   TRANSFERENCIA
   TARJETA_DEBITO
   TARJETA_CREDITO
+  EFECTIVO
 }
 
 enum EstadoCobro {
   PENDIENTE
   PAGADO
-  ABONO
   VENCIDO
   CANCELADO
 }
@@ -723,16 +736,4 @@ enum NivelPermiso {
   LECTURA
   LECTURA_Y_ESCRITURA
   DENEGADO
-}
-
-model ConfiguracionRecargo {
-  id            Int       @id @default(autoincrement()) @map("configuracion_recargo_id")
-  conceptoPago  String    @map("concepto_pago") @db.VarChar(100)
-  monto         Decimal   @db.Decimal(12, 2)
-  diasGracia    Int       @map("dias_gracia")
-  activo        Boolean?  @default(true)
-  creadoEn      DateTime? @default(now()) @map("creado_en") @db.Timestamptz(6)
-  actualizadoEn DateTime? @default(now()) @map("actualizado_en") @db.Timestamptz(6)
-
-  @@map("configuracion_recargo")
 }
