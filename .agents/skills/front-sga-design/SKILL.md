@@ -171,6 +171,58 @@ className="block text-sm font-medium text-gray-700 mb-1"
 className="mt-1 text-sm text-red-600"
 ```
 
+### Estructura de Páginas de Listado (Filtros y Tablas)
+
+Todas las páginas que muestren listados de registros (ej. Usuarios, Alumnos, etc.) DEBEN seguir estrictamente esta estructura visual de 3 partes, manteniendo las clases exactas:
+
+1. **Tarjeta de Buscador y Filtros**: Un contenedor blanco con `rounded-2xl` y `shadow-sm`.
+2. **Total de Registros**: Texto gris debajo de los filtros.
+3. **Contenedor de Tabla**: El área donde se renderiza el componente `<Table />`.
+
+```tsx
+// 1. Tarjeta de Buscador y Filtros
+<div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-end gap-4">
+  {/* Buscador expansible */}
+  <div className="flex-1">
+    <label className="block text-sm font-medium text-gray-700 mb-1">Buscar...</label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+        <Search size={18} />
+      </div>
+      <input
+        type="text"
+        placeholder="Buscar por nombre..."
+        className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 pl-10 pr-3 py-2 sm:text-sm outline-none transition-colors"
+      />
+    </div>
+  </div>
+
+  {/* Filtro Select (Ancho fijo en desktop) */}
+  <div className="w-full sm:w-48">
+    <label className="block text-sm font-medium text-gray-700 mb-1">Filtro</label>
+    <select
+      className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+    >
+      <option value="todos">Todos</option>
+    </select>
+  </div>
+</div>
+
+// 2. Contador Total de Registros
+<div className="text-sm text-gray-500 font-medium px-1">
+  Total de registros: {registros.length}
+</div>
+
+// 3. Contenedor de la Tabla
+<div className="w-full">
+  {isLoading ? (
+    <Spinner centered size={32} />
+  ) : (
+    <Table columns={columns} data={registros} keyExtractor={(row) => row.id} />
+  )}
+</div>
+```
+
 ### Tablas de Datos
 
 El patrón estándar de tabla usa una tarjeta blanca como contenedor.

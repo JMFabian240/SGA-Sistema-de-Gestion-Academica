@@ -57,42 +57,50 @@ export function TutoresPage() {
         </button>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
-        {/* Filters */}
-        <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4 items-center bg-white shrink-0">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+      {/* Filtros */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-end gap-4">
+        {/* Buscador */}
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Buscar tutor</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <Search size={18} />
+            </div>
             <input
               type="text"
               placeholder="Buscar por nombre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-50 border-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-colors outline-none text-sm"
+              className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 pl-10 pr-3 py-2 sm:text-sm outline-none transition-colors"
             />
           </div>
+        </div>
 
+        {/* Filtro Factura */}
+        <div className="w-full sm:w-48">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Estado Fiscal</label>
           <select
             value={filterFactura}
             onChange={(e) => setFilterFactura(e.target.value)}
-            className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-600"
+            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
           >
             <option value="ALL">Todos los padres</option>
             <option value="FACTURA">Requieren factura</option>
             <option value="NO_FACTURA">No requieren factura</option>
           </select>
-
-          <div className="flex-1"></div>
-
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <span>Resultados: {currentData?.length || 0}</span>
-            <button className="flex items-center gap-1.5 hover:text-gray-700 transition-colors">
-              <Download size={16} /> Exportar
-            </button>
-          </div>
         </div>
+      </div>
 
-        {/* Table */}
+      {/* Contador de registros y acciones secundarias */}
+      <div className="flex justify-between items-center text-sm text-gray-500 font-medium px-1">
+        <span>Total de registros: {currentData?.length || 0}</span>
+        <button className="flex items-center gap-1.5 hover:text-gray-700 transition-colors bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50">
+          <Download size={16} /> Exportar
+        </button>
+      </div>
+
+      {/* Contenedor de la Tabla */}
+      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden flex-1">
         <div className="flex-1 overflow-auto">
           {isLoading ? (
             <div className="p-8 text-center text-gray-400">Cargando directorio de padres...</div>

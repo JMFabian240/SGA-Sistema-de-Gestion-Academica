@@ -93,8 +93,25 @@ export function AlumnosPage() {
 
   // Derived filter options based on available data
   const availableNiveles = useMemo(() => Array.from(new Set((alumnos as any[])?.map(a => a.nivel?.nombre).filter(Boolean))), [alumnos]);
-  const availableGrados = useMemo(() => Array.from(new Set((alumnos as any[])?.map(a => a.inscripciones?.[0]?.grupo?.grado?.nombre).filter(Boolean))), [alumnos]);
-  const availableGrupos = useMemo(() => Array.from(new Set((alumnos as any[])?.map(a => a.inscripciones?.[0]?.grupo?.nombre).filter(Boolean))), [alumnos]);
+  
+  const availableGrados = useMemo(() => {
+    let filtered = alumnos as any[] || [];
+    if (nivelFilter !== 'Todos los niveles') {
+      filtered = filtered.filter(a => a.nivel?.nombre === nivelFilter);
+    }
+    return Array.from(new Set(filtered.map(a => a.inscripciones?.[0]?.grupo?.grado?.nombre).filter(Boolean)));
+  }, [alumnos, nivelFilter]);
+
+  const availableGrupos = useMemo(() => {
+    let filtered = alumnos as any[] || [];
+    if (nivelFilter !== 'Todos los niveles') {
+      filtered = filtered.filter(a => a.nivel?.nombre === nivelFilter);
+    }
+    if (gradoFilter !== 'Todos los grados') {
+      filtered = filtered.filter(a => a.inscripciones?.[0]?.grupo?.grado?.nombre === gradoFilter);
+    }
+    return Array.from(new Set(filtered.map(a => a.inscripciones?.[0]?.grupo?.nombre).filter(Boolean)));
+  }, [alumnos, nivelFilter, gradoFilter]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredAndSortedData.length / itemsPerPage);
@@ -132,69 +149,96 @@ export function AlumnosPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden min-h-[600px]">
-        {/* Filters Bar */}
-        <div className="p-4 md:p-6 border-b border-gray-100 flex flex-wrap gap-4 items-center bg-white justify-between">
-          <div className="flex flex-wrap gap-4 items-center flex-1">
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Buscar alumno, matricula..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm transition-all bg-gray-50 hover:bg-white focus:bg-white"
-              />
+      {/* Filtros */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:flex-wrap gap-4 items-end">
+        {/* Buscador */}
+        <div className="flex-1 min-w-[250px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Buscar alumno</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <Search size={18} />
             </div>
-
-            <select
-              value={estadoFilter}
-              onChange={e => setEstadoFilter(e.target.value)}
-              className="text-sm px-4 py-2 border border-gray-200 rounded-full outline-none bg-white hover:bg-gray-50 transition-colors"
-            >
-              <option value="Todos">Todos los estados</option>
-              <option value="ACTIVO">Activo</option>
-              <option value="BAJA_TEMPORAL">Baja Temporal</option>
-              <option value="BAJA_DEFINITIVA">Baja Definitiva</option>
-              <option value="TRANSICION_PENDIENTE">Transición Pendiente</option>
-            </select>
-
-            <select
-              value={nivelFilter}
-              onChange={e => setNivelFilter(e.target.value)}
-              className="text-sm px-4 py-2 border border-gray-200 rounded-full outline-none bg-white hover:bg-gray-50 transition-colors"
-            >
-              <option value="Todos los niveles">Todos los niveles</option>
-              {availableNiveles.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-
-            <select
-              value={gradoFilter}
-              onChange={e => setGradoFilter(e.target.value)}
-              className="text-sm px-4 py-2 border border-gray-200 rounded-full outline-none bg-white hover:bg-gray-50 transition-colors"
-            >
-              <option value="Todos los grados">Todos los grados</option>
-              {availableGrados.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-
-            <select
-              value={grupoFilter}
-              onChange={e => setGrupoFilter(e.target.value)}
-              className="text-sm px-4 py-2 border border-gray-200 rounded-full outline-none bg-white hover:bg-gray-50 transition-colors"
-            >
-              <option value="Todos los grupos">Todos los grupos</option>
-              {availableGrupos.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <span>Resultados: {filteredAndSortedData.length}</span>
-            <button onClick={handleExport} className="flex items-center gap-2 hover:text-gray-800 transition-colors cursor-pointer">
-              <Download size={16} /> Exportar
-            </button>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o matrícula..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 pl-10 pr-3 py-2 sm:text-sm outline-none transition-colors"
+            />
           </div>
         </div>
 
+        {/* Estado */}
+        <div className="w-full sm:w-48">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+          <select
+            value={estadoFilter}
+            onChange={e => setEstadoFilter(e.target.value)}
+            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+          >
+            <option value="Todos">Todos los estados</option>
+            <option value="ACTIVO">Activo</option>
+            <option value="BAJA_TEMPORAL">Baja Temporal</option>
+            <option value="BAJA_DEFINITIVA">Baja Definitiva</option>
+            <option value="TRANSICION_PENDIENTE">Transición Pendiente</option>
+          </select>
+        </div>
+
+        {/* Nivel */}
+        <div className="w-full sm:w-40">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
+          <select
+            value={nivelFilter}
+            onChange={e => {
+              setNivelFilter(e.target.value);
+              setGradoFilter('Todos los grados');
+              setGrupoFilter('Todos los grupos');
+            }}
+            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+          >
+            <option value="Todos los niveles">Todos</option>
+            {availableNiveles.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+
+        {/* Grado */}
+        <div className="w-full sm:w-40">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Grado</label>
+          <select
+            value={gradoFilter}
+            onChange={e => {
+              setGradoFilter(e.target.value);
+              setGrupoFilter('Todos los grupos');
+            }}
+            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+          >
+            <option value="Todos los grados">Todos</option>
+            {availableGrados.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+
+        {/* Grupo */}
+        <div className="w-full sm:w-40">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
+          <select
+            value={grupoFilter}
+            onChange={e => setGrupoFilter(e.target.value)}
+            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+          >
+            <option value="Todos los grupos">Todos</option>
+            {availableGrupos.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center text-sm text-gray-500 font-medium px-1">
+        <span>Total de registros: {filteredAndSortedData.length}</span>
+        <button onClick={handleExport} className="flex items-center gap-1.5 hover:text-gray-700 transition-colors bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50">
+          <Download size={16} /> Exportar
+        </button>
+      </div>
+
+      <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden min-h-[600px]">
         {/* Table */}
         <div className="flex-1 overflow-auto">
           {isLoading ? (
