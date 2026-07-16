@@ -13,18 +13,11 @@ export interface TarifaData {
 
 export class CalculadoraPagos {
   /**
-   * Suma días hábiles a una fecha dada, omitiendo sábados y domingos.
+   * Suma días naturales a una fecha dada.
    */
-  static addBusinessDays(startDate: Date, days: number): Date {
+  static addNaturalDays(startDate: Date, days: number): Date {
     const result = new Date(startDate);
-    let addedDays = 0;
-    while (addedDays < days) {
-      result.setDate(result.getDate() + 1);
-      const dayOfWeek = result.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        addedDays++;
-      }
-    }
+    result.setDate(result.getDate() + days);
     return result;
   }
 
@@ -60,10 +53,10 @@ export class CalculadoraPagos {
     for (const tarifa of tarifas) {
       const conceptoUpper = tarifa.concepto.toUpperCase();
       if (conceptosUnicos.includes(conceptoUpper)) {
-        // Plazo: 60 días hábiles para inscripción y materiales. Para otros únicos, podemos usar lo mismo o 5.
+        // Plazo: 60 días naturales para inscripción y materiales. Para otros únicos, podemos usar lo mismo o 5.
         // El requerimiento decía "inscripcion y materiales 60 dias, colegiatura 5 dias".
         const diasPlazo = (conceptoUpper.includes('INSCRIPCION') || conceptoUpper.includes('INSCRIPCIÓN') || conceptoUpper.includes('MATERIALES')) ? 60 : 5;
-        const fechaVencimiento = this.addBusinessDays(fechaPrimerMes, diasPlazo);
+        const fechaVencimiento = this.addNaturalDays(fechaPrimerMes, diasPlazo);
         
         adeudos.push({
           concepto: tarifa.concepto, // ej. "Inscripción", "Materiales"
@@ -90,8 +83,8 @@ export class CalculadoraPagos {
 
       const fechaBaseColegiatura = new Date(fechaIngreso);
       fechaBaseColegiatura.setMonth(fechaBaseColegiatura.getMonth() + i);
-      // Vencimiento de colegiatura: 5 días hábiles después del día de cobro ("fechaBase")
-      const fechaVencimiento = this.addBusinessDays(fechaBaseColegiatura, 5);
+      // Vencimiento de colegiatura: 5 días naturales después del día de cobro ("fechaBase")
+      const fechaVencimiento = this.addNaturalDays(fechaBaseColegiatura, 5);
 
       adeudos.push({
         concepto: `Colegiatura ${mesStr}`,

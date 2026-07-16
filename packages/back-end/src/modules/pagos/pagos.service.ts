@@ -33,20 +33,14 @@ export class PagosService {
   }
 
   // --- Calendario de Pagos (Adeudos) ---
-  static calcularEstadoAbono(adeudo: any) {
-    if (adeudo.estadoCobro === 'PENDIENTE' && Number(adeudo.montoPagado) > 0 && Number(adeudo.saldoPendiente) > 0) {
-      return { ...adeudo, estadoCobro: 'ABONO' };
-    }
-    return adeudo;
-  }
-
   static async getAdeudosAlumno(alumnoId: number, estadoCobro?: 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'CANCELADO' | 'ABONO') {
-    const adeudos = await PagosRepository.getAdeudosAlumno(alumnoId, estadoCobro as any);
-    return adeudos.map(this.calcularEstadoAbono);
+    return PagosRepository.getAdeudosAlumno(alumnoId, estadoCobro as any);
   }
 
   static async createAdeudo(input: CreateCalendarioPagoInput) {
-    const estado = input.saldoPendiente <= 0 ? EstadoCobro.PAGADO : EstadoCobro.PENDIENTE;
+    let estado: EstadoCobro = EstadoCobro.PENDIENTE;
+    if (input.saldoPendiente <= 0) estado = EstadoCobro.PAGADO;
+    else if (input.montoPagado && input.montoPagado > 0) estado = EstadoCobro.ABONO;
     
     return PagosRepository.createAdeudo({
       ...input,
@@ -101,12 +95,12 @@ export class PagosService {
         new Date(inscripcion.fechaIngreso)
       );
 
-      // 3. Obtener TODOS los adeudos PENDIENTE o VENCIDO para el ciclo actual (cualquier concepto)
+      // 3. Obtener TODOS los adeudos PENDIENTE o ABONO para el ciclo actual (cualquier concepto)
       const adeudos = await tx.calendarioPago.findMany({
         where: {
           alumnoId,
           cicloId: inscripcion.cicloId,
-          estadoCobro: { in: [EstadoCobro.PENDIENTE, EstadoCobro.VENCIDO] },
+          estadoCobro: { in: [EstadoCobro.PENDIENTE, EstadoCobro.ABONO] },
           eliminadoEn: null
         },
         orderBy: { fechaVencimiento: 'asc' },
@@ -122,7 +116,9 @@ export class PagosService {
         montoAplicado: number;
         aplicadoA: string;
       }
+      
       let appPool: AppPoolItem[] = [];
+      let excesoSinPagoId = 0; // Dinero sobrante que no tiene un pago asociado (ej. importación CSV)
 
       for (const adeudo of adeudos) {
         // Buscar cuál debería ser el monto actual según la calculadora
@@ -131,12 +127,19 @@ export class PagosService {
 
         const nuevaTarifa = ideal.montoOriginal;
 
+        let sumAplicacionesFormales = 0;
         for (const app of adeudo.aplicacionesPago) {
+          sumAplicacionesFormales += Number(app.montoAplicado);
           appPool.push({
              pagoId: app.pagoId,
              montoAplicado: Number(app.montoAplicado),
              aplicadoA: app.aplicadoA
           });
+        }
+
+        const montoPagadoActual = Number(adeudo.montoPagado);
+        if (montoPagadoActual > sumAplicacionesFormales) {
+          excesoSinPagoId += (montoPagadoActual - sumAplicacionesFormales);
         }
 
         if (adeudo.aplicacionesPago.length > 0) {
@@ -146,9 +149,21 @@ export class PagosService {
         }
 
         let montoParaEsteAdeudo = 0;
-        let nuevasApps = [];
+        let nuevasApps: AppPoolItem[] = [];
         let nuevoPool: AppPoolItem[] = [];
 
+        // 1. Usar dinero sin pagoId primero (importado de CSV o arrastrado)
+        if (excesoSinPagoId > 0) {
+          if (excesoSinPagoId >= nuevaTarifa) {
+            montoParaEsteAdeudo += nuevaTarifa;
+            excesoSinPagoId -= nuevaTarifa;
+          } else {
+            montoParaEsteAdeudo += excesoSinPagoId;
+            excesoSinPagoId = 0;
+          }
+        }
+
+        // 2. Usar dinero formal (appPool) si aún falta
         for (const app of appPool) {
           const faltaParaLlenar = nuevaTarifa - montoParaEsteAdeudo;
           if (faltaParaLlenar > 0) {
@@ -187,8 +202,8 @@ export class PagosService {
         }
 
         const saldoPendiente = Math.round((nuevaTarifa - montoParaEsteAdeudo) * 100) / 100;
-        let estadoCobro = saldoPendiente <= 0 ? 'PAGADO' : 'PENDIENTE';
-        if (montoParaEsteAdeudo > 0 && saldoPendiente > 0) estadoCobro = 'ABONO';
+        let estadoCobro: EstadoCobro = saldoPendiente <= 0 ? EstadoCobro.PAGADO : EstadoCobro.PENDIENTE;
+        if (montoParaEsteAdeudo > 0 && saldoPendiente > 0) estadoCobro = EstadoCobro.ABONO;
         
         await tx.calendarioPago.update({
           where: { calendarioPagoId: adeudo.calendarioPagoId },
@@ -196,16 +211,17 @@ export class PagosService {
             montoOriginal: nuevaTarifa,
             montoPagado: montoParaEsteAdeudo,
             saldoPendiente: saldoPendiente,
-            estadoCobro: estadoCobro as any,
-            liquidadoAt: estadoCobro === 'PAGADO' ? new Date() : null,
+            estadoCobro: estadoCobro,
+            liquidadoAt: estadoCobro === EstadoCobro.PAGADO ? new Date() : null,
             actualizadoEn: new Date()
           }
         });
       }
 
       // Si sobra dinero al final, va al saldo a favor
-      if (appPool.length > 0) {
-        let saldoAFavorExtra = appPool.reduce((acc, curr) => acc + curr.montoAplicado, 0);
+      let saldoAFavorTotal = appPool.reduce((acc, curr) => acc + curr.montoAplicado, 0) + excesoSinPagoId;
+
+      if (saldoAFavorTotal > 0) {
         const alumno = await tx.alumno.findUnique({ 
           where: { alumnoId }, 
           include: { tutoresAlumnos: { where: { esPrincipal: true } } } 
@@ -215,7 +231,7 @@ export class PagosService {
         if (tutorId) {
           await tx.tutor.update({
             where: { tutorId },
-            data: { saldoAFavor: { increment: saldoAFavorExtra } }
+            data: { saldoAFavor: { increment: saldoAFavorTotal } }
           });
           
           for (const app of appPool) {
@@ -226,6 +242,18 @@ export class PagosService {
                  tipo: 'INGRESO',
                  monto: app.montoAplicado,
                  descripcion: 'Saldo a favor generado por recálculo de tarifas (reducción).',
+                 creadoPor: usuarioId
+               }
+             });
+          }
+
+          if (excesoSinPagoId > 0) {
+             await tx.movimientoSaldo.create({
+               data: {
+                 tutorId,
+                 tipo: 'INGRESO',
+                 monto: excesoSinPagoId,
+                 descripcion: 'Saldo a favor generado por exceso en importe manual o CSV.',
                  creadoPor: usuarioId
                }
              });

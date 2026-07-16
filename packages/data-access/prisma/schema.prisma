@@ -695,6 +695,7 @@ enum MetodoPago {
 
 enum EstadoCobro {
   PENDIENTE
+  ABONO
   PAGADO
   VENCIDO
   CANCELADO
