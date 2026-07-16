@@ -92,14 +92,22 @@ export function AlumnosPage() {
   }, [alumnos, searchTerm, estadoFilter, nivelFilter, gradoFilter, grupoFilter]);
 
   // Derived filter options based on available data
-  const availableNiveles = useMemo(() => Array.from(new Set((alumnos as any[])?.map(a => a.nivel?.nombre).filter(Boolean))), [alumnos]);
+  const availableNiveles = useMemo(() => {
+    const niveles = Array.from(new Set((alumnos as any[])?.map(a => a.nivel?.nombre).filter(Boolean)));
+    return niveles.sort((a, b) => (nivelRanking[a as string] || 99) - (nivelRanking[b as string] || 99));
+  }, [alumnos]);
   
   const availableGrados = useMemo(() => {
     let filtered = alumnos as any[] || [];
     if (nivelFilter !== 'Todos los niveles') {
       filtered = filtered.filter(a => a.nivel?.nombre === nivelFilter);
     }
-    return Array.from(new Set(filtered.map(a => a.inscripciones?.[0]?.grupo?.grado?.nombre).filter(Boolean)));
+    const grados = Array.from(new Set(filtered.map(a => a.inscripciones?.[0]?.grupo?.grado?.nombre).filter(Boolean)));
+    return grados.sort((a, b) => {
+      const numA = parseInt((a as string).replace(/\D/g, '')) || 99;
+      const numB = parseInt((b as string).replace(/\D/g, '')) || 99;
+      return numA - numB;
+    });
   }, [alumnos, nivelFilter]);
 
   const availableGrupos = useMemo(() => {
@@ -133,6 +141,22 @@ export function AlumnosPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const activeFiltersCount = [
+    searchTerm !== '',
+    estadoFilter !== 'Todos',
+    nivelFilter !== 'Todos los niveles',
+    gradoFilter !== 'Todos los grados',
+    grupoFilter !== 'Todos los grupos'
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setEstadoFilter('Todos');
+    setNivelFilter('Todos los niveles');
+    setGradoFilter('Todos los grados');
+    setGrupoFilter('Todos los grupos');
   };
 
   return (
@@ -202,33 +226,49 @@ export function AlumnosPage() {
         </div>
 
         {/* Grado */}
-        <div className="w-full sm:w-40">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Grado</label>
-          <select
-            value={gradoFilter}
-            onChange={e => {
-              setGradoFilter(e.target.value);
-              setGrupoFilter('Todos los grupos');
-            }}
-            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
-          >
-            <option value="Todos los grados">Todos</option>
-            {availableGrados.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
+        {nivelFilter !== 'Todos los niveles' && (
+          <div className="w-full sm:w-40">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Grado</label>
+            <select
+              value={gradoFilter}
+              onChange={e => {
+                setGradoFilter(e.target.value);
+                setGrupoFilter('Todos los grupos');
+              }}
+              className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+            >
+              <option value="Todos los grados">Todos</option>
+              {availableGrados.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        )}
 
         {/* Grupo */}
-        <div className="w-full sm:w-40">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
-          <select
-            value={grupoFilter}
-            onChange={e => setGrupoFilter(e.target.value)}
-            className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
-          >
-            <option value="Todos los grupos">Todos</option>
-            {availableGrupos.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
+        {gradoFilter !== 'Todos los grados' && (
+          <div className="w-full sm:w-40">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
+            <select
+              value={grupoFilter}
+              onChange={e => setGrupoFilter(e.target.value)}
+              className="block w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-500 focus:border-navy-500 px-3 py-2 sm:text-sm outline-none transition-colors bg-white cursor-pointer"
+            >
+              <option value="Todos los grupos">Todos</option>
+              {availableGrupos.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* Quitar Filtros */}
+        {activeFiltersCount > 1 && (
+          <div className="w-full sm:w-auto pb-0.5">
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 bg-red-50 text-red-600 font-medium rounded-xl hover:bg-red-100 transition-colors text-sm border border-red-100"
+            >
+              Quitar filtros
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-between items-center text-sm text-gray-500 font-medium px-1">

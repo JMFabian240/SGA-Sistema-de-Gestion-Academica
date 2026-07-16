@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import fs from 'fs';
 import path from 'path';
-import { prisma } from '@sga/data-access';
+import { prisma, EstadoCobro } from '@sga/data-access';
 import type {
   CreateTarifaInput, UpdateTarifaInput,
   CreateCalendarioPagoInput, UpdateCalendarioPagoInput,
@@ -46,13 +46,12 @@ export class PagosService {
   }
 
   static async createAdeudo(input: CreateCalendarioPagoInput) {
-    let estado = input.saldoPendiente <= 0 ? 'PAGADO' : 'PENDIENTE';
-    if (input.montoPagado && input.montoPagado > 0 && input.saldoPendiente > 0) estado = 'ABONO';
+    const estado = input.saldoPendiente <= 0 ? EstadoCobro.PAGADO : EstadoCobro.PENDIENTE;
     
     return PagosRepository.createAdeudo({
       ...input,
       fechaVencimiento: new Date(input.fechaVencimiento),
-      estadoCobro: estado as any
+      estadoCobro: estado
     });
   }
 
@@ -102,12 +101,12 @@ export class PagosService {
         new Date(inscripcion.fechaIngreso)
       );
 
-      // 3. Obtener TODOS los adeudos PENDIENTE o ABONO para el ciclo actual (cualquier concepto)
+      // 3. Obtener TODOS los adeudos PENDIENTE o VENCIDO para el ciclo actual (cualquier concepto)
       const adeudos = await tx.calendarioPago.findMany({
         where: {
           alumnoId,
           cicloId: inscripcion.cicloId,
-          estadoCobro: { in: ['PENDIENTE', 'ABONO'] } as any,
+          estadoCobro: { in: [EstadoCobro.PENDIENTE, EstadoCobro.VENCIDO] },
           eliminadoEn: null
         },
         orderBy: { fechaVencimiento: 'asc' },
