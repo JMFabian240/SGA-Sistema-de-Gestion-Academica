@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { trpc } from '../../../lib/trpc';
 import { ChevronLeft, User, Crown, Mail, Phone, BookOpen, Users, Link2Off, Plus, Calculator, Trash2, UploadCloud, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,12 +16,26 @@ export function ExpedienteAlumnoPage() {
   const [isVincularModalOpen, setIsVincularModalOpen] = useState(false);
   const [isInscribirModalOpen, setIsInscribirModalOpen] = useState(false);
   const [isAsignarPlanModalOpen, setIsAsignarPlanModalOpen] = useState(false);
+  const [selectedCicloId, setSelectedCicloId] = useState<number | null>(null);
 
   const alumnoId = parseInt(id || '0', 10);
 
   const { data: alumno, isLoading, error } = trpc.alumnos.getById.useQuery(alumnoId, {
     enabled: !!alumnoId,
   });
+
+  useEffect(() => {
+    if (alumno?.inscripciones && selectedCicloId === null) {
+      const active = (alumno as any).inscripciones.find((i: any) => i.estadoEnCiclo === 'INSCRITO' && i.ciclo.activo);
+      if (active) setSelectedCicloId(active.cicloId);
+      else if ((alumno as any).inscripciones.length > 0) setSelectedCicloId((alumno as any).inscripciones[0].cicloId);
+    }
+  }, [alumno, selectedCicloId]);
+
+  const { data: estadoCuenta, isLoading: isLoadingEC } = trpc.pagos.getEstadoCuenta.useQuery(
+    { alumnoId, cicloId: selectedCicloId! },
+    { enabled: !!alumnoId && !!selectedCicloId }
+  );
 
   const updateAlumnoMutation = trpc.alumnos.update.useMutation({
     onSuccess: () => {
@@ -558,12 +572,120 @@ export function ExpedienteAlumnoPage() {
 
       {/* Estado de Cuenta */}
       <div className="mt-8 mb-8">
-        <div className="flex items-center gap-2 text-emerald-700 font-semibold mb-4 px-1">
-          <Calculator size={20} />
-          <h2>Estado de Cuenta</h2>
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+            <Calculator size={20} />
+            <h2>Estado de Cuenta</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Ciclo Escolar:</label>
+            <select
+              value={selectedCicloId || ''}
+              onChange={(e) => setSelectedCicloId(Number(e.target.value))}
+              className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              {alumno?.inscripciones?.map((insc: any) => (
+                <option key={insc.cicloId} value={insc.cicloId}>
+                  {insc.ciclo.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm text-center">El historial detallado de movimientos (cargos, abonos, pagos parciales) se implementará aquí próximamente, mostrando el saldo real histórico del alumno independiente de su proyección del calendario.</p>
+          {isLoadingEC ? (
+            <div className="flex justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            </div>
+          ) : (!estadoCuenta || estadoCuenta.length === 0) ? (
+            <p className="text-gray-500 text-sm text-center py-8">No hay movimientos financieros registrados para este ciclo escolar.</p>
+          ) : (
+            <div className="relative pl-6 border-l-2 border-gray-100 py-4 space-y-6">
+              {estadoCuenta.map((mov: any) => {
+                const isAbono = mov.tipo === 'ABONO';
+                let circleColor = 'bg-red-500';
+                let badgeColor = '';
+                let condicionLabel = mov.condicionPago || '';
+
+                if (isAbono) {
+                  if (mov.condicionPago === 'REGULAR') {
+                    circleColor = 'bg-emerald-500';
+                    badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                  } else if (mov.condicionPago === 'VENCIDO') {
+                    circleColor = 'bg-red-500';
+                    badgeColor = 'bg-red-100 text-red-800 border-red-200';
+                  } else if (mov.condicionPago === 'ABONO') {
+                    circleColor = 'bg-orange-500';
+                    badgeColor = 'bg-orange-100 text-orange-800 border-orange-200';
+                  } else if (mov.condicionPago === 'ADELANTADO') {
+                    circleColor = 'bg-blue-500';
+                    badgeColor = 'bg-blue-100 text-blue-800 border-blue-200';
+                  }
+                }
+
+                const isCicloActivo = alumno?.inscripciones?.find((i: any) => i.cicloId === selectedCicloId)?.ciclo?.activo;
+
+                return (
+                  <div key={mov.id} className="relative">
+                    <div className={`absolute -left-[33px] top-4 w-4 h-4 rounded-full border-4 border-white ${circleColor}`} />
+                    <div className="bg-white border border-gray-100 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-shadow shadow-sm">
+                      <div className="flex flex-col gap-1.5 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-900">{formatFecha(mov.fecha)}</span>
+                          {isAbono && badgeColor && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${badgeColor}`}>
+                              {condicionLabel}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">{mov.concepto}</span>
+                        {isAbono && mov.metodoPago && (
+                          <span className="text-xs text-gray-500 font-medium">Método: {mov.metodoPago}</span>
+                        )}
+                        {isAbono && mov.pagoId && (
+                          <div className="mt-2 flex items-center gap-2">
+                            {mov.tieneComprobante ? (
+                              <button
+                                onClick={() => handleVerComprobante(mov.pagoId)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-semibold"
+                                title="Ver Comprobante"
+                              >
+                                <Eye size={14} /> Ver Comprobante
+                              </button>
+                            ) : (
+                              isCicloActivo && (
+                                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 hover:text-emerald-600 transition-colors text-xs font-semibold" title="Adjuntar comprobante a este pago">
+                                  <UploadCloud size={14} /> Adjuntar
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*,.pdf"
+                                    onChange={(e) => handleAdjuntar(mov.pagoId, e)}
+                                  />
+                                </label>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 md:gap-1 text-sm shrink-0 border-t md:border-t-0 border-gray-100 pt-3 md:pt-0">
+                        <div className="flex gap-4">
+                          {isAbono ? (
+                            <span className="font-bold text-emerald-600 text-base">-${mov.abono.toFixed(2)}</span>
+                          ) : (
+                            <span className="font-bold text-red-600 text-base">+${mov.cargo.toFixed(2)}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 font-bold text-gray-800 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">
+                          <span className="text-xs text-gray-500 font-medium">Saldo:</span> ${mov.saldo.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

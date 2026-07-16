@@ -93,5 +93,15 @@ export const pagosRouter = router({
   // --- Cargos Extraordinarios ---
   createCargoExtraordinario: escritura
     .input(createCargoExtraordinarioSchema)
-    .mutation(({ input }) => PagosService.createCargoExtraordinario(input))
+    .mutation(({ input }) => PagosService.createCargoExtraordinario(input)),
+
+  // --- Estado de Cuenta ---
+  getEstadoCuenta: lectura
+    .input(z.object({
+      alumnoId: z.number().int().positive(),
+      cicloId: z.number().int().positive()
+    }))
+    .query(({ input }) => {
+      return PagosService.getEstadoCuenta(input.alumnoId, input.cicloId);
+    })
 });

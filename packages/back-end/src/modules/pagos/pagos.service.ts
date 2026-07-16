@@ -478,4 +478,114 @@ export class PagosService {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'No se pudo leer el archivo físico.' });
     }
   }
+
+  static async getEstadoCuenta(alumnoId: number, cicloId: number) {
+    // 1. Obtener los cargos (CalendarioPago) del ciclo
+    const cargos = await prisma.calendarioPago.findMany({
+      where: {
+        alumnoId,
+        cicloId,
+        eliminadoEn: null,
+        estadoCobro: { not: 'CANCELADO' }
+      }
+    });
+
+    // 2. Obtener los abonos (AplicacionPago -> Pago) para los adeudos de ese ciclo
+    const aplicaciones = await prisma.aplicacionPago.findMany({
+      where: {
+        calendarioPago: {
+          alumnoId,
+          cicloId,
+          eliminadoEn: null,
+          estadoCobro: { not: 'CANCELADO' }
+        }
+      },
+      include: {
+        pago: {
+          include: { documentos: { where: { tipoDocumento: 'COMPROBANTE_PAGO' } } }
+        },
+        calendarioPago: { select: { concepto: true, fechaVencimiento: true, montoOriginal: true } }
+      }
+    });
+
+    type Movimiento = {
+      id: string;
+      tipo: 'CARGO' | 'ABONO';
+      fecha: Date;
+      concepto: string;
+      cargo: number;
+      abono: number;
+      saldo: number;
+      metodoPago?: string;
+      condicionPago?: 'REGULAR' | 'VENCIDO' | 'ABONO' | 'ADELANTADO';
+      pagoId?: number;
+      tieneComprobante?: boolean;
+    };
+
+    const movimientos: Movimiento[] = [];
+
+    for (const c of cargos) {
+      movimientos.push({
+        id: `cargo-${c.calendarioPagoId}`,
+        tipo: 'CARGO',
+        fecha: new Date(c.creadoEn || c.fechaVencimiento),
+        concepto: `Cargo: ${c.concepto}`,
+        cargo: Number(c.montoOriginal),
+        abono: 0,
+        saldo: 0
+      });
+    }
+
+    for (const app of aplicaciones) {
+      const fPago = new Date(app.pago.fechaPago);
+      const fVenc = new Date(app.calendarioPago.fechaVencimiento);
+      
+      let condicionPago: 'REGULAR' | 'VENCIDO' | 'ABONO' | 'ADELANTADO' = 'REGULAR';
+      const montoAplicado = Number(app.montoAplicado);
+      const montoOriginal = Number(app.calendarioPago.montoOriginal);
+
+      if (montoAplicado < montoOriginal) {
+        condicionPago = 'ABONO';
+      } else if (fPago > fVenc) {
+        condicionPago = 'VENCIDO';
+      } else {
+        // Checar si es adelantado (ej. mes anterior)
+        const diffDias = (fVenc.getTime() - fPago.getTime()) / (1000 * 3600 * 24);
+        if (diffDias > 15) {
+          condicionPago = 'ADELANTADO';
+        }
+      }
+
+      movimientos.push({
+        id: `abono-${app.aplicacionId}`,
+        tipo: 'ABONO',
+        fecha: fPago,
+        concepto: `Pago a ${app.calendarioPago.concepto}`,
+        cargo: 0,
+        abono: montoAplicado,
+        saldo: 0,
+        metodoPago: app.pago.metodoPago,
+        condicionPago,
+        pagoId: app.pago.pagoId,
+        tieneComprobante: app.pago.documentos && app.pago.documentos.length > 0
+      });
+    }
+
+    // Ordenar cronológicamente (CARGO antes de ABONO si empatan en fecha)
+    movimientos.sort((a, b) => {
+      const diff = a.fecha.getTime() - b.fecha.getTime();
+      if (diff !== 0) return diff;
+      return a.tipo === 'CARGO' ? -1 : 1;
+    });
+
+    // Calcular saldos arrastrados
+    let saldoActual = 0;
+    for (const mov of movimientos) {
+      saldoActual = saldoActual + mov.cargo - mov.abono;
+      saldoActual = Math.round(saldoActual * 100) / 100;
+      mov.saldo = saldoActual;
+    }
+
+    return movimientos;
+  }
 }
