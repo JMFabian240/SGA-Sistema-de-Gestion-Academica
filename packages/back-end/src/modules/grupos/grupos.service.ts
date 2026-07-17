@@ -311,7 +311,8 @@ export class GruposService {
             cicloId: input.cicloDestinoId,
             grupoId: grupoDestinoId,
             estadoEnCiclo: 'INSCRITO',
-            fechaInscripcion: new Date()
+            fechaIngreso: new Date(),
+            estadoFinanciero: 'AL_CORRIENTE'
           }
         });
       }
