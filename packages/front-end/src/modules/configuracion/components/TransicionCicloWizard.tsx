@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { trpc } from '../../../lib/trpc';
@@ -19,10 +19,14 @@ export function TransicionCicloWizard({ isOpen, onClose, cicloActual }: Props) {
   const utils = trpc.useContext();
   
   const { data: ciclos } = trpc.grupos.getCiclos.useQuery(undefined, { enabled: isOpen });
-  const { data: gruposActuales } = trpc.grupos.getGrupos.useQuery(cicloActual?.cicloId, { enabled: isOpen && !!cicloActual });
-  const { data: gruposDestino } = trpc.grupos.getGrupos.useQuery(cicloDestinoId !== '' ? cicloDestinoId : 0, { 
-    enabled: isOpen && cicloDestinoId !== ''
-  });
+  const { data: gruposActuales } = trpc.grupos.getGrupos.useQuery(
+    cicloActual?.cicloId ? { cicloId: cicloActual.cicloId } : undefined, 
+    { enabled: isOpen && !!cicloActual }
+  );
+  const { data: gruposDestino } = trpc.grupos.getGrupos.useQuery(
+    cicloDestinoId !== '' ? { cicloId: cicloDestinoId } : undefined, 
+    { enabled: isOpen && cicloDestinoId !== '' }
+  );
   const { data: inscripciones } = trpc.inscripciones.getInscripciones.useQuery(cicloActual?.cicloId, { enabled: isOpen && !!cicloActual });
 
   const transicionMutation = trpc.grupos.transicionCiclo.useMutation({

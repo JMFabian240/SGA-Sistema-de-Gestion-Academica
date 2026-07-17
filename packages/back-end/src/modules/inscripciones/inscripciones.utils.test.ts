@@ -7,7 +7,7 @@ describe('CalculadoraPagos', () => {
   it('debe calcular correctamente un plan de 10 meses', () => {
     const plan = { meses: 10 };
     const tarifas = [{ concepto: 'Colegiatura', monto: 12000 }]; // 12000 anual
-    const recibos = CalculadoraPagos.generarCalendario(plan, tarifas, fechaIngreso);
+    const recibos = CalculadoraPagos.generarCalendario(plan, tarifas, fechaIngreso, 1);
 
     expect(recibos.length).toBe(10);
     expect(recibos[0].mes).toBe('Septiembre');
@@ -26,7 +26,7 @@ describe('CalculadoraPagos', () => {
       // Wait, uniformes is not in the list of 'INSCRIPCION', 'ARANCELES', etc, so it won't be generated in the one-time loop.
     ];
 
-    const recibos = CalculadoraPagos.generarCalendario(plan, tarifas, fechaIngreso);
+    const recibos = CalculadoraPagos.generarCalendario(plan, tarifas, fechaIngreso, 1);
 
     // 12 meses colegiatura + 1 inscripción = 13 recibos
     expect(recibos.length).toBe(13);
@@ -54,7 +54,7 @@ describe('CalculadoraPagos', () => {
     const tarifas = [{ concepto: 'Colegiatura', monto: 12000 }];
     const beca = { porcentajeDescuento: 15 }; // 15% de descuento
 
-    const recibos = CalculadoraPagos.generarCalendario(plan, tarifas, fechaIngreso, beca);
+    const recibos = CalculadoraPagos.generarCalendario(plan, tarifas, fechaIngreso, 1, beca);
 
     const ago = recibos.find(r => r.concepto === 'Colegiatura Agosto');
     expect(ago?.montoOriginal).toBe(850); // 15% de 1000

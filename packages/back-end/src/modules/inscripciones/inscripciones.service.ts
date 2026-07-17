@@ -225,7 +225,10 @@ export class InscripcionesService {
       // 2. Generar Adeudos usando CalculadoraPagos
       const planBase = { meses: planPago.meses };
       
-      const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso));
+      const configGlobal = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
+      const diaVencimiento = configGlobal?.diaVencimientoMensual || 1;
+
+      const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso), diaVencimiento);
       
       const adeudosParaInsertar = adeudosCalculados.map(a => ({
         alumnoId: inscripcion.alumnoId,

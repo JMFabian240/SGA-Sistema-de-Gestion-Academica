@@ -25,7 +25,6 @@ describe('Configuracion Module (Functional)', () => {
         usuarioId: 1,
         nombreUsuario: 'actor_admin',
         nombreCompleto: 'Actor Administrador',
-        correo: 'actor@sga.com',
         passwordHash: 'dummy_hash',
         activo: true
       }
@@ -63,6 +62,7 @@ describe('Configuracion Module (Functional)', () => {
       // Obtener configuración (debería disparar la creación por defecto)
       const config = await caller.configuracion.get();
       expect(config.configuracionId).toBe(1);
+      expect(config.diaVencimientoMensual).toBe(1);
       expect(config.montoRecargoDefecto).toBe(400);
       expect(config.diasGraciaRecargo).toBe(5);
       expect(config.plazoInscripcionDias).toBe(60);
@@ -78,6 +78,7 @@ describe('Configuracion Module (Functional)', () => {
       await prisma.configuracionGlobal.create({
         data: {
           configuracionId: 1,
+          diaVencimientoMensual: 15,
           montoRecargoDefecto: 500,
           diasGraciaRecargo: 10,
           plazoInscripcionDias: 30,
@@ -88,6 +89,7 @@ describe('Configuracion Module (Functional)', () => {
       // Llamar al endpoint
       const config = await caller.configuracion.get();
       expect(config.configuracionId).toBe(1);
+      expect(config.diaVencimientoMensual).toBe(15);
       expect(config.montoRecargoDefecto).toBe(500);
       expect(config.diasGraciaRecargo).toBe(10);
       expect(config.plazoInscripcionDias).toBe(30);
@@ -106,11 +108,13 @@ describe('Configuracion Module (Functional)', () => {
 
       // 2. Hacer actualización parcial
       const updated = await caller.configuracion.update({
+        diaVencimientoMensual: 10,
         montoRecargoDefecto: 350.50,
         diasGraciaRecargo: 3
       });
 
       expect(updated.configuracionId).toBe(1);
+      expect(updated.diaVencimientoMensual).toBe(10);
       expect(updated.montoRecargoDefecto).toBe(350.5);
       expect(updated.diasGraciaRecargo).toBe(3);
       expect(updated.plazoInscripcionDias).toBe(60); // Se mantiene el default
@@ -121,6 +125,7 @@ describe('Configuracion Module (Functional)', () => {
       const dbConfig = await prisma.configuracionGlobal.findUnique({
         where: { configuracionId: 1 }
       });
+      expect(dbConfig?.diaVencimientoMensual).toBe(10);
       expect(Number(dbConfig?.montoRecargoDefecto)).toBe(350.5);
       expect(dbConfig?.diasGraciaRecargo).toBe(3);
     });
@@ -145,6 +150,15 @@ describe('Configuracion Module (Functional)', () => {
       await expect(caller.configuracion.update({
         umbralesSmtpDias: [5, 4, 3, 2, 1, 0] // 6 elementos
       })).rejects.toThrowError(/Máximo 5 umbrales permitidos/);
+
+      // 5. Día de vencimiento inválido
+      await expect(caller.configuracion.update({
+        diaVencimientoMensual: 0
+      })).rejects.toThrowError(/El día de vencimiento debe ser un número entero entre 1 y 31/);
+
+      await expect(caller.configuracion.update({
+        diaVencimientoMensual: 32
+      })).rejects.toThrowError(/El día de vencimiento debe ser un número entero entre 1 y 31/);
     });
   });
 });

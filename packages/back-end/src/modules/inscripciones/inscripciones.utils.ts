@@ -27,7 +27,8 @@ export class CalculadoraPagos {
   static generarCalendario(
     plan: PlanPagoData, 
     tarifas: TarifaData[], 
-    fechaIngreso: Date, 
+    fechaIngreso: Date,
+    diaVencimientoMensual: number,
     beca?: BecaData | null
   ) {
     const meses10 = ['Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
@@ -53,10 +54,12 @@ export class CalculadoraPagos {
     for (const tarifa of tarifas) {
       const conceptoUpper = tarifa.concepto.toUpperCase();
       if (conceptosUnicos.includes(conceptoUpper)) {
-        // Plazo: 60 días naturales para inscripción y materiales. Para otros únicos, podemos usar lo mismo o 5.
-        // El requerimiento decía "inscripcion y materiales 60 dias, colegiatura 5 dias".
-        const diasPlazo = (conceptoUpper.includes('INSCRIPCION') || conceptoUpper.includes('INSCRIPCIÓN') || conceptoUpper.includes('MATERIALES')) ? 60 : 5;
-        const fechaVencimiento = this.addNaturalDays(fechaPrimerMes, diasPlazo);
+        // Usa el mes de ingreso pero ajustado al día de cobro global
+        const year = fechaPrimerMes.getFullYear();
+        const month = fechaPrimerMes.getMonth();
+        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+        const dayToUse = Math.min(diaVencimientoMensual, lastDayOfMonth);
+        const fechaVencimiento = new Date(year, month, dayToUse);
         
         adeudos.push({
           concepto: tarifa.concepto, // ej. "Inscripción", "Materiales"
@@ -83,8 +86,11 @@ export class CalculadoraPagos {
 
       const fechaBaseColegiatura = new Date(fechaIngreso);
       fechaBaseColegiatura.setMonth(fechaBaseColegiatura.getMonth() + i);
-      // Vencimiento de colegiatura: 5 días naturales después del día de cobro ("fechaBase")
-      const fechaVencimiento = this.addNaturalDays(fechaBaseColegiatura, 5);
+      const year = fechaBaseColegiatura.getFullYear();
+      const month = fechaBaseColegiatura.getMonth();
+      const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+      const dayToUse = Math.min(diaVencimientoMensual, lastDayOfMonth);
+      const fechaVencimiento = new Date(year, month, dayToUse);
 
       adeudos.push({
         concepto: `Colegiatura ${mesStr}`,

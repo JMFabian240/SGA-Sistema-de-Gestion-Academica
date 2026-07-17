@@ -72,14 +72,14 @@ export function ConfiguracionPage() {
 
   const [editandoConfiguracion, setEditandoConfiguracion] = useState(false);
   const [configValores, setConfigValores] = useState({
-    fechaVencimientoDefecto: '',
+    diaVencimientoMensual: '1',
     plazoInscripcionDias: '0'
   });
 
   useEffect(() => {
     if (configuracionGlobal) {
       setConfigValores({
-        fechaVencimientoDefecto: configuracionGlobal.fechaVencimientoDefecto ? configuracionGlobal.fechaVencimientoDefecto.split('T')[0] : '',
+        diaVencimientoMensual: configuracionGlobal.diaVencimientoMensual?.toString() || '1',
         plazoInscripcionDias: configuracionGlobal.plazoInscripcionDias.toString()
       });
     }
@@ -88,7 +88,7 @@ export function ConfiguracionPage() {
   const handleSaveConfiguracion = async () => {
     try {
       await updateConfiguracionMutation.mutateAsync({
-        fechaVencimientoDefecto: configValores.fechaVencimientoDefecto ? new Date(configValores.fechaVencimientoDefecto).toISOString() : null,
+        diaVencimientoMensual: parseInt(configValores.diaVencimientoMensual, 10),
         plazoInscripcionDias: parseInt(configValores.plazoInscripcionDias, 10)
       });
       setEditandoConfiguracion(false);
@@ -755,14 +755,16 @@ export function ConfiguracionPage() {
                   editandoConfiguracion ? (
                     <div className="space-y-3">
                       <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 space-y-2">
-                        <label className="text-sm font-bold text-orange-800">Fecha de Vencimiento Global</label>
+                        <label className="text-sm font-bold text-orange-800">Día de Vencimiento Mensual</label>
                         <Input
-                          type="date"
-                          value={configValores.fechaVencimientoDefecto}
-                          onChange={(e) => setConfigValores({ ...configValores, fechaVencimientoDefecto: e.target.value })}
+                          type="number"
+                          min="1"
+                          max="31"
+                          value={configValores.diaVencimientoMensual}
+                          onChange={(e) => setConfigValores({ ...configValores, diaVencimientoMensual: e.target.value })}
                           className="bg-white text-xs h-8"
                         />
-                        <p className="text-xs text-orange-700 mt-1">Aplica a todos los montos sin fecha específica.</p>
+                        <p className="text-xs text-orange-700 mt-1">Día del mes (1-31) límite para pagar las mensualidades.</p>
                       </div>
                       <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2">
                         <label className="text-sm font-bold text-blue-800">Plazo Inscripción (días)</label>
@@ -778,10 +780,10 @@ export function ConfiguracionPage() {
                     <div className="space-y-3">
                       <div className="p-3 bg-orange-50/50 rounded-xl border border-orange-100 space-y-1">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-orange-800">Fecha Vencimiento</span>
-                          <span className="text-xs font-bold text-orange-700">{configuracionGlobal.fechaVencimientoDefecto ? new Date(configuracionGlobal.fechaVencimientoDefecto).toLocaleDateString() : 'No definida'}</span>
+                          <span className="text-sm font-bold text-orange-800">Día de Cobro Global</span>
+                          <span className="text-xs font-bold text-orange-700">Día {configuracionGlobal.diaVencimientoMensual} de cada mes</span>
                         </div>
-                        <p className="text-xs text-orange-700">Aplica a montos sin fecha específica.</p>
+                        <p className="text-xs text-orange-700">Aplica como límite a las mensualidades (ej. Colegiatura).</p>
                       </div>
 
                       <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
@@ -805,7 +807,7 @@ export function ConfiguracionPage() {
                       onClick={() => {
                         setEditandoConfiguracion(false);
                         setConfigValores({
-                          fechaVencimientoDefecto: configuracionGlobal?.fechaVencimientoDefecto ? configuracionGlobal.fechaVencimientoDefecto.split('T')[0] : '',
+                          diaVencimientoMensual: configuracionGlobal?.diaVencimientoMensual?.toString() || '1',
                           plazoInscripcionDias: configuracionGlobal?.plazoInscripcionDias.toString() || '0'
                         });
                       }}

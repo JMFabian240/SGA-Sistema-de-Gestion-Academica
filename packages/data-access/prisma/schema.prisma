@@ -115,7 +115,7 @@ model TokenRevocado {
 
 model ConfiguracionGlobal {
   configuracionId         Int       @id @map("configuracion_id")
-  fechaVencimientoDefecto DateTime? @map("fecha_vencimiento_defecto")
+  diaVencimientoMensual   Int       @default(1) @map("dia_vencimiento_mensual")
   montoRecargoDefecto     Decimal   @map("monto_recargo_defecto") @db.Decimal(12, 2)
   diasGraciaRecargo       Int       @map("dias_gracia_recargo")
   plazoInscripcionDias    Int       @map("plazo_inscripcion_dias")

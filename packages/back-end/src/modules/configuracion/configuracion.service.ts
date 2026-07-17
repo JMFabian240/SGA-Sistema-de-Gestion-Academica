@@ -13,7 +13,7 @@ export class ConfiguracionService {
         configuracionId: this.CONFIG_ID,
         plazoInscripcionDias: 60,
         umbralesSmtpDias: [5, 3, 1],
-        fechaVencimientoDefecto: null,
+        diaVencimientoMensual: 1,
         montoRecargoDefecto: 400,
         diasGraciaRecargo: 5
       });
@@ -21,7 +21,7 @@ export class ConfiguracionService {
 
     return {
       configuracionId: config.configuracionId,
-      fechaVencimientoDefecto: config.fechaVencimientoDefecto ? config.fechaVencimientoDefecto.toISOString() : null,
+      diaVencimientoMensual: config.diaVencimientoMensual,
       plazoInscripcionDias: config.plazoInscripcionDias,
       umbralesSmtpDias: config.umbralesSmtpDias as number[],
       montoRecargoDefecto: Number(config.montoRecargoDefecto),
@@ -35,7 +35,7 @@ export class ConfiguracionService {
 
     try {
       const updatedConfig = await ConfiguracionRepository.updateConfiguracion(this.CONFIG_ID, {
-        fechaVencimientoDefecto: input.fechaVencimientoDefecto !== undefined ? (input.fechaVencimientoDefecto ? new Date(input.fechaVencimientoDefecto) : null) : undefined,
+        ...(input.diaVencimientoMensual !== undefined && { diaVencimientoMensual: input.diaVencimientoMensual }),
         plazoInscripcionDias: input.plazoInscripcionDias,
         umbralesSmtpDias: input.umbralesSmtpDias ? input.umbralesSmtpDias : undefined,
         actualizadoEn: new Date(),
@@ -45,7 +45,7 @@ export class ConfiguracionService {
 
       return {
         configuracionId: updatedConfig.configuracionId,
-        fechaVencimientoDefecto: updatedConfig.fechaVencimientoDefecto ? updatedConfig.fechaVencimientoDefecto.toISOString() : null,
+        diaVencimientoMensual: updatedConfig.diaVencimientoMensual,
         plazoInscripcionDias: updatedConfig.plazoInscripcionDias,
         umbralesSmtpDias: updatedConfig.umbralesSmtpDias as number[],
         montoRecargoDefecto: Number(updatedConfig.montoRecargoDefecto),

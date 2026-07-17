@@ -7,9 +7,13 @@ import { beforeEach, vi } from 'vitest';
 export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
 
 // Hacemos un mock del módulo data-access para que devuelva nuestro prismaMock
-vi.mock('@sga/data-access', () => ({
-  prisma: mockDeep<PrismaClient>(),
-}));
+vi.mock('@sga/data-access', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@sga/data-access')>();
+  return {
+    ...actual,
+    prisma: mockDeep<PrismaClient>(),
+  };
+});
 
 beforeEach(() => {
   mockReset(prismaMock);

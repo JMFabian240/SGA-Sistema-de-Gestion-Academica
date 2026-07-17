@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useEffect } from 'react';
 import { trpc } from '../../../lib/trpc';
-import { ChevronLeft, User, Crown, Mail, Phone, BookOpen, Users, Link2Off, Plus, Calculator, Trash2, UploadCloud, Eye } from 'lucide-react';
+import { ChevronLeft, User, Crown, Mail, Phone, BookOpen, Users, Link2Off, Plus, Calculator, Trash2, UploadCloud, Eye, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { VincularTutorModal } from '../components/VincularTutorModal';
 import { InscribirAlumnoModal } from '../components/InscribirAlumnoModal';

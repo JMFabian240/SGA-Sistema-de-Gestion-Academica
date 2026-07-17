@@ -26,6 +26,7 @@ describe('PagosService (Unit)', () => {
     });
 
     it('updateTarifa y deleteTarifa deberían funcionar correctamente', async () => {
+      prismaMock.tarifa.findMany.mockResolvedValue([{ tarifaId: 1, cicloId: 1 }] as any);
       prismaMock.tarifa.update.mockResolvedValue({ tarifaId: 1 } as any);
       await PagosService.updateTarifa({ tarifaId: 1, monto: 6000 });
       expect(prismaMock.tarifa.update).toHaveBeenCalledWith(expect.objectContaining({

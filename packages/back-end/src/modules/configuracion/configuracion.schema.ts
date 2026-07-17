@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const updateConfigSchema = z.object({
-  fechaVencimientoDefecto: z.string().datetime().nullable().optional(),
+  diaVencimientoMensual: z.number({ invalid_type_error: "El día de vencimiento debe ser un número entero entre 1 y 31" }).int("El día de vencimiento debe ser un número entero entre 1 y 31").min(1, 'El día de vencimiento debe ser un número entero entre 1 y 31').max(31, 'El día de vencimiento debe ser un número entero entre 1 y 31').optional(),
   plazoInscripcionDias: z.number().int().min(1, 'El plazo de inscripción debe ser al menos 1 día').optional(),
   umbralesSmtpDias: z.array(z.number().int().min(0)).max(5, 'Máximo 5 umbrales permitidos').optional(),
   montoRecargoDefecto: z.number().min(0).optional(),
