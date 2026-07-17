@@ -11,8 +11,9 @@ import { CicloFormModal } from '../components/CicloFormModal';
 import { ImportacionDatosPanel } from '../components/ImportacionDatosPanel';
 import { PlanesPagoPanel } from '../components/PlanesPagoPanel';
 import { TransicionCicloWizard } from '../components/TransicionCicloWizard';
+import { InscripcionTransicionPage } from '../components/InscripcionTransicionPage';
 
-type TabType = 'ciclos' | 'tarifas' | 'planespago' | 'cierre' | 'importacion';
+type TabType = 'ciclos' | 'tarifas' | 'planespago' | 'cierre' | 'importacion' | 'inscripcion-transicion';
 
 export function ConfiguracionPage() {
   const [activeTab, setActiveTab] = useState<TabType>('ciclos');
@@ -24,6 +25,7 @@ export function ConfiguracionPage() {
   const [isCicloModalOpen, setIsCicloModalOpen] = useState(false);
   const [editingCiclo, setEditingCiclo] = useState<any>(null);
   const [wizardCiclo, setWizardCiclo] = useState<any>(null);
+  const [inscripcionDestinoId, setInscripcionDestinoId] = useState<number | null>(null);
 
   const deleteCicloMutation = trpc.grupos.deleteCiclo.useMutation({
     onSuccess: () => {
@@ -1217,12 +1219,28 @@ export function ConfiguracionPage() {
         <ImportacionDatosPanel ciclos={ciclos || []} />
       )}
 
-      {wizardCiclo && (
+      {activeTab === 'inscripcion-transicion' && wizardCiclo && inscripcionDestinoId && (
+        <InscripcionTransicionPage 
+          cicloOrigenId={wizardCiclo.cicloId} 
+          cicloDestinoId={inscripcionDestinoId}
+          onBack={() => {
+            setActiveTab('cierre');
+            setWizardCiclo(null);
+            setInscripcionDestinoId(null);
+          }}
+        />
+      )}
+
+      {wizardCiclo && activeTab !== 'inscripcion-transicion' && (
         <TransicionCicloWizard
           isOpen={true}
           onClose={() => setWizardCiclo(null)}
           cicloActual={wizardCiclo}
           onOpenNewCiclo={handleOpenNewCiclo}
+          onContinueToInscripcion={(destId) => {
+            setInscripcionDestinoId(destId);
+            setActiveTab('inscripcion-transicion');
+          }}
         />
       )}
 

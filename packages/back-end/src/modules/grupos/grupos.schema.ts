@@ -46,6 +46,11 @@ export const transicionCicloSchema = z.object({
   alumnosPorGrupo: z.record(z.array(z.number().int().positive())) // { "grupoId": [alumnoId1, alumnoId2] }
 });
 
+export const inscribirAlumnosTransicionSchema = z.object({
+  cicloDestinoId: z.number().int().positive(),
+  alumnosPorGrupo: z.record(z.array(z.number().int().positive())) // { "grupoDestinoId": [alumnoId1, alumnoId2] }
+});
+
 export const cerrarCicloSchema = z.object({
   cicloId: z.number().int().positive()
 });
@@ -134,3 +139,4 @@ export type GetAlumnosCierreGrupoInput = z.infer<typeof getAlumnosCierreGrupoSch
 export type CerrarCicloGrupoInput = z.infer<typeof cerrarCicloGrupoSchema>;
 export type GetGradosParaInicializarInput = z.infer<typeof getGradosParaInicializarSchema>;
 export type InicializarGruposSeleccionadosInput = z.infer<typeof inicializarGruposSeleccionadosSchema>;
+export type InscribirAlumnosTransicionInput = z.infer<typeof inscribirAlumnosTransicionSchema>;

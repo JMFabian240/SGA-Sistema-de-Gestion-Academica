@@ -322,6 +322,53 @@ export class GruposService {
     return { success: true };
   }
 
+  static async inscribirAlumnosTransicion(input: InscribirAlumnosTransicionInput) {
+    // Validar ciclo destino
+    const cicloDestino = await prisma.cicloEscolar.findUnique({
+      where: { cicloId: input.cicloDestinoId, eliminadoEn: null }
+    });
+
+    if (!cicloDestino) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Ciclo destino no encontrado.' });
+    }
+
+    return prisma.$transaction(async (tx) => {
+      let inscritos = 0;
+      for (const [grupoDestinoIdStr, alumnoIds] of Object.entries(input.alumnosPorGrupo)) {
+        const grupoDestinoId = parseInt(grupoDestinoIdStr, 10);
+        const grupo = await tx.grupo.findUnique({ where: { grupoId: grupoDestinoId } });
+        if (!grupo) continue;
+
+        for (const alumnoId of alumnoIds) {
+          // Check if already enrolled
+          const existing = await tx.inscripcionCiclo.findFirst({
+            where: { alumnoId, cicloId: input.cicloDestinoId, eliminadoEn: null }
+          });
+          if (existing) continue;
+
+          await tx.inscripcionCiclo.create({
+            data: {
+              alumnoId,
+              cicloId: input.cicloDestinoId,
+              grupoId: grupoDestinoId,
+              estadoEnCiclo: 'INSCRITO',
+              fechaIngreso: new Date(),
+              estadoFinanciero: 'AL_CORRIENTE'
+            }
+          });
+
+          // Update student status to ACTIVO
+          await tx.alumno.update({
+            where: { alumnoId },
+            data: { estado: 'ACTIVO', actualizadoEn: new Date() }
+          });
+          inscritos++;
+        }
+      }
+      return { success: true, inscritos };
+    });
+  }
+
   static async updateCiclo(input: UpdateCicloEscolarInput) {
     const { cicloId, fechaInicio, fechaFin, ...data } = input;
     

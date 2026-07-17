@@ -10,7 +10,8 @@ import {
   createGrupoSchema, updateGrupoSchema,
   assignMateriaGrupoSchema, unassignMateriaGrupoSchema,
   getAlumnosCierreGrupoSchema, cerrarCicloGrupoSchema,
-  getGradosParaInicializarSchema, inicializarGruposSeleccionadosSchema
+  getGradosParaInicializarSchema, inicializarGruposSeleccionadosSchema,
+  inscribirAlumnosTransicionSchema
 } from './grupos.schema';
 
 const lectura = protectedProcedure.use(hasModulePermission('Grupos', false));
@@ -60,6 +61,7 @@ export const gruposRouter = router({
   unassignMateria: escritura.input(unassignMateriaGrupoSchema).mutation(({ input }) => GruposService.unassignMateriaFromGrupo(input)),
   getAlumnosCierreGrupo: escritura.input(getAlumnosCierreGrupoSchema).query(({ input }) => GruposService.getAlumnosCierreGrupo(input.grupoId)),
   cerrarCicloGrupo: escritura.input(cerrarCicloGrupoSchema).mutation(({ input }) => GruposService.cerrarCicloGrupo(input)),
+  inscribirAlumnosTransicion: escritura.input(inscribirAlumnosTransicionSchema).mutation(({ input }) => GruposService.inscribirAlumnosTransicion(input)),
 
   // --- Inicialización Selectiva de Grupos ---
   getGradosParaInicializar: lectura
