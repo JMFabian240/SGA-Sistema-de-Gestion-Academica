@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { trpc } from '../../../lib/trpc';
 import { RefreshCw, ArrowLeft, Users, AlertTriangle, PlusCircle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
@@ -13,6 +13,7 @@ type Props = {
 export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBack }: Props) {
   const [selectedGrupoId, setSelectedGrupoId] = useState<number | null>(null);
   const [isGrupoModalOpen, setIsGrupoModalOpen] = useState(false);
+  const [alumnosSeleccionados, setAlumnosSeleccionados] = useState<Record<number, boolean>>({});
 
   const { data: ciclos } = trpc.grupos.getCiclos.useQuery();
   const cicloDestino = ciclos?.find((c: any) => c.cicloId === cicloDestinoId);
@@ -38,6 +39,14 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
     ?.filter((ins: any) => ins.grupoId === selectedGrupoId)
     .map((ins: any) => ins.alumno) || [];
 
+  useEffect(() => {
+    if (selectedGrupoId && alumnosCandidatos.length > 0) {
+      const initial: Record<number, boolean> = {};
+      alumnosCandidatos.forEach((a: any) => initial[a.alumnoId] = true);
+      setAlumnosSeleccionados(initial);
+    }
+  }, [selectedGrupoId, inscripcionesOrigen]);
+
   const gradoActual = grupoSeleccionado?.grado;
   const nivelActual = grupoSeleccionado?.nivel;
 
@@ -61,9 +70,16 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
       alert('No hay grupo sugerido/disponible para inscribir a estos alumnos.');
       return;
     }
+    
+    const seleccionados = alumnosCandidatos.filter((a: any) => alumnosSeleccionados[a.alumnoId]);
+    
+    if (seleccionados.length === 0) {
+      alert('Debes seleccionar al menos un alumno para inscribir.');
+      return;
+    }
 
     const alumnosPorGrupo = {
-      [grupoSugerido.grupoId]: alumnosCandidatos.map((a: any) => a.alumnoId)
+      [grupoSugerido.grupoId]: seleccionados.map((a: any) => a.alumnoId)
     };
 
     inscribirMutation.mutate({
@@ -190,6 +206,19 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 text-xs uppercase">
               <tr>
+                <th className="px-6 py-3 font-semibold w-12 text-center">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300 text-navy-600 focus:ring-navy-500 cursor-pointer"
+                    checked={alumnosCandidatos.length > 0 && alumnosCandidatos.every((a: any) => alumnosSeleccionados[a.alumnoId])}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      const next: Record<number, boolean> = {};
+                      alumnosCandidatos.forEach((a: any) => next[a.alumnoId] = checked);
+                      setAlumnosSeleccionados(next);
+                    }}
+                  />
+                </th>
                 <th className="px-6 py-3 font-semibold">Matrícula</th>
                 <th className="px-6 py-3 font-semibold">Nombre</th>
                 <th className="px-6 py-3 font-semibold">Estado Actual</th>
@@ -198,14 +227,33 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
             <tbody className="divide-y divide-gray-100">
               {alumnosCandidatos.map((a: any) => (
                 <tr key={a.alumnoId} className="hover:bg-gray-50/50">
+                  <td className="px-6 py-3 text-center">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300 text-navy-600 focus:ring-navy-500 cursor-pointer"
+                      checked={alumnosSeleccionados[a.alumnoId] || false}
+                      onChange={(e) => {
+                        setAlumnosSeleccionados(prev => ({
+                          ...prev,
+                          [a.alumnoId]: e.target.checked
+                        }));
+                      }}
+                    />
+                  </td>
                   <td className="px-6 py-3 text-gray-500">{a.matricula || '-'}</td>
-                  <td className="px-6 py-3 font-medium text-gray-900">{a.apellidos}, {a.nombres}</td>
-                  <td className="px-6 py-3 text-gray-500">{a.estado}</td>
+                  <td className="px-6 py-3 font-medium text-gray-900">{a.nombreCompleto}</td>
+                  <td className="px-6 py-3 text-gray-500">
+                    <span className={`px-2 py-1 text-xs rounded-lg font-medium ${
+                      a.estado === 'TRANSICION_PENDIENTE' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {a.estado}
+                    </span>
+                  </td>
                 </tr>
               ))}
               {alumnosCandidatos.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-6 text-center text-gray-400">
+                  <td colSpan={4} className="px-6 py-6 text-center text-gray-400">
                     No hay alumnos registrados en este grupo del ciclo anterior.
                   </td>
                 </tr>
