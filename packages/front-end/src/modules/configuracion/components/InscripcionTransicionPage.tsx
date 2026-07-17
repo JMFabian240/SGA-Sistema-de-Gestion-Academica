@@ -21,6 +21,7 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
   const { data: gruposDestino } = trpc.grupos.getGrupos.useQuery({ cicloId: cicloDestinoId });
 
   const { data: grados } = trpc.grupos.getGrados.useQuery();
+  const { data: niveles } = trpc.grupos.getNiveles.useQuery();
   const { data: inscripcionesOrigen } = trpc.inscripciones.getInscripciones.useQuery({ cicloId: cicloOrigenId });
 
   const utils = trpc.useContext();
@@ -53,9 +54,23 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
   let gradoSiguienteInfo: any = null;
   let grupoSugerido: any = null;
 
-  if (gradoActual && nivelActual && grados) {
+  let esEgresoDefinitivo = false;
+
+  if (gradoActual && nivelActual && grados && niveles) {
     const numeroSiguiente = gradoActual.numero + 1;
     gradoSiguienteInfo = grados.find((g: any) => g.nivelId === nivelActual.nivelId && g.numero === numeroSiguiente);
+    
+    // Si no hay siguiente grado en este nivel, buscar el siguiente nivel por orden
+    if (!gradoSiguienteInfo) {
+      if (nivelActual.codigo === 'BAC') {
+        esEgresoDefinitivo = true;
+      } else {
+        const siguienteNivel = niveles.find((n: any) => n.orden === nivelActual.orden + 1);
+        if (siguienteNivel) {
+          gradoSiguienteInfo = grados.find((g: any) => g.nivelId === siguienteNivel.nivelId && g.numero === 1);
+        }
+      }
+    }
 
     if (gradoSiguienteInfo) {
       const posiblesGrupos = gruposDestino?.filter((g: any) => g.gradoId === gradoSiguienteInfo.gradoId) || [];
@@ -173,7 +188,14 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
       </div>
 
       <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-3">
-        {gradoSiguienteInfo ? (
+        {esEgresoDefinitivo ? (
+          <div>
+            <h4 className="font-bold text-emerald-900 mb-1">Egreso de Nivel</h4>
+            <p className="text-sm text-emerald-800">
+              Estos alumnos concluyeron el bachillerato. Al cerrar el ciclo, pasan directamente como <strong>Egresados</strong> y no requieren inscripción a un nuevo grado.
+            </p>
+          </div>
+        ) : gradoSiguienteInfo ? (
           <div>
             <h4 className="font-bold text-blue-900 mb-1">Destino: {gradoSiguienteInfo.nombre}</h4>
             {grupoSugerido ? (
@@ -267,9 +289,9 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
         <Button variant="ghost" onClick={() => setSelectedGrupoId(null)}>
           Cancelar
         </Button>
-        <Button
-          variant="primary"
-          disabled={!grupoSugerido || alumnosCandidatos.length === 0 || inscribirMutation.isLoading}
+        <Button 
+          variant="primary" 
+          disabled={esEgresoDefinitivo || !grupoSugerido || alumnosCandidatos.length === 0 || inscribirMutation.isLoading}
           onClick={handleInscribir}
           isLoading={inscribirMutation.isLoading}
         >
