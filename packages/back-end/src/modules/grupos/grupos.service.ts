@@ -346,11 +346,18 @@ export class GruposService {
           });
           if (existing) continue;
 
+          // Find most recent previous inscription to copy planPagoId
+          const previousInscripcion = await tx.inscripcionCiclo.findFirst({
+            where: { alumnoId, eliminadoEn: null },
+            orderBy: { fechaIngreso: 'desc' }
+          });
+
           await tx.inscripcionCiclo.create({
             data: {
               alumnoId,
               cicloId: input.cicloDestinoId,
               grupoId: grupoDestinoId,
+              planPagoId: previousInscripcion?.planPagoId || null,
               estadoEnCiclo: 'INSCRITO',
               fechaIngreso: new Date(),
               estadoFinanciero: 'AL_CORRIENTE'

@@ -93,9 +93,13 @@ export class PagosService {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'No hay tarifas activas para este nivel y ciclo.' });
       }
 
-      const planPago = await tx.planPago.findUnique({ where: { planPagoId: inscripcion.planPagoId! } });
+      if (!inscripcion.planPagoId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'El alumno no tiene un plan de pagos asignado para el ciclo actual.' });
+      }
+
+      const planPago = await tx.planPago.findUnique({ where: { planPagoId: inscripcion.planPagoId } });
       if (!planPago) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'El alumno no tiene un plan de pagos válido.' });
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'El plan de pagos asignado no es válido.' });
       }
 
       const { CalculadoraPagos } = require('../inscripciones/inscripciones.utils');
