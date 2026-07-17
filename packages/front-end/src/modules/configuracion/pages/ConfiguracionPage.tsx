@@ -334,6 +334,12 @@ export function ConfiguracionPage() {
     }
   });
 
+  const ciclosActivos = ciclos?.filter((c: any) => c.activo) || [];
+  const ciclosReady = ciclosActivos.filter((ciclo: any) => {
+    const gruposCiclo = grupos?.filter((g: any) => g.cicloId === ciclo.cicloId);
+    return gruposCiclo && gruposCiclo.length > 0 && gruposCiclo.every((g: any) => g.cerrado);
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-8xl mx-auto p-4 sm:p-6 lg:p-8">
       {/* Title */}
@@ -934,9 +940,25 @@ export function ConfiguracionPage() {
           <div className="space-y-6">
             {!selectedGrupoCierreId ? (
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-                <div className="border-b border-gray-100 pb-4">
-                  <h3 className="text-lg font-bold text-navy-800">Cierre de Ciclo por Grupos</h3>
-                  <p className="text-xs text-gray-500">Selecciona un grupo para verificar el estado de sus alumnos y proceder con el cierre de ciclo.</p>
+                <div className="border-b border-gray-100 pb-4 flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-bold text-navy-800">Cierre de Ciclo por Grupos</h3>
+                    <p className="text-xs text-gray-500">Selecciona un grupo para verificar el estado de sus alumnos y proceder con el cierre de ciclo.</p>
+                  </div>
+                  {ciclosReady && ciclosReady.length > 0 && (
+                    <div className="flex flex-col gap-2 items-end">
+                      {ciclosReady.map((ciclo: any) => (
+                        <button
+                          key={ciclo.cicloId}
+                          onClick={() => setWizardCiclo(ciclo)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors shadow-sm cursor-pointer text-sm"
+                        >
+                          <CheckCircle size={16} />
+                          Transicionar Ciclo {ciclo.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {loadingGrupos ? (
