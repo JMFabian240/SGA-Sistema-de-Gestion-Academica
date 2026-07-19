@@ -34,7 +34,7 @@ export class CalculadoraPagos {
     const meses10 = ['Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
     const meses12 = ['Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'];
 
-    const mesesToUse = plan.meses === 12 ? meses12 : meses10;
+    const mesesToUse = plan.meses === 12 ? meses12 : meses10.slice(0, plan.meses);
     const adeudos: any[] = [];
     
     // La tarifa que está configurada en la BD es la Anual
