@@ -9,7 +9,8 @@ import type {
   AssignMateriaGrupoInput, UnassignMateriaGrupoInput,
   CerrarCicloGrupoInput,
   InicializarGruposSeleccionadosInput,
-  TransicionCicloInput, CerrarCicloInput
+  TransicionCicloInput, CerrarCicloInput,
+  InscribirAlumnosTransicionInput
 } from './grupos.schema';
 import { GruposRepository } from './grupos.repository';
 
@@ -178,7 +179,7 @@ export class GruposService {
   static async createCiclo(input: CreateCicloEscolarInput) {
     let gradosPermitidos = input.gradosPermitidos;
     const { clonarGruposDesdeCicloId, clonarTarifasDesdeCicloId, ...cicloData } = input;
-    
+
     if (!gradosPermitidos) {
       const per = input.periodicidad || 'ANUAL';
       const nivCodigos = per === 'ANUAL' ? ['PRE', 'PRI', 'SEC'] : ['BAC'];
@@ -218,28 +219,28 @@ export class GruposService {
         include: { materias: true }
       });
 
-    for (const grupo of gruposOrigen) {
-      const nuevoGrupo = await prisma.grupo.create({
-        data: {
-          nivelId: grupo.nivelId,
-          cicloId: cicloDestinoId,
-          nombre: grupo.nombre,
-          cupoMaximo: grupo.cupoMaximo,
-          gradoId: grupo.gradoId
-        }
-      });
-
-      // Clonar Materias
-      for (const gm of grupo.materias) {
-        await prisma.grupoMateria.create({
+      for (const grupo of gruposOrigen) {
+        const nuevoGrupo = await prisma.grupo.create({
           data: {
-            grupoId: nuevoGrupo.grupoId,
-            materiaId: gm.materiaId,
-            docenteId: gm.docenteId // Se clona el docente, se puede editar luego
+            nivelId: grupo.nivelId,
+            cicloId: cicloDestinoId,
+            nombre: grupo.nombre,
+            cupoMaximo: grupo.cupoMaximo,
+            gradoId: grupo.gradoId
           }
         });
+
+        // Clonar Materias
+        for (const gm of grupo.materias) {
+          await prisma.grupoMateria.create({
+            data: {
+              grupoId: nuevoGrupo.grupoId,
+              materiaId: gm.materiaId,
+              docenteId: gm.docenteId // Se clona el docente, se puede editar luego
+            }
+          });
+        }
       }
-    }
     }
 
     // Clonar Tarifas
@@ -272,8 +273,8 @@ export class GruposService {
     });
 
     if (gruposAbiertos.length > 0) {
-      throw new TRPCError({ 
-        code: 'BAD_REQUEST', 
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
         message: `Faltan grupos por cerrar (${gruposAbiertos.map(g => g.nombre).join(', ')})`
       });
     }
@@ -378,7 +379,7 @@ export class GruposService {
 
   static async updateCiclo(input: UpdateCicloEscolarInput) {
     const { cicloId, fechaInicio, fechaFin, ...data } = input;
-    
+
     const updateData = {
       ...data,
       ...(fechaInicio && { fechaInicio: new Date(fechaInicio) }),
@@ -442,7 +443,7 @@ export class GruposService {
 
   static async createMateria(input: CreateMateriaInput) {
     let { clave, grupoId, ...data } = input;
-    
+
     let gradoId = data.gradoId;
     if (grupoId) {
       const grupo = await prisma.grupo.findUnique({
@@ -481,10 +482,10 @@ export class GruposService {
       }
     }
 
-    const materia = await GruposRepository.createMateria({ 
-      ...data, 
+    const materia = await GruposRepository.createMateria({
+      ...data,
       gradoId,
-      clave 
+      clave
     });
 
     if (grupoId) {
@@ -513,10 +514,10 @@ export class GruposService {
       }
     }
 
-    const updatedMateria = await GruposRepository.updateMateria(materiaId, { 
-      ...data, 
-      ...(gradoId !== undefined && { gradoId }), 
-      actualizadoEn: new Date() 
+    const updatedMateria = await GruposRepository.updateMateria(materiaId, {
+      ...data,
+      ...(gradoId !== undefined && { gradoId }),
+      actualizadoEn: new Date()
     });
 
     if (grupoId) {
@@ -528,7 +529,7 @@ export class GruposService {
         await prisma.grupoMateria.deleteMany({
           where: { materiaId }
         });
-        
+
         await prisma.grupoMateria.create({
           data: {
             grupoId,
@@ -574,7 +575,7 @@ export class GruposService {
     if (match) {
       const numeroGrado = parseInt(match[1], 10);
       const gradosPermitidos = ciclo.gradosPermitidos as Record<string, number[]> | null;
-      
+
       let gradoPermitido = false;
       if (gradosPermitidos) {
         // Find if this number exists in any of the allowed levels
@@ -651,8 +652,8 @@ export class GruposService {
           estadoCobro: { in: ['VENCIDO', 'PENDIENTE'] }
         }
       });
-      const tieneAdeudo = adeudos.some(a => 
-        a.estadoCobro === 'VENCIDO' || 
+      const tieneAdeudo = adeudos.some(a =>
+        a.estadoCobro === 'VENCIDO' ||
         (a.estadoCobro === 'PENDIENTE' && new Date(a.fechaVencimiento) < new Date())
       );
 
@@ -663,8 +664,8 @@ export class GruposService {
           grupoMateria: { grupoId }
         }
       });
-      const tieneReprobadas = calificaciones.some(c => 
-        (c.valorNumerico !== null && Number(c.valorNumerico) < 6.0) || 
+      const tieneReprobadas = calificaciones.some(c =>
+        (c.valorNumerico !== null && Number(c.valorNumerico) < 6.0) ||
         c.valorCualitativo === 'NA'
       );
 
