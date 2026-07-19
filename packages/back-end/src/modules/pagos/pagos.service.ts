@@ -102,12 +102,16 @@ export class PagosService {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'El plan de pagos asignado no es válido.' });
       }
 
+      const configGlobal = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
+      const diaVencimiento = configGlobal?.diaVencimientoMensual || 1;
+      
       const { CalculadoraPagos } = require('../inscripciones/inscripciones.utils');
       const tarifasParaCalculadora = tarifas.map(t => ({ concepto: t.concepto, monto: Number(t.monto) }));
       const adeudosIdeales = CalculadoraPagos.generarCalendario(
         { meses: planPago.meses },
         tarifasParaCalculadora,
-        new Date(inscripcion.fechaIngreso)
+        new Date(inscripcion.fechaIngreso),
+        diaVencimiento
       );
 
       // 3. Obtener TODOS los adeudos PENDIENTE o ABONO para el ciclo actual (cualquier concepto)

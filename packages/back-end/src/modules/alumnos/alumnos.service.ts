@@ -118,7 +118,9 @@ export class AlumnosService {
               const tarifasParaCalculadora = tarifas.map(t => ({ concepto: t.concepto, monto: Number(t.monto) }));
               const { CalculadoraPagos } = require('../inscripciones/inscripciones.utils');
               const planBase = { meses: planPago.meses };
-              const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso));
+              const configGlobal = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
+              const diaVencimiento = configGlobal?.diaVencimientoMensual || 1;
+              const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso), diaVencimiento);
               const adeudosParaInsertar = adeudosCalculados.map((a: any) => ({
                 alumnoId: alumno.alumnoId,
                 cicloId: cicloActivo.cicloId,
