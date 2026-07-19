@@ -4,3 +4,4 @@ dist/
 build/
 target/
 src-tauri/binaries/*.exe
+packages/back-end/uploads/
