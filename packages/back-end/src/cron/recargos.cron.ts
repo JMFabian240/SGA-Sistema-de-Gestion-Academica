@@ -53,5 +53,7 @@ export function initCronRecargos() {
     } catch (err) {
       console.error('[CRON] Error calculando recargos:', err);
     }
+  }, {
+    timezone: "America/Mexico_City"
   });
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { trpc } from '../../../lib/trpc';
 import { RefreshCw, ArrowLeft, Users, AlertTriangle, PlusCircle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
@@ -36,9 +36,11 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
 
   const grupoSeleccionado = gruposOrigen?.find((g: any) => g.grupoId === selectedGrupoId) as any;
 
-  const alumnosCandidatos = inscripcionesOrigen
-    ?.filter((ins: any) => ins.grupoId === selectedGrupoId && ins.alumno.estado === 'TRANSICION_PENDIENTE')
-    .map((ins: any) => ins.alumno) || [];
+  const alumnosCandidatos = useMemo(() => {
+    return inscripcionesOrigen
+      ?.filter((ins: any) => ins.grupoId === selectedGrupoId && ins.alumno.estado === 'TRANSICION_PENDIENTE')
+      .map((ins: any) => ins.alumno) || [];
+  }, [inscripcionesOrigen, selectedGrupoId]);
 
   useEffect(() => {
     if (selectedGrupoId && alumnosCandidatos.length > 0) {
@@ -46,7 +48,7 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
       alumnosCandidatos.forEach((a: any) => initial[a.alumnoId] = true);
       setAlumnosSeleccionados(initial);
     }
-  }, [selectedGrupoId, inscripcionesOrigen]);
+  }, [selectedGrupoId, alumnosCandidatos]);
 
   const gradoActual = grupoSeleccionado?.grado;
   const nivelActual = grupoSeleccionado?.nivel;

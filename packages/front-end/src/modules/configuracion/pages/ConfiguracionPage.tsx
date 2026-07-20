@@ -148,9 +148,8 @@ export function ConfiguracionPage() {
         diaVencimientoMensual: parseInt(configValores.diaVencimientoMensual, 10)
       });
       setEditandoConfiguracion(false);
-    } catch (error) {
-      console.error(error);
-      alert('Error al guardar la configuración');
+    } catch (error: any) {
+      alert(error.message || 'Error al guardar la configuración');
     }
   };
   
@@ -203,7 +202,7 @@ export function ConfiguracionPage() {
       const active = ciclosAnuales.find((c: any) => c.activo);
       setSelectedCicloId(active ? active.cicloId : ciclosAnuales[0].cicloId);
     }
-  }, [ciclos, selectedCicloId]);
+  }, [ciclosAnuales, selectedCicloId]);
 
   useEffect(() => {
     if (tarifas && nivelesAnuales) {
@@ -221,7 +220,7 @@ export function ConfiguracionPage() {
       setTarifaValores(valores);
       setTarifaExisten(existen);
     }
-  }, [tarifas, niveles]);
+  }, [tarifas, nivelesAnuales]);
 
   // --- Efectos SEMESTRAL ---
   useEffect(() => {
@@ -233,7 +232,7 @@ export function ConfiguracionPage() {
       const active = ciclosSemestrales.find((c: any) => c.activo);
       setSelectedCicloSemId(active ? active.cicloId : ciclosSemestrales[0].cicloId);
     }
-  }, [ciclos, selectedCicloSemId]);
+  }, [ciclosSemestrales, selectedCicloSemId]);
 
   useEffect(() => {
     if (tarifasSem && nivelesSemestrales) {
@@ -251,7 +250,7 @@ export function ConfiguracionPage() {
       setTarifaValoresSem(valores);
       setTarifaExistenSem(existen);
     }
-  }, [tarifasSem, niveles]);
+  }, [tarifasSem, nivelesSemestrales]);
 
   // --- Handlers ANUAL ---
   const handleTarifaChange = (nivelId: number, concepto: string, value: string) => {
@@ -305,8 +304,8 @@ export function ConfiguracionPage() {
       setEditandoTarifas(false);
       utils.pagos.getTarifas.invalidate({ cicloId: selectedCicloId });
       setTimeout(() => setTarifaSuccess(false), 3000);
-    } catch (err) {
-      alert('Excepción: Ocurrió un error al guardar algunas tarifas.');
+    } catch (err: any) {
+      alert(err.message || 'Excepción: Ocurrió un error al guardar algunas tarifas.');
     } finally {
       setGuardandoTarifas(false);
     }
@@ -349,8 +348,8 @@ export function ConfiguracionPage() {
       setEditandoTarifasSem(false);
       utils.pagos.getTarifas.invalidate({ cicloId: selectedCicloSemId });
       setTimeout(() => setTarifaSuccessSem(false), 3000);
-    } catch (err) {
-      alert('Excepción: Ocurrió un error al guardar algunas tarifas semestrales.');
+    } catch (err: any) {
+      alert(err.message || 'Excepción: Ocurrió un error al guardar algunas tarifas semestrales.');
     } finally {
       setGuardandoTarifasSem(false);
     }
@@ -1318,7 +1317,7 @@ export function ConfiguracionPage() {
                     promociones
                   });
                   setShowConfirmModal2(false);
-                } catch (e) {
+                } catch {
                   // error handles in mutation
                 }
               }}

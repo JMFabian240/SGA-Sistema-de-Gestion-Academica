@@ -37,8 +37,9 @@ export function NuevoCargoModal({ isOpen, onClose, alumnoId, cicloId }: NuevoCar
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!concepto || !monto || !fechaVencimiento) {
-      setErrorMsg('Todos los campos son obligatorios.');
+    const montoNum = Number(monto);
+    if (!concepto || isNaN(montoNum) || montoNum <= 0 || !fechaVencimiento) {
+      setErrorMsg('Todos los campos son obligatorios y el monto debe ser mayor a 0.');
       return;
     }
 

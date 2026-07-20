@@ -25,9 +25,9 @@ export function VincularTutorModal({ isOpen, alumnoId, onClose, onSuccess, onReg
         parentesco: 'Tutor',
       });
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al vincular tutor:', error);
-      alert('Ocurrió un error al vincular el tutor.');
+      alert(error.message || 'Ocurrió un error al vincular el tutor.');
     }
   };
 

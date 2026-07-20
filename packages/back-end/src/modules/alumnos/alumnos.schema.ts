@@ -5,7 +5,10 @@ const EstadoAlumno = z.enum([
   'BAJA_DEFINITIVA',
   'BAJA_TEMPORAL',
   'EGRESADO',
-  'TRANSICION_PENDIENTE'
+  'TRANSICION_PENDIENTE',
+  'RETENCION_FINANCIERA',
+  'RETENCION_ACADEMICA',
+  'PREINSCRIPCION'
 ]);
 
 export const createAlumnoSchema = z.object({

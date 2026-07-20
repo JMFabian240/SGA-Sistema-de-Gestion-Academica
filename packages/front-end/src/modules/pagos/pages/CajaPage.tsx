@@ -5,12 +5,44 @@ import toast from 'react-hot-toast';
 import { TicketCheckout } from '../components/TicketCheckout';
 import { NuevoCargoModal } from '../components/NuevoCargoModal';
 
+// Tipos definidos para evitar `any`
+interface Adeudo {
+  calendarioPagoId: number;
+  concepto: string;
+  saldoPendiente: number | string;
+  fechaVencimiento: string | Date;
+  estadoCobro: string;
+  montoPagado?: number | string | null;
+  montoRecargo?: number | string | null;
+  cicloId?: number;
+}
+
+interface Alumno {
+  alumnoId: number;
+  nombreCompleto: string;
+  matricula: string | null;
+  nivel?: { nombre: string };
+  grado?: { nombre: string };
+  inscripciones?: { cicloId: number }[];
+  tutoresAlumnos?: { tutorId: number, tutor: { nombreCompleto: string }, esPrincipal: boolean }[];
+}
+
+interface CuentaPendiente {
+  alumnoId: number;
+  tutorId?: number;
+  nombreAlumno: string;
+  nombreTutor?: string;
+  deudaMonto: number | string;
+  nivelNombre?: string;
+}
+
+
 export function CajaPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAlumnoId, setSelectedAlumnoId] = useState<number | null>(null);
   const [selectedTutorId, setSelectedTutorId] = useState<number | null>(null);
 
-  const [adeudosSeleccionados, setAdeudosSeleccionados] = useState<any[]>([]);
+  const [adeudosSeleccionados, setAdeudosSeleccionados] = useState<Adeudo[]>([]);
   const [isCargoModalOpen, setIsCargoModalOpen] = useState(false);
 
   // Queries para Dashboard de Caja
@@ -25,21 +57,21 @@ export function CajaPage() {
 
   // Filtrar en memoria por simplicidad para la UI rápida
   const alumnosFiltrados = searchTerm.length > 2
-    ? (alumnos as any[]).filter((a: any) =>
+    ? (alumnos as unknown as Alumno[]).filter((a: Alumno) =>
       a.nombreCompleto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.matricula?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     : [];
 
   // Agrupar cuentas pendientes por nivel educativo
-  const cuentasPorNivel = cuentasPendientes.reduce((acc, cuenta) => {
-    const nivel = (cuenta as any).nivelNombre || 'Sin Nivel';
+  const cuentasPorNivel = (cuentasPendientes as unknown as CuentaPendiente[]).reduce((acc, cuenta) => {
+    const nivel = cuenta.nivelNombre || 'Sin Nivel';
     if (!acc[nivel]) {
       acc[nivel] = [];
     }
     acc[nivel].push(cuenta);
     return acc;
-  }, {} as Record<string, typeof cuentasPendientes>);
+  }, {} as Record<string, CuentaPendiente[]>);
 
   // Ordenar niveles (Preescolar, Primaria, Secundaria, Bachillerato)
   const nivelesOrdenados = Object.entries(cuentasPorNivel).sort(([nivelA], [nivelB]) => {
@@ -77,7 +109,7 @@ export function CajaPage() {
   };
 
   // Toggle de un adeudo
-  const toggleAdeudo = (adeudo: any) => {
+  const toggleAdeudo = (adeudo: Adeudo) => {
     const isSelected = adeudosSeleccionados.some(a => a.calendarioPagoId === adeudo.calendarioPagoId);
     if (isSelected) {
       setAdeudosSeleccionados(prev => prev.filter(a => a.calendarioPagoId !== adeudo.calendarioPagoId));
@@ -88,7 +120,7 @@ export function CajaPage() {
 
   // Marcar todos
   const toggleAll = () => {
-    const pendientes = adeudos.filter(a => a.estadoCobro === 'PENDIENTE');
+    const pendientes = (adeudos as unknown as Adeudo[]).filter(a => a.estadoCobro === 'PENDIENTE');
     if (adeudosSeleccionados.length === pendientes.length) {
       setAdeudosSeleccionados([]); // Desmarcar todos
     } else {
@@ -101,7 +133,7 @@ export function CajaPage() {
     refetchAdeudos(); // Recargar el estado de cuenta
   };
 
-  const alumnoSeleccionado = (alumnos as any[]).find((a: any) => a.alumnoId === selectedAlumnoId);
+  const alumnoSeleccionado = (alumnos as unknown as Alumno[]).find((a: Alumno) => a.alumnoId === selectedAlumnoId);
 
   return (
     <div className="h-full flex flex-col p-6 max-w-7xl mx-auto w-full gap-6">
@@ -217,7 +249,7 @@ export function CajaPage() {
                     return (
                       <div
                         key={adeudo.calendarioPagoId}
-                        onClick={() => !isPagado && toggleAdeudo(adeudo)}
+                        onClick={() => !isPagado && toggleAdeudo(adeudo as unknown as Adeudo)}
                         className={`p-4 rounded-2xl border-2 flex items-center gap-4 transition-all ${isPagado ? 'bg-slate-50 border-slate-100 opacity-60 cursor-not-allowed' :
                           isSelected ? 'bg-blue-50 border-blue-400 cursor-pointer shadow-sm' :
                             'bg-white border-slate-100 hover:border-blue-200 cursor-pointer'
@@ -273,7 +305,7 @@ export function CajaPage() {
             <TicketCheckout
               alumnoId={selectedAlumnoId}
               tutorId={selectedTutorId}
-              adeudosSeleccionados={adeudosSeleccionados}
+              adeudosSeleccionados={adeudosSeleccionados as any}
               onCheckoutSuccess={handleCheckoutSuccess}
             />
           </div>

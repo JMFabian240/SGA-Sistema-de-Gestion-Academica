@@ -7,7 +7,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { Input } from '../../../components/ui/Input';
 import { Spinner } from '../../../components/ui/Spinner';
 
-export const MODULOS_SISTEMA = [
+const MODULOS_SISTEMA = [
   'Usuarios',
   'Alumnos',
   'Tutores',

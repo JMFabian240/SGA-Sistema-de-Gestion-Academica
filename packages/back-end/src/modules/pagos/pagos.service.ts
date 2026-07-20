@@ -640,6 +640,7 @@ export class PagosService {
         data: {
           montoRecargo: nuevoMontoRecargo,
           saldoPendiente: nuevoSaldoPendiente,
+          estadoCobro: EstadoCobro.VENCIDO,
           actualizadoEn: new Date()
         }
       });

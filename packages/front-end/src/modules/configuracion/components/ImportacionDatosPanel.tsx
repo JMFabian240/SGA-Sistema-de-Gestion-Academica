@@ -12,7 +12,7 @@ const FLUJOS = [
   { id: 'TODAS', nombre: 'Todas (Solo Descarga)', disponible: true },
 ];
 
-export function ImportacionDatosPanel({ }: { ciclos: any[] }) {
+export function ImportacionDatosPanel(_props: { ciclos: any[] }) {
   const [flujoSeleccionado, setFlujoSeleccionado] = useState<FlujoImportacion>('CATALOGO');
   const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);

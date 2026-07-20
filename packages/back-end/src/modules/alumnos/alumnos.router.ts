@@ -19,8 +19,8 @@ export const alumnosRouter = router({
    */
   getById: lectura
     .input(z.number().int().positive())
-    .query(({ input }) => {
-      return AlumnosService.getAlumnoById(input);
+    .query(async ({ input }): Promise<any> => {
+      return await AlumnosService.getAlumnoById(input);
     }),
 
   /**

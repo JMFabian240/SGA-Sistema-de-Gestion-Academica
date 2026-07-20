@@ -3,12 +3,16 @@ import { trpc } from '../../../lib/trpc';
 import { ReciboPrintTemplate } from './ReciboPrintTemplate';
 import { CreditCard, Banknote, ReceiptText, Save, UploadCloud, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useReactToPrint } from 'react-to-print';
+
+type MetodoPago = 'DEPOSITO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO';
+
 
 interface Adeudo {
   calendarioPagoId: number;
   concepto: string;
-  saldoPendiente: number;
-  fechaVencimiento: string;
+  saldoPendiente: number | string;
+  fechaVencimiento: string | Date;
 }
 
 interface TicketCheckoutProps {
@@ -22,7 +26,7 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
   const totalAdeudos = adeudosSeleccionados.reduce((acc, curr) => acc + Number(curr.saldoPendiente), 0);
   
   const [montoPago, setMontoPago] = useState<string>(totalAdeudos.toString());
-  const [metodoPago, setMetodoPago] = useState<'DEPOSITO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO'>('DEPOSITO');
+  const [metodoPago, setMetodoPago] = useState<MetodoPago>('DEPOSITO');
   const [observaciones, setObservaciones] = useState('');
   const [requiereFactura, setRequiereFactura] = useState(false);
 
@@ -59,24 +63,10 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = () => {
-    // Método nativo súper confiable
-    if (!printRef.current) return;
-    const printContent = printRef.current.innerHTML;
-    const originalContent = document.body.innerHTML;
-    
-    // Configuramos título para que al dar "Guardar PDF" en el diálogo nativo se llame bien
-    const originalTitle = document.title;
-    document.title = reciboPrintData ? `Recibo_SGA_${reciboPrintData.pagoId}` : 'Recibo';
-    
-    document.body.innerHTML = printContent;
-    window.print();
-    
-    // Restauramos el estado del dom
-    document.body.innerHTML = originalContent;
-    document.title = originalTitle;
-    window.location.reload(); 
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: reciboPrintData ? `Recibo_SGA_${reciboPrintData.pagoId}` : 'Recibo',
+  });
 
   useEffect(() => {
     // Si cambia la selección, ajustamos el monto a pagar por defecto
@@ -154,7 +144,7 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
       tutorId,
       fechaPago: new Date().toISOString(),
       montoTotal: monto,
-      metodoPago: metodoPago as any,
+      metodoPago,
       requiereFactura,
       observaciones: observaciones || undefined,
       aplicadoASaldo: false,
@@ -219,7 +209,7 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
             ].map(mp => (
               <button
                 key={mp.id}
-                onClick={() => setMetodoPago(mp.id as any)}
+                onClick={() => setMetodoPago(mp.id as MetodoPago)}
                 className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-sm font-semibold transition-all ${
                   metodoPago === mp.id 
                   ? 'border-blue-500 bg-blue-50 text-blue-700' 
