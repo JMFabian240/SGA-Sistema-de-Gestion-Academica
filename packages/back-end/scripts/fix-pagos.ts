@@ -84,7 +84,7 @@ async function main() {
             tutorId,
             fechaPago: new Date(),
             montoTotal,
-            metodoPago: MetodoPago.EFECTIVO,
+            metodoPago: MetodoPago.DEPOSITO,
             aplicadoASaldo: false,
             requiereFactura: false,
             observaciones: 'Pago automático - script de corrección',

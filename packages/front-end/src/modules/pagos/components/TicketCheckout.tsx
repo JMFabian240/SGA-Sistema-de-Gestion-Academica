@@ -22,7 +22,7 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
   const totalAdeudos = adeudosSeleccionados.reduce((acc, curr) => acc + Number(curr.saldoPendiente), 0);
   
   const [montoPago, setMontoPago] = useState<string>(totalAdeudos.toString());
-  const [metodoPago, setMetodoPago] = useState<'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO' | 'DEPOSITO'>('EFECTIVO');
+  const [metodoPago, setMetodoPago] = useState<'DEPOSITO' | 'TRANSFERENCIA' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO'>('DEPOSITO');
   const [observaciones, setObservaciones] = useState('');
   const [requiereFactura, setRequiereFactura] = useState(false);
 
@@ -212,7 +212,7 @@ export function TicketCheckout({ alumnoId, tutorId, adeudosSeleccionados, onChec
           <label className="block text-sm font-bold text-slate-700 mb-2">Método de Pago</label>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { id: 'EFECTIVO', label: 'Efectivo', icon: Banknote },
+              { id: 'DEPOSITO', label: 'Depósito', icon: Banknote },
               { id: 'TRANSFERENCIA', label: 'Transferencia', icon: CreditCard },
               { id: 'TARJETA_DEBITO', label: 'Débito', icon: CreditCard },
               { id: 'TARJETA_CREDITO', label: 'Crédito', icon: CreditCard },

@@ -102,7 +102,8 @@ export const cerrarCicloGrupoSchema = z.object({
   grupoId: z.number().int().positive(),
   promociones: z.array(z.object({
     alumnoId: z.number().int().positive(),
-    promover: z.boolean()
+    promover: z.boolean(),
+    motivoRetencionOverride: z.enum(['RETENCION_FINANCIERA', 'RETENCION_ACADEMICA', 'BAJA_DEFINITIVA']).optional()
   }))
 });
 

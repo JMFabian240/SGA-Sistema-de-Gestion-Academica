@@ -205,6 +205,7 @@ export function AlumnosPage() {
             <option value="BAJA_TEMPORAL">Baja Temporal</option>
             <option value="BAJA_DEFINITIVA">Baja Definitiva</option>
             <option value="TRANSICION_PENDIENTE">Transición Pendiente</option>
+            <option value="EGRESADO">Egresado</option>
           </select>
         </div>
 

@@ -110,7 +110,7 @@ describe('Pagos Router (Integration)', () => {
       tutorId: 1,
       fechaPago: new Date().toISOString(),
       montoTotal: 100,
-      metodoPago: 'EFECTIVO', // Inválido (no está en el enum)
+      metodoPago: 'DEPOSITO', // Inválido (no está en el enum)
       aplicaciones: [] // Inválido (requiere min 1)
     };
 

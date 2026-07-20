@@ -43,7 +43,7 @@ export const PagosAnterioresSchema = z.object({
     (val) => val === undefined || val === null || val === '' ? undefined : parseFloat(String(val)),
     z.number({ required_error: 'El Monto Total es obligatorio', invalid_type_error: 'El Monto Total debe ser numérico' }).min(0.01, 'El monto debe ser mayor a 0')
   ),
-  'Metodo Pago': z.enum(['EFECTIVO', 'TRANSFERENCIA', 'TARJETA_DEBITO', 'TARJETA_CREDITO']).default('EFECTIVO'),
+  'Metodo Pago': z.enum(['DEPOSITO', 'TRANSFERENCIA', 'TARJETA_DEBITO', 'TARJETA_CREDITO']).default('DEPOSITO'),
   'Observaciones': z.string().optional(),
 });
 

@@ -96,7 +96,7 @@ describe('Reportes Router (Unit)', () => {
           fechaPago: new Date('2023-01-15T12:00:00Z'),
           alumno: { nombreCompleto: 'Alumno Pagador' },
           tutor: { nombreCompleto: 'Tutor Pagador' },
-          metodoPago: 'EFECTIVO',
+          metodoPago: 'DEPOSITO',
           montoTotal: 3000,
           registrador: { nombreCompleto: 'Cajero' }
         }

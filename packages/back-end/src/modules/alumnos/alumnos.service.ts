@@ -376,4 +376,29 @@ export class AlumnosService {
   static async unlinkTutor(input: UnlinkTutorInput) {
     return AlumnosRepository.deleteTutorAlumnoRelation(input.tutorAlumnoId);
   }
+
+  /**
+   * Activa a un alumno que se encuentra en PREINSCRIPCION
+   * Este método está diseñado para ser consumido por el módulo de pagos
+   */
+  static async activarAlumnoPorPago(alumnoId: number, _cicloId?: number) {
+    const alumno = await prisma.alumno.findUnique({
+      where: { alumnoId }
+    });
+
+    if (!alumno) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Alumno no encontrado' });
+    }
+
+    if (alumno.estado !== 'PREINSCRIPCION') {
+      return { success: true, message: 'El alumno no requiere activación (no está en PREINSCRIPCION).' };
+    }
+
+    await prisma.alumno.update({
+      where: { alumnoId },
+      data: { estado: 'ACTIVO', actualizadoEn: new Date() }
+    });
+
+    return { success: true, message: 'Alumno activado correctamente tras registro de pago.' };
+  }
 }

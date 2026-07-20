@@ -359,7 +359,7 @@ let pagosCsv =
 let saldosCsv =
   'Tipo de Ciclo,Matricula,CURP Alumno,Nombre Alumno,Concepto,Mes,Fecha Vencimiento,Monto Original,Monto Pagado,Estado Cobro\n';
 
-const metodosPago = ['EFECTIVO', 'TRANSFERENCIA', 'TARJETA_DEBITO'];
+const metodosPago = ['DEPOSITO', 'TRANSFERENCIA', 'TARJETA_DEBITO'];
 
 // Split students: first half fully paid, second half 1/3 paid
 const halfPoint = Math.floor(alumnosList.length / 2);

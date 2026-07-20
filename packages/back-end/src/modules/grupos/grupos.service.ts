@@ -365,15 +365,31 @@ export class GruposService {
             }
           });
 
-          // Update student status to ACTIVO
+          // Update student status to PREINSCRIPCION
           await tx.alumno.update({
             where: { alumnoId },
-            data: { estado: 'ACTIVO', actualizadoEn: new Date() }
+            data: { estado: 'PREINSCRIPCION', actualizadoEn: new Date() }
           });
           inscritos++;
         }
       }
       return { success: true, inscritos };
+    });
+  }
+
+  static async limpiarRetenidosTransicion() {
+    return prisma.$transaction(async (tx) => {
+      const result = await tx.alumno.updateMany({
+        where: {
+          estado: { in: ['RETENCION_FINANCIERA', 'RETENCION_ACADEMICA'] },
+          eliminadoEn: null
+        },
+        data: {
+          estado: 'BAJA_DEFINITIVA',
+          actualizadoEn: new Date()
+        }
+      });
+      return { success: true, actualizados: result.count };
     });
   }
 
@@ -684,13 +700,29 @@ export class GruposService {
 
   static async cerrarCicloGrupo(input: CerrarCicloGrupoInput) {
     const { grupoId, promociones } = input;
-    const grupo = await GruposRepository.findGrupoWithCiclo(grupoId);
-    if (!grupo) {
+    const grupoBase = await GruposRepository.findGrupoWithCiclo(grupoId);
+    if (!grupoBase) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Grupo no encontrado' });
     }
 
-    if ((grupo as any).cerrado) {
+    if ((grupoBase as any).cerrado) {
       throw new TRPCError({ code: 'BAD_REQUEST', message: 'El ciclo escolar de este grupo ya está cerrado.' });
+    }
+
+    // Obtener grupo con grado y nivel para validación de egresado
+    const grupo = await prisma.grupo.findUnique({
+      where: { grupoId },
+      include: { grado: true }
+    });
+    
+    let esUltimoGrado = false;
+    if (grupo && grupo.grado) {
+      const gradosNivel = await prisma.grado.findMany({
+        where: { nivelId: grupo.grado.nivelId, eliminadoEn: null },
+        orderBy: { numero: 'desc' },
+        take: 1
+      });
+      esUltimoGrado = gradosNivel.length > 0 && gradosNivel[0].gradoId === grupo.gradoId;
     }
 
     // Ejecutar transacción
@@ -703,14 +735,49 @@ export class GruposService {
 
       // 2. Procesar promociones y estatus de los alumnos
       for (const promo of promociones) {
-        const { alumnoId, promover } = promo;
+        const { alumnoId, promover, motivoRetencionOverride } = promo as any;
+
+        let nuevoEstadoGeneral = 'TRANSICION_PENDIENTE';
+
+        if (promover) {
+          if (esUltimoGrado) {
+            nuevoEstadoGeneral = 'EGRESADO';
+          }
+        } else {
+          if (motivoRetencionOverride) {
+            nuevoEstadoGeneral = motivoRetencionOverride;
+          } else {
+            // Deducción automática
+            const deuda = await tx.calendarioPago.findFirst({
+              where: { alumnoId, estadoCobro: 'VENCIDO', eliminadoEn: null }
+            });
+
+            if (deuda) {
+              nuevoEstadoGeneral = 'RETENCION_FINANCIERA';
+            } else {
+              const materiasReprobadas = await tx.calificacion.findFirst({
+                where: { 
+                  alumnoId, 
+                  valorNumerico: { lt: 6.0 }, 
+                  grupoMateria: { grupoId }
+                }
+              });
+              
+              if (materiasReprobadas) {
+                nuevoEstadoGeneral = 'RETENCION_ACADEMICA';
+              } else {
+                nuevoEstadoGeneral = 'BAJA_DEFINITIVA';
+              }
+            }
+          }
+        }
 
         // Actualizar estatus de inscripción
         await tx.inscripcionCiclo.updateMany({
           where: {
             alumnoId,
             grupoId,
-            cicloId: grupo.cicloId,
+            cicloId: grupoBase.cicloId,
             eliminadoEn: null
           },
           data: {
@@ -719,11 +786,11 @@ export class GruposService {
           }
         });
 
-        // Actualizar estado general del alumno a TRANSICION_PENDIENTE
+        // Actualizar estado general del alumno
         await tx.alumno.update({
           where: { alumnoId },
           data: {
-            estado: 'TRANSICION_PENDIENTE',
+            estado: nuevoEstadoGeneral as any,
             actualizadoEn: new Date()
           }
         });
