@@ -126,5 +126,10 @@ Las skills de diseño han sido analizadas y están diseñadas para complementars
 * **Solicitudes de Beca**: La aprobación de becas implica la inserción atómica de `AsignacionBeca` dentro del método transaccional `resolverSolicitudConAsignacion` de [becas.repository.ts](file:///c:/Users/josem/Documents/San_Diego/sga/packages/back-end/src/modules/becas/becas.repository.ts).
 * **Activación de Ciclos**: Al activar un ciclo escolar en [grupos.repository.ts](file:///c:/Users/josem/Documents/San_Diego/sga/packages/back-end/src/modules/grupos/grupos.repository.ts), se debe desactivar en cascada (`updateMany`) los demás ciclos vigentes con la misma periodicidad.
 * **Mantenimiento Alumno-Tutor**: Vincular un tutor como principal debe remover la bandera `esPrincipal` de otros tutores vinculados al alumno. Dar de baja a un tutor exige validar previamente que no tenga `saldoAFavor > 0`.
-* **Inscripción y Aforo**: Inscribir a un alumno requiere validar el `cupoMaximo` de `Grupo`. Si el aforo está completo, se debe impedir la inscripción.
 
+
+## Reglas de Auditoría y Estabilidad
+- **Sincronización Prisma-Zod:** Siempre que se modifique un `enum` o un modelo en `schema.prisma`, es estrictamente obligatorio actualizar inmediatamente el archivo `.schema.ts` correspondiente en el Back-End. Los esquemas Zod nunca deben estar desincronizados de la base de datos.
+- **Manejo de Excepciones No Silencioso:** Queda estrictamente prohibido usar bloques `catch (e) { }` vacíos. Todas las excepciones en el Front-End deben notificar al usuario el motivo exacto del fallo utilizando `error.message` con un lenguaje de alto nivel y amigable (ej. usando `toast` o `alert`), jamás fallar silenciosamente.
+- **Prevención del error de inferencia TS2589 (tRPC):** Al crear endpoints en tRPC que devuelven objetos muy anidados de Prisma (con múltiples `.include`), el router debe definir explícitamente el tipo de retorno (ej. `Promise<any>` o una interfaz limpia) para evitar que la inferencia profunda sature el compilador de TypeScript en el Front-End.
+- **Compatibilidad con React Fast Refresh:** En los archivos `.tsx` de páginas o componentes, no exportes constantes ni variables de configuración junto con los componentes React. Esto rompe el 'Fast Refresh'. Las constantes deben mantenerse privadas (sin exportar) o moverse a un archivo de utilidades separado.
