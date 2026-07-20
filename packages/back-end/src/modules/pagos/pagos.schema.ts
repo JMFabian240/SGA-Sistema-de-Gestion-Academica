@@ -57,6 +57,11 @@ export const registrarPagoSchema = z.object({
   aplicaciones: z.array(aplicacionPagoInputSchema).min(1, "Debe existir al menos una aplicación del pago")
 });
 
+export const aplicarRecargoSchema = z.object({
+  calendarioPagoId: z.number().int().positive(),
+  montoRecargoPersonalizado: z.number().nonnegative().optional()
+});
+
 export const createCargoExtraordinarioSchema = z.object({
   alumnoId: z.number().int().positive(),
   cicloId: z.number().int().positive(),

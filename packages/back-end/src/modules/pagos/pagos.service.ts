@@ -611,4 +611,39 @@ export class PagosService {
 
     return movimientos;
   }
+
+  static async aplicarRecargoManual(calendarioPagoId: number, montoRecargoPersonalizado?: number) {
+    return prisma.$transaction(async (tx) => {
+      const adeudo = await tx.calendarioPago.findUnique({
+        where: { calendarioPagoId }
+      });
+      if (!adeudo || adeudo.eliminadoEn) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Adeudo no encontrado' });
+      }
+
+      let montoRecargo = montoRecargoPersonalizado;
+      if (montoRecargo === undefined) {
+        const config = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
+        montoRecargo = Number(config?.montoRecargoDefecto || 0);
+      }
+
+      if (montoRecargo <= 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Monto de recargo inválido (debe ser mayor a 0). Revisa la configuración global de recargos.' });
+      }
+
+      // Sumar al montoRecargo y al saldoPendiente
+      const nuevoMontoRecargo = Number(adeudo.montoRecargo) + montoRecargo;
+      const nuevoSaldoPendiente = Number(adeudo.saldoPendiente) + montoRecargo;
+
+      const actualizado = await tx.calendarioPago.update({
+        where: { calendarioPagoId },
+        data: {
+          montoRecargo: nuevoMontoRecargo,
+          saldoPendiente: nuevoSaldoPendiente,
+          actualizadoEn: new Date()
+        }
+      });
+      return actualizado;
+    });
+  }
 }

@@ -1309,7 +1309,7 @@ export function ConfiguracionPage() {
                   return {
                     alumnoId: Number(alumnoId),
                     promover,
-                    motivoRetencionOverride: (!promover && override) ? override : undefined
+                    motivoRetencionOverride: (!promover && override) ? (override as 'RETENCION_FINANCIERA' | 'RETENCION_ACADEMICA' | 'BAJA_DEFINITIVA') : undefined
                   };
                 });
                 try {

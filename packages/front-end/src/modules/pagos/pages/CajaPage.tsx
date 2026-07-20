@@ -60,6 +60,14 @@ export function CajaPage() {
     { enabled: !!selectedAlumnoId }
   );
 
+  const aplicarRecargo = trpc.pagos.aplicarRecargoManual.useMutation({
+    onSuccess: () => {
+      toast.success('Recargo aplicado exitosamente');
+      refetchAdeudos();
+    },
+    onError: (err) => toast.error(`Error: ${err.message}`)
+  });
+
   // Al seleccionar un alumno
   const handleSelectAlumno = (alumnoId: number, tutorId?: number | null) => {
     setSelectedAlumnoId(alumnoId);
@@ -224,8 +232,21 @@ export function CajaPage() {
                             {adeudo.concepto}
                             {isVencido && <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-md">Vencido</span>}
                           </div>
-                          <div className="text-sm text-slate-500 mt-1">
-                            Vence: {new Date(adeudo.fechaVencimiento).toLocaleDateString()}
+                          <div className="text-sm text-slate-500 mt-1 flex items-center gap-4">
+                            <span>Vence: {new Date(adeudo.fechaVencimiento).toLocaleDateString()}</span>
+                            {isVencido && Number(adeudo.montoRecargo) === 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm('¿Deseas aplicar el recargo configurado a este adeudo?')) {
+                                    aplicarRecargo.mutate({ calendarioPagoId: adeudo.calendarioPagoId });
+                                  }
+                                }}
+                                className="text-xs bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded border border-red-200 transition-colors"
+                              >
+                                Aplicar Recargo
+                              </button>
+                            )}
                           </div>
                         </div>
 

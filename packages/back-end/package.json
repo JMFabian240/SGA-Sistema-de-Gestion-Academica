@@ -22,6 +22,7 @@
     "fastify": "^4.24.0",
     "jsonwebtoken": "^9.0.3",
     "mnemonist": "^0.39.6",
+    "node-cron": "^4.6.0",
     "papaparse": "^5.5.4",
     "vary": "^1.1.2",
     "zod": "^3.22.4"
@@ -30,6 +31,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.0.0",
+    "@types/node-cron": "^3.0.11",
     "@types/papaparse": "^5.5.2",
     "@types/supertest": "^7.2.0",
     "dotenv": "^16.4.5",

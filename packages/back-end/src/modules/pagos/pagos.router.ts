@@ -5,7 +5,7 @@ import {
   createTarifaSchema, updateTarifaSchema, 
   createCalendarioPagoSchema, updateCalendarioPagoSchema, 
   registrarPagoSchema, createCargoExtraordinarioSchema,
-  adjuntarComprobanteSchema
+  adjuntarComprobanteSchema, aplicarRecargoSchema
 } from './pagos.schema';
 
 const lectura = protectedProcedure.use(hasModulePermission('Pagos', false));
@@ -103,5 +103,12 @@ export const pagosRouter = router({
     }))
     .query(({ input }) => {
       return PagosService.getEstadoCuenta(input.alumnoId, input.cicloId);
+    }),
+
+  // --- Recargos Manuales ---
+  aplicarRecargoManual: escritura
+    .input(aplicarRecargoSchema)
+    .mutation(({ input }) => {
+      return PagosService.aplicarRecargoManual(input.calendarioPagoId, input.montoRecargoPersonalizado);
     })
 });

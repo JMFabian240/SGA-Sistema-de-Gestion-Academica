@@ -46,7 +46,7 @@ export function NuevoCargoModal({ isOpen, onClose, alumnoId, cicloId }: NuevoCar
       alumnoId,
       cicloId,
       concepto,
-      monto: Number(monto.replace(/,/g, '')),
+      monto: Number(monto),
       fechaVencimiento: new Date(fechaVencimiento).toISOString()
     });
   };
@@ -90,9 +90,19 @@ export function NuevoCargoModal({ isOpen, onClose, alumnoId, cicloId }: NuevoCar
               <label className="block text-sm font-semibold text-gray-700 mb-1">Monto ($)</label>
               <input 
                 type="text" 
-                placeholder="Ej. 1500 o 1,500.00"
+                placeholder="Ej. 1500 o 1500.00"
                 value={monto}
-                onChange={(e) => setMonto(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  // Remover cualquier caracter que no sea numero o punto
+                  val = val.replace(/[^0-9.]/g, '');
+                  // Evitar mas de un punto decimal
+                  const parts = val.split('.');
+                  if (parts.length > 2) {
+                    val = parts[0] + '.' + parts.slice(1).join('');
+                  }
+                  setMonto(val);
+                }}
                 className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               />
             </div>
