@@ -359,6 +359,7 @@ export function ConfiguracionPage() {
   // --- Cierre de Ciclo por Grupos ---
   const [selectedGrupoCierreId, setSelectedGrupoCierreId] = useState<number | null>(null);
   const [promocionesState, setPromocionesState] = useState<Record<number, boolean>>({});
+  const [retencionOverrides, setRetencionOverrides] = useState<Record<number, string>>({});
   const [showConfirmModal1, setShowConfirmModal1] = useState(false);
   const [showConfirmModal2, setShowConfirmModal2] = useState(false);
   const [confirmTextInput, setConfirmTextInput] = useState('');
@@ -376,6 +377,7 @@ export function ConfiguracionPage() {
         initial[a.alumnoId] = !(a.tieneAdeudo || a.tieneReprobadas);
       });
       setPromocionesState(initial);
+      setRetencionOverrides({});
     }
   }, [alumnosCierre]);
 
@@ -1147,6 +1149,7 @@ export function ConfiguracionPage() {
                             <th className="px-6 py-4 font-semibold">CURP</th>
                             <th className="px-6 py-4 font-semibold text-center">Estado Académico</th>
                             <th className="px-6 py-4 font-semibold text-center">Estado Financiero</th>
+                            <th className="px-6 py-4 font-semibold text-center">Motivo (Opcional)</th>
                             <th className="px-6 py-4 font-semibold text-center">Promover</th>
                           </tr>
                         </thead>
@@ -1173,6 +1176,25 @@ export function ConfiguracionPage() {
                                 }`}>
                                   {a.tieneAdeudo ? 'Adeudo Pendiente' : 'Al Corriente'}
                                 </span>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                {!promocionesState[a.alumnoId] && !(grupos?.find((g: any) => g.grupoId === selectedGrupoCierreId) as any)?.cerrado ? (
+                                  <select
+                                    className="text-xs border border-gray-300 rounded p-1"
+                                    value={retencionOverrides[a.alumnoId] || ''}
+                                    onChange={(e) => setRetencionOverrides(prev => ({
+                                      ...prev,
+                                      [a.alumnoId]: e.target.value
+                                    }))}
+                                  >
+                                    <option value="">Automático</option>
+                                    <option value="RETENCION_FINANCIERA">Financiera</option>
+                                    <option value="RETENCION_ACADEMICA">Académica</option>
+                                    <option value="BAJA_DEFINITIVA">Baja Definitiva</option>
+                                  </select>
+                                ) : (
+                                  <span className="text-xs text-gray-400">-</span>
+                                )}
                               </td>
                               <td className="px-6 py-4 text-center">
                                 <input
@@ -1281,10 +1303,15 @@ export function ConfiguracionPage() {
               className="bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-50"
               disabled={confirmTextInput !== 'CONFIRMAR' || cerrarCicloGrupoMutation.isPending}
               onClick={async () => {
-                const promociones = Object.keys(promocionesState).map(alumnoId => ({
-                  alumnoId: Number(alumnoId),
-                  promover: promocionesState[Number(alumnoId)]
-                }));
+                const promociones = Object.keys(promocionesState).map(alumnoId => {
+                  const promover = promocionesState[Number(alumnoId)];
+                  const override = retencionOverrides[Number(alumnoId)];
+                  return {
+                    alumnoId: Number(alumnoId),
+                    promover,
+                    motivoRetencionOverride: (!promover && override) ? override : undefined
+                  };
+                });
                 try {
                   await cerrarCicloGrupoMutation.mutateAsync({
                     grupoId: selectedGrupoCierreId!,

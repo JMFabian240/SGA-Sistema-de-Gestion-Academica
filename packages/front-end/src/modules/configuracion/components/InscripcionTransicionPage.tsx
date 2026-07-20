@@ -37,7 +37,7 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
   const grupoSeleccionado = gruposOrigen?.find((g: any) => g.grupoId === selectedGrupoId) as any;
 
   const alumnosCandidatos = inscripcionesOrigen
-    ?.filter((ins: any) => ins.grupoId === selectedGrupoId)
+    ?.filter((ins: any) => ins.grupoId === selectedGrupoId && ins.alumno.estado === 'TRANSICION_PENDIENTE')
     .map((ins: any) => ins.alumno) || [];
 
   useEffect(() => {
@@ -306,7 +306,7 @@ export function InscripcionTransicionPage({ cicloOrigenId, cicloDestinoId, onBac
           refetchGruposDestino();
         }}
         defaultCicloId={cicloDestinoId}
-        defaultNivelId={nivelActual?.nivelId}
+        defaultNivelId={gradoSiguienteInfo?.nivelId || nivelActual?.nivelId}
         defaultGradoId={gradoSiguienteInfo?.gradoId}
       />
     </div>
