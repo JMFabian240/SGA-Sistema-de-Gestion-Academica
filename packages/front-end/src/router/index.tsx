@@ -16,6 +16,9 @@ import { UsuariosListPage } from '../modules/usuarios/pages/UsuariosListPage';
 import { UsuarioDetailPage } from '../modules/usuarios/pages/UsuarioDetailPage';
 import { CajaPage } from '../modules/pagos/pages/CajaPage';
 import { ReciboPagoPage } from '../modules/pagos/pages/ReciboPagoPage';
+import { BecasPage } from '../modules/becas/pages/BecasPage';
+import { CalificacionesPage } from '../modules/calificaciones/pages/CalificacionesPage';
+import { BoletasPage } from '../modules/calificaciones/pages/BoletasPage';
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +47,9 @@ export const router = createBrowserRouter([
       { path: 'usuarios', element: <UsuariosListPage /> },
       { path: 'usuarios/:id', element: <UsuarioDetailPage /> },
       { path: 'pagos', element: <CajaPage /> },
+      { path: 'becas', element: <BecasPage /> },
+      { path: 'calificaciones', element: <CalificacionesPage /> },
+      { path: 'calificaciones/boletas', element: <BoletasPage /> },
       // Aquí se irán registrando las rutas de cada módulo (modules/pagos/...)
     ],
   },

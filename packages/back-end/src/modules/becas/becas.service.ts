@@ -5,7 +5,7 @@ import { EstadoBeca } from '@sga/data-access';
 import type { 
   CreateBecaInput, UpdateBecaInput, 
   CreateSolicitudBecaInput, ResolverSolicitudBecaInput, 
-  AssignBecaInput 
+  AssignBecaInput, RevokeBecaInput
 } from './becas.schema';
 
 export class BecasService {
@@ -128,5 +128,39 @@ export class BecasService {
       asignadaPor: asignadorId,
       estado: 'ACTIVA'
     });
+  }
+
+  static async revokeBeca(input: RevokeBecaInput, retiradorId: number) {
+    const asignacion = await prisma.asignacionBeca.findUnique({
+      where: { asignacionId: input.asignacionId }
+    });
+
+    if (!asignacion || asignacion.eliminadoEn || asignacion.estado !== 'ACTIVA') {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'La asignación de beca no existe o ya no está activa.'
+      });
+    }
+
+    return BecasRepository.revokeBeca(input.asignacionId, retiradorId, input.motivoRetiro);
+  }
+
+  static async getAsignacionesActivas() {
+    return BecasRepository.getAsignacionesActivas();
+  }
+
+  static async updateAsignacion(input: { asignacionId: number; becaId: number; cicloId: number }, _actualizadorId: number) {
+    const asignacion = await prisma.asignacionBeca.findUnique({
+      where: { asignacionId: input.asignacionId }
+    });
+
+    if (!asignacion || asignacion.eliminadoEn || asignacion.estado !== 'ACTIVA') {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'La asignación de beca no existe o ya no está activa.'
+      });
+    }
+
+    return BecasRepository.updateAsignacion(input.asignacionId, input.becaId, input.cicloId);
   }
 }

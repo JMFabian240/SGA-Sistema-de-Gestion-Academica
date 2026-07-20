@@ -4,39 +4,39 @@ import { BecasService } from './becas.service';
 import { 
   createBecaSchema, updateBecaSchema, 
   createSolicitudBecaSchema, resolverSolicitudBecaSchema, 
-  assignBecaSchema 
+  assignBecaSchema, revokeBecaSchema, updateAsignacionSchema
 } from './becas.schema';
 
-const lectura = protectedProcedure.use(hasModulePermission('Becas', false));
-const escritura = protectedProcedure.use(hasModulePermission('Becas', true));
+const escrituraConfiguracion = protectedProcedure.use(hasModulePermission('Configuracion', true));
+const escrituraAlumnos = protectedProcedure.use(hasModulePermission('Alumnos', true));
 
 export const becasRouter = router({
   // --- Catálogo de Becas ---
-  getBecas: lectura.query(() => {
+  getBecas: protectedProcedure.query(() => {
     return BecasService.getBecas();
   }),
 
-  createBeca: escritura
+  createBeca: escrituraConfiguracion
     .input(createBecaSchema)
     .mutation(({ input }) => BecasService.createBeca(input)),
 
-  updateBeca: escritura
+  updateBeca: escrituraConfiguracion
     .input(updateBecaSchema)
     .mutation(({ input }) => BecasService.updateBeca(input)),
 
-  deleteBeca: escritura
+  deleteBeca: escrituraConfiguracion
     .input(z.number().int().positive())
     .mutation(({ input }) => BecasService.deleteBeca(input)),
 
   // --- Solicitudes de Becas ---
-  getSolicitudes: lectura
+  getSolicitudes: protectedProcedure
     .input(z.object({
       cicloId: z.number().int().positive().optional(),
       alumnoId: z.number().int().positive().optional()
     }).optional())
     .query(({ input }) => BecasService.getSolicitudes(input?.cicloId, input?.alumnoId)),
 
-  createSolicitud: escritura
+  createSolicitud: escrituraAlumnos
     .input(createSolicitudBecaSchema)
     .mutation(({ input, ctx }) => {
       const solicitadorId = (ctx as any).user?.usuarioId;
@@ -44,7 +44,7 @@ export const becasRouter = router({
       return BecasService.createSolicitud(input, solicitadorId);
     }),
 
-  resolverSolicitud: escritura
+  resolverSolicitud: escrituraAlumnos
     .input(resolverSolicitudBecaSchema)
     .mutation(({ input, ctx }) => {
       const resolvedorId = (ctx as any).user?.usuarioId;
@@ -53,11 +53,32 @@ export const becasRouter = router({
     }),
 
   // --- Asignación Directa ---
-  assignBeca: escritura
+  assignBeca: escrituraAlumnos
     .input(assignBecaSchema)
     .mutation(({ input, ctx }) => {
       const asignadorId = (ctx as any).user?.usuarioId;
       if (!asignadorId) throw new Error("No user in context");
       return BecasService.assignBeca(input, asignadorId);
+    }),
+
+  revokeBeca: escrituraAlumnos
+    .input(revokeBecaSchema)
+    .mutation(({ input, ctx }) => {
+      const retiradorId = (ctx as any).user?.usuarioId;
+      if (!retiradorId) throw new Error("No user in context");
+      return BecasService.revokeBeca(input, retiradorId);
+    }),
+
+  getAsignaciones: protectedProcedure.query(() => {
+    return BecasService.getAsignacionesActivas();
+  }),
+
+  updateAsignacion: escrituraAlumnos
+    .input(updateAsignacionSchema)
+    .mutation(({ input, ctx }) => {
+      const actualizadorId = (ctx as any).user?.usuarioId;
+      if (!actualizadorId) throw new Error("No user in context");
+      return BecasService.updateAsignacion(input, actualizadorId);
     })
 });
+

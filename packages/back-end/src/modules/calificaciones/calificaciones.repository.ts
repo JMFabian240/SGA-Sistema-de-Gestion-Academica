@@ -125,7 +125,12 @@ export class CalificacionesRepository {
         grupoMateria: { grupo: { cicloId } }
       },
       include: {
-        grupoMateria: { include: { materia: true } }
+        grupoMateria: { 
+          include: { 
+            materia: { include: { docente: true } },
+            docente: true 
+          } 
+        }
       }
     });
   }

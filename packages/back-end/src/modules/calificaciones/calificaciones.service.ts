@@ -89,13 +89,19 @@ export class CalificacionesService {
     const ciclo = await CalificacionesRepository.findCiclo(input.cicloId);
     const calificaciones = await CalificacionesRepository.getCalificacionesParaBoleta(input.alumnoId, input.cicloId);
 
+    const docenteTitular = calificaciones[0]?.grupoMateria?.docente?.nombreCompleto 
+                           || calificaciones[0]?.grupoMateria?.materia?.docente?.nombreCompleto
+                           || 'DOCENTE SIN ASIGNAR';
+
     return {
       alumno,
       ciclo,
+      docenteTitular,
       materias: calificaciones.map(c => ({
         materia: c.grupoMateria.materia.nombre,
         evaluacion: c.tipoEvaluacion,
         calificacion: c.valorNumerico || c.valorCualitativo,
+        periodoId: c.periodoId
       }))
     };
   }

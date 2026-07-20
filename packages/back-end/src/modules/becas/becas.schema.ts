@@ -47,9 +47,22 @@ export const assignBecaSchema = z.object({
   fechaAsignacion: z.string().datetime()
 });
 
+export const revokeBecaSchema = z.object({
+  asignacionId: z.number().int().positive(),
+  motivoRetiro: z.string().optional()
+});
+
+export const updateAsignacionSchema = z.object({
+  asignacionId: z.number().int().positive(),
+  becaId: z.number().int().positive(),
+  cicloId: z.number().int().positive()
+});
+
 // Types
 export type CreateBecaInput = z.infer<typeof createBecaSchema>;
 export type UpdateBecaInput = z.infer<typeof updateBecaSchema>;
 export type CreateSolicitudBecaInput = z.infer<typeof createSolicitudBecaSchema>;
 export type ResolverSolicitudBecaInput = z.infer<typeof resolverSolicitudBecaSchema>;
 export type AssignBecaInput = z.infer<typeof assignBecaSchema>;
+export type RevokeBecaInput = z.infer<typeof revokeBecaSchema>;
+export type UpdateAsignacionInput = z.infer<typeof updateAsignacionSchema>;

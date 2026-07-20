@@ -103,4 +103,54 @@ export class BecasRepository {
       }
     });
   }
+
+  static async revokeBeca(asignacionId: number, retiradorId: number, motivoRetiro?: string) {
+    return prisma.asignacionBeca.update({
+      where: { asignacionId },
+      data: {
+        estado: 'CANCELADA',
+        fechaRetiro: new Date(),
+        motivoRetiro,
+        retiradaPor: retiradorId,
+        actualizadoEn: new Date()
+      }
+    });
+  }
+
+  static async getAsignacionesActivas() {
+    return prisma.asignacionBeca.findMany({
+      where: {
+        estado: 'ACTIVA',
+        eliminadoEn: null
+      },
+      include: {
+        alumno: {
+          include: {
+            grado: true,
+            nivel: true
+          }
+        },
+        beca: true,
+        ciclo: true,
+        asignador: true
+      },
+      orderBy: {
+        fechaAsignacion: 'desc'
+      }
+    });
+  }
+
+  static async updateAsignacion(asignacionId: number, becaId: number, cicloId: number) {
+    return prisma.asignacionBeca.update({
+      where: { asignacionId },
+      data: {
+        becaId,
+        cicloId,
+        actualizadoEn: new Date()
+      },
+      include: {
+        beca: true
+      }
+    });
+  }
 }
