@@ -91,21 +91,22 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
       title="Asignar Materia al Grado"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
         <Controller
           name="materiaId"
           control={control}
           render={({ field }) => (
             <div className="flex flex-col gap-1">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-medium text-gray-700">Seleccionar Materia</label>
                 {hasPermiso('Materias') && (
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => setIsCrearMateriaOpen(true)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
                   >
                     + Crear nueva materia
-                  </button>
+                  </Button>
                 )}
               </div>
               <select
@@ -131,16 +132,16 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
           control={control}
           render={({ field }) => (
             <div className="flex flex-col gap-1 relative">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-medium text-gray-700">Docente Titular (Opcional)</label>
                 {hasPermiso('Usuarios') && (
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => setIsCrearDocenteOpen(true)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
                   >
                     + Crear nuevo docente
-                  </button>
+                  </Button>
                 )}
               </div>
               <div className="relative">
