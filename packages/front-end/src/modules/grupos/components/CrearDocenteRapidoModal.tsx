@@ -24,7 +24,7 @@ type Props = {
 export function CrearDocenteRapidoModal({ isOpen, onClose, onSuccess }: Props) {
   const { data: roles = [], isLoading: isLoadingRoles } = trpc.usuarios.getRoles.useQuery(undefined, { enabled: isOpen });
 
-  const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
+  const { control, handleSubmit, reset, getValues, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { nombreCompleto: '', nombreUsuario: '', password: '', rolId: 0 },
   });
@@ -40,9 +40,10 @@ export function CrearDocenteRapidoModal({ isOpen, onClose, onSuccess }: Props) {
   }, [roles, setValue]);
 
   const createMutation = trpc.usuarios.crearUsuario.useMutation({
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
+      const nombre = getValues('nombreCompleto');
       reset();
-      onSuccess(data.usuarioId, variables.nombreCompleto);
+      onSuccess(data.usuarioId, nombre);
       onClose();
     }
   });

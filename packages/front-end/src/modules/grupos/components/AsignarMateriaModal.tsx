@@ -7,6 +7,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { CrearMateriaRapidaModal } from './CrearMateriaRapidaModal';
 import { CrearDocenteRapidoModal } from './CrearDocenteRapidoModal';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 const schema = z.object({
   materiaId: z.string().min(1, 'Debes seleccionar una materia'),
@@ -24,6 +25,15 @@ type Props = {
 
 export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Props) {
   const utils = trpc.useUtils();
+  const { user } = useAuthStore();
+
+  const hasPermiso = (modulo: string) => {
+    if (!user) return false;
+    if (user.role === 'ADMIN' || user.role === 'Administrador' || user.roles?.includes('ADMIN') || user.roles?.includes('Administrador')) return true;
+    if (!user.permisosModulos) return false;
+    const p = user.permisosModulos.find((m: any) => m.modulo === modulo);
+    return p && p.nivel === 'ESCRITURA';
+  };
 
   const { data: materiasData, isLoading: isLoadingMaterias } = trpc.grupos.getMaterias.useQuery(undefined, { enabled: isOpen });
   const materias = materiasData as any[] | undefined;
@@ -88,13 +98,15 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
             <div className="flex flex-col gap-1">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-medium text-gray-700">Seleccionar Materia</label>
-                <button
-                  type="button"
-                  onClick={() => setIsCrearMateriaOpen(true)}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
-                >
-                  + Crear nueva materia
-                </button>
+                {hasPermiso('Materias') && (
+                  <button
+                    type="button"
+                    onClick={() => setIsCrearMateriaOpen(true)}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
+                  >
+                    + Crear nueva materia
+                  </button>
+                )}
               </div>
               <select
                 {...field}
@@ -119,7 +131,18 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
           control={control}
           render={({ field }) => (
             <div className="flex flex-col gap-1 relative">
-              <label className="text-sm font-medium text-gray-700">Docente Titular (Opcional)</label>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-gray-700">Docente Titular (Opcional)</label>
+                {hasPermiso('Usuarios') && (
+                  <button
+                    type="button"
+                    onClick={() => setIsCrearDocenteOpen(true)}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
+                  >
+                    + Crear nuevo docente
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <input
                   type="text"
@@ -172,16 +195,18 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
                       </div>
                     ))
                   )}
-                  <div 
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setIsCrearDocenteOpen(true);
-                      setShowDocenteDropdown(false);
-                    }}
-                    className="px-4 py-2 border-t border-gray-100 hover:bg-blue-50 cursor-pointer text-xs text-blue-600 font-bold transition-colors text-center"
-                  >
-                    + Crear nuevo docente
-                  </div>
+                  {hasPermiso('Usuarios') && (
+                    <div 
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setIsCrearDocenteOpen(true);
+                        setShowDocenteDropdown(false);
+                      }}
+                      className="px-4 py-2 border-t border-gray-100 hover:bg-blue-50 cursor-pointer text-xs text-blue-600 font-bold transition-colors text-center"
+                    >
+                      + Crear nuevo docente
+                    </div>
+                  )}
                 </div>
               )}
               {errors.docenteId && <span className="text-xs text-red-600">{errors.docenteId.message}</span>}

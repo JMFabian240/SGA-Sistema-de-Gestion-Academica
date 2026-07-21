@@ -25,12 +25,7 @@ export class CalculadoraPagos {
    * Genera el arreglo de recibos basados en las tarifas y el plan de pagos.
    */
   static generarCalendario(
-    plan: PlanPagoData,
-    tarifas: TarifaData[],
-    fechaIngreso: Date,
-    diaVencimientoMensual: number,
-    beca?: BecaData | null
-  ) {
+    plan: PlanPagoData, tarifas: TarifaData[], fechaIngreso: Date, diaVencimientoMensual: number, beca?: BecaData | null, añoInicio?: number) {
     const meses10 = ['Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
     const meses12 = ['Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'];
 
