@@ -109,4 +109,79 @@ export class ConfiguracionService {
       });
     }
   }
+
+  static async sincronizarRecargosRetroactivos() {
+    try {
+      const { prisma } = await import('@sga/data-access');
+      const configuracionesRecargo = await prisma.configuracionRecargo.findMany({
+        where: { activo: true }
+      });
+
+      const adeudos = await prisma.calendarioPago.findMany({
+        where: {
+          estadoCobro: { in: ['PENDIENTE', 'VENCIDO', 'ABONO'] },
+          eliminadoEn: null
+        }
+      });
+
+      const hoy = new Date();
+      let modificados = 0;
+
+      await prisma.$transaction(async (tx) => {
+        for (const adeudo of adeudos) {
+          const regla = configuracionesRecargo.find(r => 
+            adeudo.concepto.toLowerCase().includes(r.conceptoPago.toLowerCase())
+          );
+
+          let targetRecargo = 0;
+          let targetEstado = adeudo.estadoCobro;
+          
+          let fechaLimite = new Date(adeudo.fechaVencimiento);
+
+          if (regla) {
+            fechaLimite.setDate(fechaLimite.getDate() + regla.diasGracia);
+            if (hoy > fechaLimite) {
+              targetRecargo = Number(regla.monto);
+            }
+          }
+
+          if (hoy > fechaLimite) {
+             if (targetEstado === 'PENDIENTE') targetEstado = 'VENCIDO';
+          } else {
+             if (targetEstado === 'VENCIDO') targetEstado = 'PENDIENTE';
+          }
+
+          const currentRecargo = Number(adeudo.montoRecargo);
+
+          if (currentRecargo !== targetRecargo || adeudo.estadoCobro !== targetEstado) {
+            const diferencia = targetRecargo - currentRecargo;
+            const nuevoSaldoPendiente = Number(adeudo.saldoPendiente) + diferencia;
+            
+            if (nuevoSaldoPendiente <= 0) {
+              targetEstado = 'PAGADO';
+            }
+
+            await tx.calendarioPago.update({
+              where: { calendarioPagoId: adeudo.calendarioPagoId },
+              data: {
+                montoRecargo: targetRecargo,
+                saldoPendiente: nuevoSaldoPendiente > 0 ? nuevoSaldoPendiente : 0,
+                estadoCobro: targetEstado,
+                actualizadoEn: new Date()
+              }
+            });
+            modificados++;
+          }
+        }
+      });
+
+      return { success: true, modificados, message: `Se actualizaron ${modificados} adeudos exitosamente.` };
+    } catch (error) {
+      console.error(error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error al sincronizar los recargos de forma retroactiva'
+      });
+    }
+  }
 }

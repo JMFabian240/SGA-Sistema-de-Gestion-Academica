@@ -33,4 +33,9 @@ export const configuracionRouter = router({
     .mutation(async ({ input }) => {
       return ConfiguracionService.updateRecargo(input);
     }),
+
+  sincronizarRecargos: escritura
+    .mutation(async () => {
+      return ConfiguracionService.sincronizarRecargosRetroactivos();
+    }),
 });

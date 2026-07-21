@@ -13,6 +13,8 @@ import { PlanesPagoPanel } from '../components/PlanesPagoPanel';
 import { TransicionCicloWizard } from '../components/TransicionCicloWizard';
 import { InscripcionTransicionPage } from '../components/InscripcionTransicionPage';
 
+import { toast } from 'react-hot-toast';
+
 type TabType = 'ciclos' | 'tarifas' | 'planespago' | 'cierre' | 'importacion' | 'inscripcion-transicion';
 
 export function ConfiguracionPage() {
@@ -69,6 +71,15 @@ export function ConfiguracionPage() {
   const updateRecargoMutation = trpc.configuracion.updateRecargo.useMutation({
     onSuccess: () => {
       utils.configuracion.getRecargos.invalidate();
+    }
+  });
+
+  const sincronizarRecargosMutation = trpc.configuracion.sincronizarRecargos.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      toast.error('Error al sincronizar recargos: ' + error.message);
     }
   });
 
@@ -916,6 +927,24 @@ export function ConfiguracionPage() {
                       No hay recargos personalizados configurados.
                     </div>
                   )}
+
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <button
+                      onClick={() => {
+                        if (window.confirm('¿Seguro que deseas sincronizar todos los recargos de forma retroactiva? Esto recalculará los recargos de todos los adeudos pendientes, vencidos y con abono en base a las reglas actuales.')) {
+                          sincronizarRecargosMutation.mutate();
+                        }
+                      }}
+                      disabled={sincronizarRecargosMutation.isLoading}
+                      className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 border border-blue-200"
+                    >
+                      <RefreshCw size={14} className={sincronizarRecargosMutation.isLoading ? 'animate-spin' : ''} />
+                      {sincronizarRecargosMutation.isLoading ? 'Sincronizando...' : 'Sincronizar Recargos Retroactivos'}
+                    </button>
+                    <p className="text-[10px] text-gray-500 mt-2 text-center">
+                      Aplica las reglas configuradas a todos los pagos existentes (excepto los ya pagados).
+                    </p>
+                  </div>
                 </div>
 
                 {/* Modal de Recargo */}
