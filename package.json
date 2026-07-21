@@ -16,7 +16,10 @@
     "db:studio": "npm run db:studio --workspace=@sga/data-access",
     "test:e2e": "npm run test --workspace=@sga/e2e",
     "test:e2e:ui": "npm run test:ui --workspace=@sga/e2e",
-    "validate": "npm run db:generate && npm run build:back && npm run build --workspace=@sga/front-end"
+    "validate": "npm run db:generate && npm run build:back && npm run build --workspace=@sga/front-end",
+    "build:front": "npm run build --workspace=@sga/front-end",
+    "build:tauri": "npm run tauri build --workspace=@sga/app-tauri",
+    "build:all": "npm run build:back && npm run build:sidecar --workspace=@sga/back-end && npm run build:front && npm run build:tauri"
   },
   "devDependencies": {
     "tsx": "^4.23.0"

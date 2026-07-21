@@ -1,0 +1,13 @@
+{
+  "identifier": "default",
+  "description": "Permisos por defecto de la aplicación",
+  "windows": [
+    "*"
+  ],
+  "permissions": [
+    "core:default",
+    "shell:allow-execute",
+    "shell:allow-kill",
+    "process:allow-exit"
+  ]
+}

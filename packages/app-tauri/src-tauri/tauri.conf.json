@@ -1,75 +1,45 @@
 {
+  "productName": "SGA",
+  "identifier": "mx.sga.app",
+  "version": "1.0.0",
   "build": {
     "beforeDevCommand": "npm run dev:front-end --workspace=@sga/front-end",
     "beforeBuildCommand": "npm run build --workspace=@sga/front-end",
-    "devPath": "http://localhost:5173",
-    "distDir": "../front-end/dist"
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../front-end/dist"
   },
-  "package": {
-    "productName": "SGA",
-    "version": "1.0.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "execute": true,
-        "sidecar": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "Education",
-      "copyright": "",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [
-        "binaries/initdb",
-        "binaries/postgres",
-        "binaries/pg_ctl",
-        "binaries/back"
-      ],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.sga.app",
-      "longDescription": "",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
-      }
-    },
-    "security": {
-      "csp": null
-    },
-    "updater": {
-      "active": false
-    },
+  "app": {
     "windows": [
       {
-        "fullscreen": false,
-        "height": 768,
+        "title": "SGA - Sistema de Gestión Académico",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 600,
         "resizable": true,
-        "title": "SGA",
-        "width": 1024
+        "center": true,
+        "decorations": true
       }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "externalBin": [
+      "binaries/initdb",
+      "binaries/postgres",
+      "binaries/pg_ctl",
+      "binaries/sga-back"
     ]
   }
 }

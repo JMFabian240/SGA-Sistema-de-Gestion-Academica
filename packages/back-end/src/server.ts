@@ -28,6 +28,10 @@ export function buildServer() {
     return { status: 'SGA API is running' };
   });
 
+  server.get('/health', async () => {
+    return { status: 'ok' };
+  });
+
   server.register(multipart, {
     limits: {
       fileSize: 15 * 1024 * 1024, // 15MB
