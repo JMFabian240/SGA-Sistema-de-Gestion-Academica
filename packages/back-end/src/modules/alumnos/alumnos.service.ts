@@ -120,7 +120,8 @@ export class AlumnosService {
               const planBase = { meses: planPago.meses };
               const configGlobal = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
               const diaVencimiento = configGlobal?.diaVencimientoMensual || 1;
-              const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso), diaVencimiento);
+              const añoInicio = new Date(cicloActivo.fechaInicio).getFullYear();
+              const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso), diaVencimiento, null, añoInicio);
               const adeudosParaInsertar = adeudosCalculados.map((a: any) => ({
                 alumnoId: alumno.alumnoId,
                 cicloId: cicloActivo.cicloId,

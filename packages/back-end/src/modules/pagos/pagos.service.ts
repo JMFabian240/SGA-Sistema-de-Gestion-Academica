@@ -107,11 +107,16 @@ export class PagosService {
       
       const { CalculadoraPagos } = require('../inscripciones/inscripciones.utils');
       const tarifasParaCalculadora = tarifas.map(t => ({ concepto: t.concepto, monto: Number(t.monto) }));
+      const cicloActivo = await tx.cicloEscolar.findUnique({ where: { cicloId: inscripcion.cicloId } });
+      const añoInicio = cicloActivo ? new Date(cicloActivo.fechaInicio).getFullYear() : undefined;
+
       const adeudosIdeales = CalculadoraPagos.generarCalendario(
         { meses: planPago.meses },
         tarifasParaCalculadora,
         new Date(inscripcion.fechaIngreso),
-        diaVencimiento
+        diaVencimiento,
+        null,
+        añoInicio
       );
 
       // 3. Obtener TODOS los adeudos PENDIENTE o ABONO para el ciclo actual (cualquier concepto)

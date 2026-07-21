@@ -29,7 +29,8 @@ export class CalculadoraPagos {
     tarifas: TarifaData[],
     fechaIngreso: Date,
     diaVencimientoMensual: number,
-    beca?: BecaData | null
+    beca?: BecaData | null,
+    añoInicioCiclo?: number
   ) {
     const meses10 = ['Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'];
     const meses12 = ['Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'];
@@ -93,10 +94,17 @@ export class CalculadoraPagos {
         monto = monto - descuento;
       }
 
-      const fechaBaseColegiatura = new Date(fechaIngreso);
-      fechaBaseColegiatura.setMonth(fechaBaseColegiatura.getMonth() + i);
-      const year = fechaBaseColegiatura.getFullYear();
-      const month = fechaBaseColegiatura.getMonth();
+      const mapMeses: Record<string, number> = {
+        'Enero': 0, 'Febrero': 1, 'Marzo': 2, 'Abril': 3, 'Mayo': 4, 'Junio': 5,
+        'Julio': 6, 'Agosto': 7, 'Septiembre': 8, 'Octubre': 9, 'Noviembre': 10, 'Diciembre': 11
+      };
+      const month = mapMeses[mesStr];
+      
+      const baseYear = añoInicioCiclo || fechaIngreso.getFullYear();
+      // Los meses de la primera mitad del ciclo (Agosto-Diciembre) pertenecen al año de inicio.
+      // Los meses de la segunda mitad (Enero-Julio) pertenecen al año siguiente.
+      const year = month >= 7 ? baseYear : baseYear + 1;
+
       const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
       const dayToUse = Math.min(diaVencimientoMensual, lastDayOfMonth);
       // Se establece la hora a las 12:00 PM (mediodía)

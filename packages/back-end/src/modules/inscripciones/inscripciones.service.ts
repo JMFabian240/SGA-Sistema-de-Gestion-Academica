@@ -228,8 +228,10 @@ export class InscripcionesService {
       
       const configGlobal = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
       const diaVencimiento = configGlobal?.diaVencimientoMensual || 1;
+      const cicloActivo = await tx.cicloEscolar.findUnique({ where: { cicloId: inscripcion.cicloId } });
+      const añoInicio = cicloActivo ? new Date(cicloActivo.fechaInicio).getFullYear() : undefined;
 
-      const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso), diaVencimiento);
+      const adeudosCalculados = CalculadoraPagos.generarCalendario(planBase, tarifasParaCalculadora, new Date(inscripcion.fechaIngreso), diaVencimiento, null, añoInicio);
       
       const adeudosParaInsertar = adeudosCalculados.map(a => ({
         alumnoId: inscripcion.alumnoId,
