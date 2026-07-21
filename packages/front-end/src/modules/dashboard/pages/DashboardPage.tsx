@@ -24,7 +24,7 @@ export function DashboardPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Panel Administrativo</h2>
+          <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Panel Principal</h2>
           <p className="text-gray-500">Resumen operativo {isDocente ? 'académico' : 'y financiero del día'}</p>
         </div>
         {!isDocente && (

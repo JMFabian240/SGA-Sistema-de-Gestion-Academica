@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { trpc } from '../../../lib/trpc';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
+import { CrearMateriaRapidaModal } from './CrearMateriaRapidaModal';
+import { CrearDocenteRapidoModal } from './CrearDocenteRapidoModal';
 
 const schema = z.object({
   materiaId: z.string().min(1, 'Debes seleccionar una materia'),
@@ -29,8 +31,10 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
 
   const [docenteSearchQuery, setDocenteSearchQuery] = useState('');
   const [showDocenteDropdown, setShowDocenteDropdown] = useState(false);
+  const [isCrearMateriaOpen, setIsCrearMateriaOpen] = useState(false);
+  const [isCrearDocenteOpen, setIsCrearDocenteOpen] = useState(false);
 
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { control, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { materiaId: '', docenteId: '' },
   });
@@ -67,8 +71,8 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
 
   const isSaving = updateMateriaMutation.isPending;
 
-  // Filtrar materias que no pertenecen al grado actual para evitar duplicados en la lista de asignación
-  const materiasDisponibles = materias?.filter(m => m.gradoId !== gradoId) || [];
+  // Filtrar materias que no tienen ningún grado asignado (materias libres)
+  const materiasDisponibles = materias?.filter(m => m.gradoId === null) || [];
 
   return (
     <Modal
@@ -82,7 +86,16 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
           control={control}
           render={({ field }) => (
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Seleccionar Materia</label>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-gray-700">Seleccionar Materia</label>
+                <button
+                  type="button"
+                  onClick={() => setIsCrearMateriaOpen(true)}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-bold focus:outline-none"
+                >
+                  + Crear nueva materia
+                </button>
+              </div>
               <select
                 {...field}
                 disabled={isSaving || isLoadingMaterias}
@@ -159,6 +172,16 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
                       </div>
                     ))
                   )}
+                  <div 
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setIsCrearDocenteOpen(true);
+                      setShowDocenteDropdown(false);
+                    }}
+                    className="px-4 py-2 border-t border-gray-100 hover:bg-blue-50 cursor-pointer text-xs text-blue-600 font-bold transition-colors text-center"
+                  >
+                    + Crear nuevo docente
+                  </div>
                 </div>
               )}
               {errors.docenteId && <span className="text-xs text-red-600">{errors.docenteId.message}</span>}
@@ -175,6 +198,25 @@ export function AsignarMateriaModal({ isOpen, onClose, gradoId, onSuccess }: Pro
           </Button>
         </div>
       </form>
+
+      <CrearMateriaRapidaModal
+        isOpen={isCrearMateriaOpen}
+        onClose={() => setIsCrearMateriaOpen(false)}
+        onSuccess={(materiaId) => {
+          utils.grupos.getMaterias.invalidate();
+          setValue('materiaId', String(materiaId));
+        }}
+      />
+
+      <CrearDocenteRapidoModal
+        isOpen={isCrearDocenteOpen}
+        onClose={() => setIsCrearDocenteOpen(false)}
+        onSuccess={(usuarioId, nombreCompleto) => {
+          utils.grupos.getDocentes.invalidate();
+          setValue('docenteId', String(usuarioId));
+          setDocenteSearchQuery(nombreCompleto);
+        }}
+      />
     </Modal>
   );
 }

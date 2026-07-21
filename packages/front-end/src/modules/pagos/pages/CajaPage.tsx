@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { trpc } from '../../../lib/trpc';
-import { Search, User, FileText, AlertCircle, PlusCircle, CheckSquare, Square } from 'lucide-react';
+import { Search, User, FileText, AlertCircle, PlusCircle, CheckSquare, Square, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { TicketCheckout } from '../components/TicketCheckout';
 import { NuevoCargoModal } from '../components/NuevoCargoModal';
@@ -92,6 +92,12 @@ export function CajaPage() {
     { enabled: !!selectedAlumnoId }
   );
 
+  // 3. Consulta directa del perfil completo del alumno seleccionado
+  const { data: alumnoSeleccionado, isLoading: isLoadingAlumno } = trpc.alumnos.getById.useQuery(
+    selectedAlumnoId!, 
+    { enabled: !!selectedAlumnoId }
+  );
+
   const aplicarRecargo = trpc.pagos.aplicarRecargoManual.useMutation({
     onSuccess: () => {
       toast.success('Recargo aplicado exitosamente');
@@ -101,7 +107,7 @@ export function CajaPage() {
   });
 
   // Al seleccionar un alumno
-  const handleSelectAlumno = (alumnoId: number, tutorId?: number | null) => {
+  const handleSelectAlumno = (alumnoId: number | null, tutorId?: number | null) => {
     setSelectedAlumnoId(alumnoId);
     setSelectedTutorId(tutorId || null);
     setSearchTerm('');
@@ -133,14 +139,25 @@ export function CajaPage() {
     refetchAdeudos(); // Recargar el estado de cuenta
   };
 
-  const alumnoSeleccionado = (alumnos as unknown as Alumno[]).find((a: Alumno) => a.alumnoId === selectedAlumnoId);
+  // alumnoSeleccionado ahora proviene directamente de trpc.alumnos.getById
 
   return (
     <div className="h-full flex flex-col p-6 max-w-7xl mx-auto w-full gap-6">
 
       {/* HEADER: Buscador Global */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-        <h1 className="text-2xl font-black text-slate-800 mb-4">Punto de Cobro</h1>
+        <div className="flex items-center gap-4 mb-4">
+          {selectedAlumnoId && (
+            <button 
+              onClick={() => handleSelectAlumno(null, null)} 
+              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full transition-colors"
+              title="Volver a la vista principal"
+            >
+              <ArrowLeft size={24} />
+            </button>
+          )}
+          <h1 className="text-2xl font-black text-slate-800">Punto de Cobro</h1>
+        </div>
 
         <div className="relative z-20">
           <div className="relative">
@@ -200,7 +217,7 @@ export function CajaPage() {
                 </div>
                 <div>
                   <h2 className="font-bold text-slate-800 text-lg leading-tight truncate max-w-[300px]" title={alumnoSeleccionado?.nombreCompleto}>
-                    {alumnoSeleccionado?.nombreCompleto || 'Cargando alumno...'}
+                    {isLoadingAlumno ? 'Cargando alumno...' : (alumnoSeleccionado?.nombreCompleto || 'Alumno no encontrado')}
                   </h2>
                   <p className="text-sm text-slate-500 font-medium mt-0.5">
                     {alumnoSeleccionado?.nivel?.nombre || 'Sin Nivel'} • {alumnoSeleccionado?.grado?.nombre || 'Sin Grado'}
@@ -289,7 +306,7 @@ export function CajaPage() {
                           <div className="flex gap-1 mt-1">
                             {Number(adeudo.montoRecargo) > 0 && !isPagado && (
                               <div className="text-xs text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded-md inline-block border border-red-100">
-                                + ${Number(adeudo.montoRecargo).toLocaleString()} Recargo
+                                Recargo Aplicado
                               </div>
                             )}
                             {Number(adeudo.montoPagado) > 0 && !isPagado && (

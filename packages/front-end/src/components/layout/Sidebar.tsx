@@ -20,7 +20,7 @@ export function Sidebar() {
   };
 
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Panel Administrativo', modulo: null }, // Siempre visible
+    { to: '/', icon: LayoutDashboard, label: 'Panel Principal', modulo: null }, // Siempre visible
     { to: '/alumnos', icon: Users, label: 'Alumnos', modulo: 'Alumnos' },
     { to: '/tutores', icon: UserSquare2, label: 'Tutores', modulo: 'Tutores' },
     { to: '/grupos', icon: Layers, label: 'Grupos', modulo: 'Grupos' },
@@ -69,7 +69,7 @@ export function Sidebar() {
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Configuración</div>
           </div>
         )}
-        
+
         {hasConfig && (
           <NavLink
             to="/configuracion"
@@ -84,7 +84,7 @@ export function Sidebar() {
             Ajustes Generales
           </NavLink>
         )}
-        
+
         {hasUsuarios && (
           <NavLink
             to="/usuarios"
