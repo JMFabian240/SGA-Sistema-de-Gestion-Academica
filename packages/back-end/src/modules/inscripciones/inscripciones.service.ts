@@ -34,21 +34,22 @@ export class InscripcionesService {
   }
 
   static async createVentana(input: CreateVentanaInscripcionInput) {
+    const { gruposIds, ...rest } = input;
     return InscripcionesRepository.createVentana({
-      ...input,
+      ...rest,
       fechaInicio: new Date(input.fechaInicio),
       fechaFin: new Date(input.fechaFin)
-    });
+    }, gruposIds);
   }
 
   static async updateVentana(input: UpdateVentanaInscripcionInput) {
-    const { ventanaId, fechaInicio, fechaFin, ...data } = input;
+    const { ventanaId, fechaInicio, fechaFin, gruposIds, ...data } = input;
     return InscripcionesRepository.updateVentana(ventanaId, {
       ...data,
       ...(fechaInicio && { fechaInicio: new Date(fechaInicio) }),
       ...(fechaFin && { fechaFin: new Date(fechaFin) }),
       actualizadoEn: new Date()
-    });
+    }, gruposIds);
   }
 
   static async deleteVentana(ventanaId: number) {

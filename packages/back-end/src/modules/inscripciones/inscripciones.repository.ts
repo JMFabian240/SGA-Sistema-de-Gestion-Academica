@@ -29,21 +29,53 @@ export class InscripcionesRepository {
 
   // --- Ventanas de Inscripción Temprana ---
   static async getVentanas() {
-    return prisma.ventanaInscripcionTemprana.findMany({
+    const ventanas = await prisma.ventanaInscripcionTemprana.findMany({
       where: { eliminadoEn: null },
-      include: { ciclo: true, beca: true },
+      include: { 
+        ciclo: true, 
+        beca: true,
+        nivel: true,
+        grado: true,
+        ventanasGrupo: {
+          include: { grupo: true }
+        }
+      },
       orderBy: { fechaInicio: 'desc' }
+    });
+
+    return ventanas.map(v => ({
+      ...v,
+      descuentoInscripcion: v.descuentoInscripcion?.toNumber() || null
+    }));
+  }
+
+  static async createVentana(data: Prisma.VentanaInscripcionTempranaUncheckedCreateInput, gruposIds?: number[]) {
+    return prisma.$transaction(async (tx) => {
+      const ventana = await tx.ventanaInscripcionTemprana.create({ data });
+      if (gruposIds && gruposIds.length > 0) {
+        await tx.ventanaGrupo.createMany({
+          data: gruposIds.map(id => ({ ventanaId: ventana.ventanaId, grupoId: id }))
+        });
+      }
+      return ventana;
     });
   }
 
-  static async createVentana(data: Prisma.VentanaInscripcionTempranaUncheckedCreateInput) {
-    return prisma.ventanaInscripcionTemprana.create({ data });
-  }
-
-  static async updateVentana(ventanaId: number, data: Prisma.VentanaInscripcionTempranaUncheckedUpdateInput) {
-    return prisma.ventanaInscripcionTemprana.update({
-      where: { ventanaId },
-      data
+  static async updateVentana(ventanaId: number, data: Prisma.VentanaInscripcionTempranaUncheckedUpdateInput, gruposIds?: number[]) {
+    return prisma.$transaction(async (tx) => {
+      const ventana = await tx.ventanaInscripcionTemprana.update({
+        where: { ventanaId },
+        data
+      });
+      if (gruposIds !== undefined) {
+        await tx.ventanaGrupo.deleteMany({ where: { ventanaId } });
+        if (gruposIds.length > 0) {
+          await tx.ventanaGrupo.createMany({
+            data: gruposIds.map(id => ({ ventanaId: ventana.ventanaId, grupoId: id }))
+          });
+        }
+      }
+      return ventana;
     });
   }
 

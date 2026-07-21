@@ -18,6 +18,10 @@ export const updatePlanPagoSchema = createPlanPagoSchema.partial().extend({
 export const createVentanaInscripcionSchema = z.object({
   cicloId: z.number().int().positive(),
   becaId: z.number().int().positive(),
+  nivelId: z.number().int().positive().optional().nullable(),
+  gradoId: z.number().int().positive().optional().nullable(),
+  descuentoInscripcion: z.number().nonnegative().optional().nullable(),
+  gruposIds: z.array(z.number().int().positive()).optional(),
   fechaInicio: z.string().datetime(),
   fechaFin: z.string().datetime(),
   activa: z.boolean().default(true)
