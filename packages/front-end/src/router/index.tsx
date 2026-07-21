@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
       { path: 'becas', element: <BecasPage /> },
       { path: 'calificaciones', element: <CalificacionesPage /> },
       { path: 'calificaciones/boletas', element: <BoletasPage /> },
-      // Aquí se irán registrando las rutas de cada módulo (modules/pagos/...)
+
     ],
   },
   {

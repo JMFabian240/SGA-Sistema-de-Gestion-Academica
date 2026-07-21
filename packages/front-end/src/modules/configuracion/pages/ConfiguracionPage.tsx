@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { trpc } from '../../../lib/trpc';
 import { 
   Plus, Edit2, Trash2, Calendar, DollarSign, RefreshCw, 
@@ -182,12 +182,12 @@ export function ConfiguracionPage() {
   const [editandoTarifasSem, setEditandoTarifasSem] = useState(false);
 
   // Listas de ciclos filtradas por periodicidad
-  const ciclosAnuales = ciclos?.filter((c: any) => c.periodicidad !== 'SEMESTRAL') || [];
-  const ciclosSemestrales = ciclos?.filter((c: any) => c.periodicidad === 'SEMESTRAL') || [];
+  const ciclosAnuales = useMemo(() => ciclos?.filter((c: any) => c.periodicidad !== 'SEMESTRAL') || [], [ciclos]);
+  const ciclosSemestrales = useMemo(() => ciclos?.filter((c: any) => c.periodicidad === 'SEMESTRAL') || [], [ciclos]);
 
   // Niveles filtrados
-  const nivelesAnuales = niveles?.filter((n: any) => n.codigo !== 'BAC');
-  const nivelesSemestrales = niveles?.filter((n: any) => n.codigo === 'BAC');
+  const nivelesAnuales = useMemo(() => niveles?.filter((n: any) => n.codigo !== 'BAC'), [niveles]);
+  const nivelesSemestrales = useMemo(() => niveles?.filter((n: any) => n.codigo === 'BAC'), [niveles]);
 
   const selectedCiclo = ciclos?.find((c: any) => c.cicloId === selectedCicloId);
   const selectedCicloSem = ciclos?.find((c: any) => c.cicloId === selectedCicloSemId);
