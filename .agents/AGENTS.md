@@ -134,3 +134,9 @@ Las skills de diseño han sido analizadas y están diseñadas para complementars
 - **Prevención del error de inferencia TS2589 (tRPC):** Al crear endpoints en tRPC que devuelven objetos muy anidados de Prisma (con múltiples `.include`), el router debe definir explícitamente el tipo de retorno (ej. `Promise<any>` o una interfaz limpia) para evitar que la inferencia profunda sature el compilador de TypeScript en el Front-End.
 - **Compatibilidad con React Fast Refresh:** En los archivos `.tsx` de páginas o componentes, no exportes constantes ni variables de configuración junto con los componentes React. Esto rompe el 'Fast Refresh'. Las constantes deben mantenerse privadas (sin exportar) o moverse a un archivo de utilidades separado.
 - **Frontera de Tipos Seguros (Safe Type Boundaries):** Queda prohibido enviar objetos crudos de Prisma (como `Decimal` o fechas strictas) directamente al Front-End a través de los routers de tRPC. El Back-End tiene la obligación absoluta de transformar los datos de Prisma en objetos TypeScript estándar (DTOs) antes de retornarlos. Por ejemplo, todo campo `Decimal` de Prisma debe ser convertido a `number` usando `.toNumber()` en la capa del backend antes de viajar al frontend.
+
+## Arquitectura de Páginas con Pestañas (Container-Component Pattern)
+Las páginas complejas con múltiples pestañas (como `ConfiguracionPage.tsx` o `PagosPage.tsx`) NO deben exceder de ~300 líneas ni albergar toda la lógica de los paneles.
+- El archivo `*Page.tsx` debe actuar EXCLUSIVAMENTE como un contenedor de navegación (manejar el estado `activeTab` y montar componentes).
+- Cada pestaña debe extraerse a su propio componente independiente `*Panel.tsx` (e.g. `CiclosPanel.tsx`, `TarifasPanel.tsx`) que manejará su propia UI, estado local y queries de tRPC asociados a esa pestaña.
+- Para consultar los pasos y mejores prácticas para implementar este patrón, consulta la skill `tab-based-page-architecture`.
