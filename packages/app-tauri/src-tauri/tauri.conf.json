@@ -6,7 +6,7 @@
     "beforeDevCommand": "npm run dev:front-end --workspace=@sga/front-end",
     "beforeBuildCommand": "npm run build --workspace=@sga/front-end",
     "devUrl": "http://localhost:5173",
-    "frontendDist": "../front-end/dist"
+    "frontendDist": "../../front-end/dist"
   },
   "app": {
     "windows": [

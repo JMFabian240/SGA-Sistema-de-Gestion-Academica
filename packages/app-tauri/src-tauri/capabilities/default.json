@@ -7,7 +7,6 @@
   "permissions": [
     "core:default",
     "shell:allow-execute",
-    "shell:allow-kill",
-    "process:allow-exit"
+    "shell:allow-kill"
   ]
 }

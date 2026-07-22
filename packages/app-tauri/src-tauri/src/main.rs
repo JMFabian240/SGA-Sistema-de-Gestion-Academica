@@ -47,14 +47,19 @@ fn main() {
 
             let main_window = app.get_webview_window("main").unwrap();
             main_window.hide().unwrap();
-
+            let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let show_error_and_exit = |msg: &str| {
-                    tauri_plugin_dialog::MessageDialogBuilder::new("Error Crítico")
-                        .kind(tauri_plugin_dialog::MessageDialogKind::Error)
-                        .text(msg)
-                        .show_blocking();
-                    std::process::exit(1);
+                let show_error_and_exit = {
+                    let app_handle_clone = app_handle.clone();
+                    move |msg: &str| {
+                        use tauri_plugin_dialog::DialogExt;
+                        app_handle_clone.dialog()
+                            .message(msg)
+                            .title("Error Crítico")
+                            .kind(tauri_plugin_dialog::MessageDialogKind::Error)
+                            .blocking_show();
+                        std::process::exit(1);
+                    }
                 };
 
                 // FASE A — Inicializar PostgreSQL
@@ -147,7 +152,7 @@ fn main() {
                         ("TRPC_PORT".to_string(), "3000".to_string()),
                         ("NODE_ENV".to_string(), "production".to_string()),
                         ("RUN_MIGRATIONS".to_string(), "true".to_string())
-                    ].into_iter().collect())
+                    ])
                     .spawn()
                     .expect("Failed to spawn backend");
                 
