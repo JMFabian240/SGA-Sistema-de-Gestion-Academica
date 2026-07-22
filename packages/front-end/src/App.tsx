@@ -6,7 +6,8 @@ import { router } from './router';
 import { Toaster } from 'react-hot-toast';
 
 // === CONFIGURACIÓN DE TRPC Y REACT QUERY ===
-const API_URL = import.meta.env.VITE_API_URL || '/trpc';
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+const API_URL = isTauri ? 'http://127.0.0.1:3000/trpc' : (import.meta.env.VITE_API_URL || '/trpc');
 
 const queryClient = new QueryClient({
   defaultOptions: {
