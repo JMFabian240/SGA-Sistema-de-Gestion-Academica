@@ -184,4 +184,25 @@ export class ConfiguracionService {
       });
     }
   }
+
+  static getServerNetworkInfo() {
+    const os = require('os');
+    const interfaces = os.networkInterfaces();
+    let localIp = '127.0.0.1';
+
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name] || []) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          localIp = iface.address;
+          break;
+        }
+      }
+      if (localIp !== '127.0.0.1') break;
+    }
+    
+    return {
+      ip: localIp,
+      port: Number(process.env.TRPC_PORT) || Number(process.env.PORT) || 3000
+    };
+  }
 }

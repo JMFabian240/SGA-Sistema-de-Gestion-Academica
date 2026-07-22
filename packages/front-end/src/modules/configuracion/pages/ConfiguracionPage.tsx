@@ -12,10 +12,11 @@ import { ImportacionDatosPanel } from '../components/ImportacionDatosPanel';
 import { PlanesPagoPanel } from '../components/PlanesPagoPanel';
 import { TransicionCicloWizard } from '../components/TransicionCicloWizard';
 import { InscripcionTransicionPage } from '../components/InscripcionTransicionPage';
+import { VinculacionPanel } from '../components/VinculacionPanel';
 
 import { toast } from 'react-hot-toast';
 
-type TabType = 'ciclos' | 'tarifas' | 'planespago' | 'cierre' | 'importacion' | 'inscripcion-transicion';
+type TabType = 'ciclos' | 'tarifas' | 'planespago' | 'cierre' | 'importacion' | 'inscripcion-transicion' | 'vinculacion';
 
 export function ConfiguracionPage() {
   const [activeTab, setActiveTab] = useState<TabType>('ciclos');
@@ -469,6 +470,16 @@ export function ConfiguracionPage() {
           }`}
         >
           Importación de Datos
+        </button>
+        <button
+          onClick={() => setActiveTab('vinculacion')}
+          className={`px-6 py-3 font-semibold text-sm transition-all border-b-2 cursor-pointer ${
+            activeTab === 'vinculacion'
+              ? 'border-red-600 text-red-600'
+              : 'border-transparent text-gray-500 hover:text-navy-800'
+          }`}
+        >
+          Vinculación
         </button>
       </div>
 
@@ -1359,6 +1370,10 @@ export function ConfiguracionPage() {
 
       {activeTab === 'importacion' && (
         <ImportacionDatosPanel ciclos={ciclos || []} />
+      )}
+
+      {activeTab === 'vinculacion' && (
+        <VinculacionPanel />
       )}
 
       {activeTab === 'inscripcion-transicion' && wizardCiclo && inscripcionDestinoId && (

@@ -5,6 +5,9 @@ import { appRouter } from './router';
 import { createContext } from './context';
 import multipart from '@fastify/multipart';
 import { importacionesController } from './modules/importaciones/importaciones.controller';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
+
 export function buildServer() {
   const server = fastify({
     logger: true,
@@ -12,7 +15,7 @@ export function buildServer() {
   });
 
   server.register(cors, {
-    origin: true, // Permitir cualquier origen en desarrollo
+    origin: true,
     credentials: true,
   });
 
@@ -24,12 +27,22 @@ export function buildServer() {
     },
   });
 
-  server.get('/', async () => {
-    return { status: 'SGA API is running' };
+  const distPath = path.join(__dirname, '../../front-end/dist');
+  server.register(fastifyStatic, {
+    root: distPath,
+    wildcard: false,
   });
 
   server.get('/health', async () => {
     return { status: 'ok' };
+  });
+
+  server.get('/*', async (request, reply) => {
+    if (request.url.startsWith('/trpc') || request.url.startsWith('/api') || request.url === '/health') {
+      reply.callNotFound();
+      return;
+    }
+    return reply.sendFile('index.html');
   });
 
   server.register(multipart, {

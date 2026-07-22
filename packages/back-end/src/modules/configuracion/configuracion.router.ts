@@ -38,4 +38,9 @@ export const configuracionRouter = router({
     .mutation(async () => {
       return ConfiguracionService.sincronizarRecargosRetroactivos();
     }),
+
+  getServerNetworkInfo: lectura
+    .query(async () => {
+      return ConfiguracionService.getServerNetworkInfo();
+    }),
 });
