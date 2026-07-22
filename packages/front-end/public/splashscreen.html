@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SGA - Iniciando</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+    }
+    .logo-container {
+      margin-bottom: 24px;
+    }
+    .logo-container img {
+      width: 120px;
+      height: auto;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+    }
+    #status-text {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 16px;
+    }
+    .loader {
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <img src="/logo.png" alt="SGA Logo" onerror="this.style.display='none'" />
+  </div>
+  <h1>SGA</h1>
+  <div class="loader"></div>
+  <div id="status-text">Iniciando aplicación...</div>
+
+  <script>
+    if (window.__TAURI_INTERNALS__ || window.__TAURI__) {
+      const { listen } = window.__TAURI_INTERNALS__ ? window.__TAURI_INTERNALS__.event : window.__TAURI__.event;
+      if (listen) {
+        listen('splash-state', (event) => {
+          document.getElementById('status-text').innerText = event.payload;
+        });
+      }
+    }
+  </script>
+</body>
+</html>

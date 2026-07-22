@@ -11,6 +11,10 @@ use tauri_plugin_shell::process::CommandEvent;
 use postgres::{Client, NoTls};
 use std::os::windows::process::CommandExt;
 
+fn clean_path(path: &std::path::Path) -> std::path::PathBuf {
+    std::path::PathBuf::from(path.to_str().unwrap().trim_start_matches(r"\\?\"))
+}
+
 struct AppState {
     db_process: Option<u32>,
     back_process: Option<u32>,
@@ -25,7 +29,7 @@ fn main() {
             
             // Directorios
             let path_resolver = app.path();
-            let app_data_dir = path_resolver.app_data_dir().unwrap();
+            let app_data_dir = clean_path(&path_resolver.app_data_dir().unwrap());
             let db_dir = app_data_dir.join("pgdata");
             let logs_dir = app_data_dir.join("logs");
 
@@ -67,32 +71,48 @@ fn main() {
                 let pg_version_file = db_dir.join("PG_VERSION");
                 if !pg_version_file.exists() {
                     let _ = splash_window.emit("splash-state", "Inicializando base de datos...");
-                    std::fs::create_dir_all(&db_dir).unwrap();
+                    // Si el directorio existe pero no tiene PG_VERSION, lo borramos para asegurar que initdb no falle por "directorio no vacío"
+                    if db_dir.exists() {
+                        let _ = std::fs::remove_dir_all(&db_dir);
+                    }
+                    if let Err(e) = std::fs::create_dir_all(&db_dir) {
+                        show_error_and_exit(&format!("Error al crear directorio db_dir: {}", e));
+                    }
                     
-                    let pgsql_dir = app_handle.path().resource_dir().unwrap().join("pgsql");
+                    let pgsql_dir = clean_path(&app_handle.path().resource_dir().unwrap()).join("pgsql");
                     let initdb_path = pgsql_dir.join("bin").join("initdb.exe");
                     
-                    let status = std::process::Command::new(initdb_path)
+                    let output = std::process::Command::new(initdb_path)
                         .args([
                             "--pgdata",
                             db_dir.to_str().unwrap(),
                             "--username=sga",
                             "--encoding=UTF8",
-                            "--locale=es_MX.UTF-8"
+                            "--auth=trust"
                         ])
                         .creation_flags(0x08000000)
-                        .status()
-                        .expect("Failed to spawn initdb");
+                        .output();
+                        
+                    let output = match output {
+                        Ok(o) => o,
+                        Err(e) => {
+                            show_error_and_exit(&format!("Fallo al ejecutar initdb.exe: {}", e));
+                            return;
+                        }
+                    };
                     
-                    if !status.success() {
-                        show_error_and_exit("Fallo al inicializar el clúster de base de datos.");
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        let error_msg = format!("Fallo al inicializar el clúster de base de datos.\nError: {}\nSalida: {}", stderr, stdout);
+                        show_error_and_exit(&error_msg);
                     }
                 }
 
                 // FASE B — Levantar PostgreSQL
                 let _ = splash_window.emit("splash-state", "Iniciando motor de base de datos...");
                 
-                let pgsql_dir = app_handle.path().resource_dir().unwrap().join("pgsql");
+                let pgsql_dir = clean_path(&app_handle.path().resource_dir().unwrap()).join("pgsql");
                 let postgres_path = pgsql_dir.join("bin").join("postgres.exe");
 
                 let db_child = std::process::Command::new(postgres_path)
@@ -103,8 +123,15 @@ fn main() {
                         "5433"
                     ])
                     .creation_flags(0x08000000)
-                    .spawn()
-                    .expect("Failed to spawn postgres");
+                    .spawn();
+                    
+                let db_child = match db_child {
+                    Ok(c) => c,
+                    Err(e) => {
+                        show_error_and_exit(&format!("Fallo al ejecutar postgres.exe: {}", e));
+                        return;
+                    }
+                };
                 
                 let db_pid = db_child.id();
 
@@ -125,9 +152,15 @@ fn main() {
                 // Verificar y crear base de datos "sga_db"
                 match Client::connect("postgresql://sga@localhost:5433/postgres", NoTls) {
                     Ok(mut client) => {
-                        let rows = client.query("SELECT datname FROM pg_database WHERE datname = 'sga_db'", &[]).unwrap();
-                        if rows.is_empty() {
-                            let _ = client.execute("CREATE DATABASE sga_db OWNER sga", &[]);
+                        match client.query("SELECT datname FROM pg_database WHERE datname = 'sga_db'", &[]) {
+                            Ok(rows) => {
+                                if rows.is_empty() {
+                                    if let Err(e) = client.execute("CREATE DATABASE sga_db OWNER sga", &[]) {
+                                        show_error_and_exit(&format!("Error al crear base de datos sga_db: {}", e));
+                                    }
+                                }
+                            },
+                            Err(e) => show_error_and_exit(&format!("Error consultando pg_database: {}", e))
                         }
                     },
                     Err(_) => {
@@ -138,18 +171,31 @@ fn main() {
                 // FASE C y D — Levantar Backend (las migraciones se ejecutan automáticamente en start del backend)
                 let _ = splash_window.emit("splash-state", "Aplicando actualizaciones e iniciando servicios...");
                 
-                let (_, back_child) = app_handle
-                    .shell()
-                    .sidecar("sga-back")
-                    .expect("Failed to create sga-back sidecar")
+                let sidecar = app_handle.shell().sidecar("sga-back");
+                let sidecar = match sidecar {
+                    Ok(s) => s,
+                    Err(e) => {
+                        show_error_and_exit(&format!("Error al crear sidecar sga-back: {}", e));
+                        return;
+                    }
+                };
+                
+                let back_spawn = sidecar
                     .envs(vec![
                         ("DATABASE_URL".to_string(), "postgresql://sga@localhost:5433/sga_db".to_string()),
                         ("TRPC_PORT".to_string(), "3000".to_string()),
                         ("NODE_ENV".to_string(), "production".to_string()),
                         ("RUN_MIGRATIONS".to_string(), "true".to_string())
                     ])
-                    .spawn()
-                    .expect("Failed to spawn backend");
+                    .spawn();
+                    
+                let (_, back_child) = match back_spawn {
+                    Ok(b) => b,
+                    Err(e) => {
+                        show_error_and_exit(&format!("Error al ejecutar backend sga-back: {}", e));
+                        return;
+                    }
+                };
                 
                 let back_pid = back_child.pid();
 
@@ -200,8 +246,10 @@ fn main() {
 
                     if let Some(_db_pid) = state.db_process.take() {
                         let path_resolver = window.app_handle().path();
-                        let db_dir = path_resolver.app_data_dir().unwrap().join("pgdata");
-                        let pgsql_dir = path_resolver.resource_dir().unwrap().join("pgsql");
+                        let app_data_dir = clean_path(&path_resolver.app_data_dir().unwrap());
+                        let db_dir = app_data_dir.join("pgdata");
+                        let resource_dir = clean_path(&path_resolver.resource_dir().unwrap());
+                        let pgsql_dir = resource_dir.join("pgsql");
                         let pg_ctl_path = pgsql_dir.join("bin").join("pg_ctl.exe");
                         
                         let _ = std::process::Command::new(pg_ctl_path)
