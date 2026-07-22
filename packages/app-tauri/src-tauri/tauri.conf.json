@@ -40,7 +40,10 @@
       "binaries/sga-back"
     ],
     "resources": [
-      "pgsql/**/*"
+      "pgsql/**/*",
+      "binaries/query_engine-windows.dll.node",
+      "binaries/schema.prisma",
+      "pgsql/init_db.sql"
     ]
   }
 }

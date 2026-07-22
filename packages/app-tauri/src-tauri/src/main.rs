@@ -88,6 +88,7 @@ async fn startup_sequence(app_handle: tauri::AppHandle, splash_window: tauri::We
     }
 
     // Verificar y crear base de datos "sga_db"
+    let init_sql_path = app_handle.path().resource_dir().map_err(|e| e.to_string())?.join("pgsql").join("init_db.sql");
     tokio::task::spawn_blocking(move || -> Result<(), String> {
         let mut config = postgres::Config::new();
         config.user("sga");
@@ -117,6 +118,20 @@ async fn startup_sequence(app_handle: tauri::AppHandle, splash_window: tauri::We
         if rows.is_empty() {
             client.execute("CREATE DATABASE sga_db OWNER sga", &[])
                 .map_err(|e| format!("Error al crear base de datos sga_db: {}", e))?;
+                
+            let mut db_config = config.clone();
+            db_config.dbname("sga_db");
+            let mut sga_client = db_config.connect(postgres::NoTls)
+                .map_err(|e| format!("Error al conectar a sga_db para migraciones: {}", e))?;
+                
+            if init_sql_path.exists() {
+                let init_sql = std::fs::read_to_string(&init_sql_path)
+                    .map_err(|e| format!("Error leyendo init_db.sql: {}", e))?;
+                if !init_sql.trim().is_empty() {
+                    sga_client.batch_execute(&init_sql)
+                        .map_err(|e| format!("Error ejecutando init_db.sql: {}", e))?;
+                }
+            }
         }
         Ok(())
     }).await.map_err(|e| format!("Error en hilo de postgres: {}", e))??;
@@ -126,12 +141,16 @@ async fn startup_sequence(app_handle: tauri::AppHandle, splash_window: tauri::We
     let sidecar = app_handle.shell().sidecar("sga-back")
         .map_err(|e| format!("Error al crear sidecar sga-back: {}", e))?;
         
+    let resource_dir = clean_path(&app_handle.path().resource_dir().map_err(|e| e.to_string())?);
+    let engine_path = resource_dir.join("binaries").join("query_engine-windows.dll.node");
+    
     let (_, back_child) = sidecar
         .envs(vec![
             ("DATABASE_URL".to_string(), "postgresql://sga@localhost:5433/sga_db".to_string()),
             ("TRPC_PORT".to_string(), "3000".to_string()),
             ("NODE_ENV".to_string(), "production".to_string()),
-            ("RUN_MIGRATIONS".to_string(), "true".to_string())
+            ("PRISMA_QUERY_ENGINE_LIBRARY".to_string(), engine_path.to_string_lossy().to_string()),
+            ("PRISMA_CLI_QUERY_ENGINE_TYPE".to_string(), "library".to_string())
         ])
         .spawn()
         .map_err(|e| format!("Error al ejecutar backend sga-back: {}", e))?;

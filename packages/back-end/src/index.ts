@@ -62,17 +62,8 @@ async function runInitialSeeder() {
 
 async function start() {
   try {
-    // Ejecutar migraciones si se solicita
-    if (process.env.NODE_ENV === 'production' || process.env.RUN_MIGRATIONS === 'true') {
-      console.log('Ejecutando migraciones de base de datos...');
-      try {
-        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-        console.log('Migraciones completadas correctamente.');
-      } catch (migrationError) {
-        console.error('Error ejecutando migraciones:', migrationError);
-        process.exit(1);
-      }
-    }
+    // Las migraciones de DB ahora se aplican nativamente en Rust (init_db.sql)
+    // Se eliminó la llamada a npx prisma migrate deploy porque pkg no soporta npx.
 
     // Ejecutar seeder de datos iniciales
     await runInitialSeeder();
