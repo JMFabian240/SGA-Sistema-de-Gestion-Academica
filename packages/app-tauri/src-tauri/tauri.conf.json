@@ -9,6 +9,7 @@
     "frontendDist": "../../front-end/dist"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "SGA - Sistema de Gestión Académico",

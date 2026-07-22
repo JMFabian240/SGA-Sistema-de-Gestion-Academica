@@ -205,10 +205,15 @@ fn main() {
                     back_process: Some(back_pid),
                 })));
 
+                let client = reqwest::Client::builder()
+                    .timeout(Duration::from_secs(2))
+                    .build()
+                    .unwrap();
+                    
                 // Esperar a que el backend esté listo (GET /health) (timeout 15s)
                 let mut back_ready = false;
                 for _ in 0..30 { // 15 segundos
-                    if let Ok(resp) = reqwest::get("http://localhost:3000/health").await {
+                    if let Ok(resp) = client.get("http://localhost:3000/health").send().await {
                         if resp.status().is_success() {
                             back_ready = true;
                             break;
