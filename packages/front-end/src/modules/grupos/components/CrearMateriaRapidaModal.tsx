@@ -8,7 +8,7 @@ import { Button } from '../../../components/ui/Button';
 const schema = z.object({
   nombre: z.string().min(1, 'El nombre es requerido').max(80),
   clave: z.string().max(20).optional(),
-  tipo: z.enum(['curricular', 'extracurricular', 'taller']).default('curricular'),
+  tipo: z.enum(['curricular', 'extracurricular', 'taller']),
 });
 
 type FormData = z.infer<typeof schema>;
