@@ -9,7 +9,7 @@
     "dev:front-end": "npm run dev --workspace=@sga/front-end",
     "dev:back-end": "npm run dev --workspace=@sga/back-end",
     "dev:tauri": "npm run tauri dev --workspace=@sga/app-tauri",
-    "dev": "npm run dev:back-end & npm run dev:front-end",
+    "dev": "concurrently \"npm run dev:back-end\" \"npm run dev:front-end\"",
     "build:back": "npm run build --workspace=@sga/back-end",
     "db:generate": "powershell -Command \"Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; exit 0\" && npm run db:generate --workspace=@sga/data-access",
     "db:migrate": "powershell -Command \"Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; exit 0\" && npm run db:migrate --workspace=@sga/data-access",
@@ -22,6 +22,8 @@
     "build:all": "npm run build:back && npm run build:sidecar --workspace=@sga/back-end && npm run build:front && npm run build:tauri"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "concurrently": "^10.0.3",
     "tsx": "^4.23.0"
   },
   "dependencies": {

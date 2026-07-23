@@ -9,14 +9,16 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.getByPlaceholder('admin');
-    this.passwordInput = page.getByPlaceholder('••••••••');
-    this.loginButton = page.getByRole('button', { name: 'Iniciar Sesión' });
+    this.usernameInput = page.locator('input[type="text"]');
+    this.passwordInput = page.locator('input[type="password"]');
+    this.loginButton = page.getByRole('button', { name: /Iniciar Sesión/i });
     this.errorMessage = page.locator('.bg-red-50'); // Clase del contenedor de error
   }
 
   async goto() {
-    await this.page.goto('/login');
+    await this.page.goto('/');
+    await this.page.waitForURL(/.*\/login/);
+    await this.usernameInput.waitFor({ state: 'visible', timeout: 15000 });
   }
 
   async login(username: string, password: string) {

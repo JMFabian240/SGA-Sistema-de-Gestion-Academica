@@ -9,11 +9,9 @@ export async function clearDb() {
     prisma.pago.deleteMany(),
     prisma.movimientoSaldo.deleteMany(),
     prisma.calendarioPago.deleteMany(),
-    prisma.cargoExtraordinario.deleteMany(),
     prisma.tarifa.deleteMany(),
     prisma.inscripcionCiclo.deleteMany(),
     prisma.calificacion.deleteMany(),
-    prisma.asignacionMateria.deleteMany(),
     prisma.materia.deleteMany(),
     prisma.grupo.deleteMany(),
     prisma.tutorAlumno.deleteMany(),
@@ -23,7 +21,8 @@ export async function clearDb() {
     prisma.nivelEducativo.deleteMany(),
     prisma.planPago.deleteMany(),
     prisma.cicloEscolar.deleteMany(),
-    prisma.sesionUsuario.deleteMany(),
+    prisma.intentoLogin.deleteMany(),
+    prisma.tokenRevocado.deleteMany(),
     prisma.usuarioRol.deleteMany(),
     prisma.rol.deleteMany(),
     prisma.usuario.deleteMany()
@@ -39,8 +38,8 @@ export async function seedDbForAuth() {
   const user = await prisma.usuario.create({
     data: {
       nombreCompleto: 'Admin Test',
-      correoElectronico: 'admin@test.com',
-      contrasenaHash: '$2b$10$XQ8n.lA3nZ7vF6Y6Z6Z6Z.Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6', // asumiendo bcrypt de alguna manera, o si el login no checa hash de verdad en db_test
+      nombreUsuario: 'admin@test.com',
+      passwordHash: '$2b$10$N//f96n0gZdy0mbkyRN5jucJsC/aWz/HXufjnT2cWOlWePEDqENVG',
       activo: true
     }
   });

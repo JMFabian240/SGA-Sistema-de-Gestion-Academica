@@ -17,7 +17,7 @@ test.describe('Autenticación', () => {
   });
 
   test('Acceso directo sin sesión redirige a login', async ({ page }) => {
-    await page.goto('/');
+    await loginPage.goto();
     await expect(page).toHaveURL(/.*\/login/);
   });
 
@@ -25,7 +25,7 @@ test.describe('Autenticación', () => {
     await loginPage.goto();
     await loginPage.login('admin', 'wrongpassword');
     await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText('Usuario o contraseña incorrectos');
+    await expect(loginPage.errorMessage).toContainText('Credenciales inválidas');
   });
 
   test('Login con credenciales correctas redirige al dashboard', async ({ page }) => {

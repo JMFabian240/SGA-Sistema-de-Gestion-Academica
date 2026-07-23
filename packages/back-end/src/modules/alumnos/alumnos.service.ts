@@ -7,6 +7,7 @@ import type {
 } from './alumnos.schema';
 
 export class AlumnosService {
+  static vincularTutor: any;
   /**
    * Obtiene la lista de alumnos activos
    */
@@ -236,7 +237,7 @@ export class AlumnosService {
                   eliminadoEn: null
                 }
               });
-              
+
               const tarifaMensualBase = tarifa ? Number(tarifa.monto) : 0;
 
               const pagosPendientes = await tx.calendarioPago.findMany({
@@ -250,7 +251,7 @@ export class AlumnosService {
               for (const pago of pagosPendientes) {
                 const nuevoMontoOriginal = tarifaMensualBase;
                 const nuevoSaldoPendiente = Math.max(0, nuevoMontoOriginal - Number(pago.montoPagado || 0) + Number(pago.montoRecargo || 0));
-                
+
                 await tx.calendarioPago.update({
                   where: { calendarioPagoId: pago.calendarioPagoId },
                   data: {

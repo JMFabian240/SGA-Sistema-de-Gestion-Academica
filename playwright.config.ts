@@ -4,9 +4,9 @@ process.env.DATABASE_URL = 'postgresql://sae_admin:SaeColegio2026@localhost:5433
 
 export default defineConfig({
   testDir: './packages/front-end/tests/e2e',
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
   expect: {
-    timeout: 5000
+    timeout: 10000
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

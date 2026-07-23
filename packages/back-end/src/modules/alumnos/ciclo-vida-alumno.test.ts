@@ -37,8 +37,11 @@ describe('Flujo de Integración: Ciclo de Vida del Alumno', () => {
     const tutor = await TutoresService.createTutor({
       nombreCompleto: 'Juan Padre',
       correoElectronico: 'padre@mail.com',
-      telefonoPrincipal: '1234567890',
-      rfc: 'PJUAN1234',
+      telefono: '1234567890',
+      datosFiscales: {
+        rfc: 'PJUAN1234',
+        razonSocial: 'Juan Padre'
+      },
       direccion: 'Calle 1'
     });
     expect(tutor.tutorId).toBe(30);
@@ -47,17 +50,23 @@ describe('Flujo de Integración: Ciclo de Vida del Alumno', () => {
     prismaMock.alumno.findFirst.mockResolvedValue(null);
     prismaMock.alumno.create.mockResolvedValue({ alumnoId: 40, nivelId: 1 } as any);
     prismaMock.tutorAlumno.create.mockResolvedValue({} as any);
+    
     const alumno = await AlumnosService.createAlumno({
       curp: 'CURP001',
       nombreCompleto: 'Juan Hijo',
       fechaNacimiento: '2015-01-01',
       sexo: 'M',
       nivelId: 1,
-      estado: 'ACTIVO' as EstadoAlumno,
-      tutorPrincipalId: 30,
-      parentesco: 'Padre'
+      estado: 'ACTIVO' as EstadoAlumno
     });
     expect(alumno.alumnoId).toBe(40);
+
+    await AlumnosService.vincularTutor({
+      alumnoId: 40,
+      tutorId: 30,
+      esPrincipal: true,
+      parentesco: 'Padre'
+    });
 
     // 5. Inscribir Alumno y Asignar Plan (12 Meses)
     prismaMock.inscripcionCiclo.findUnique.mockResolvedValue(null); // No existe para createInscripcion

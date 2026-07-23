@@ -178,7 +178,7 @@ describe('PagosService (Unit)', () => {
 
       // Pagar 600 sobre deuda de 1200
       await PagosService.registrarPago({
-        alumnoId: 1, tutorId: 1, fechaPago: '2023-02-01', montoTotal: 600, metodoPago: 'EFECTIVO', requiereFactura: false, aplicadoASaldo: false,
+        alumnoId: 1, tutorId: 1, fechaPago: '2023-01-01', montoTotal: 600, metodoPago: 'TRANSFERENCIA', requiereFactura: false, aplicadoASaldo: false,
         aplicaciones: [{ calendarioPagoId: 1, montoAplicado: 600, aplicadoA: 'CAPITAL' }]
       }, 2);
 
