@@ -9,3 +9,8 @@ packages/app-tauri/src-tauri/pgsql/
 packages/app-tauri/src-tauri/binaries/query_engine-windows.dll.node
 packages/app-tauri/src-tauri/binaries/schema.prisma
 packages/back-end/server.bundle.js
+
+# Playwright
+playwright-report/
+test-results/
+error_modal_*.png
