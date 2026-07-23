@@ -117,6 +117,8 @@ export class PagosRepository {
         if (nuevoSaldoPendiente <= 0) {
           nuevoEstado = 'PAGADO';
           liquidadoAt = new Date();
+        } else if (nuevoSaldoPendiente < Number(adeudo.montoOriginal)) {
+          nuevoEstado = 'ABONO';
         }
 
         await tx.calendarioPago.update({

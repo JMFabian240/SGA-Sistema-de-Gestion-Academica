@@ -361,18 +361,9 @@ export class PagosService {
           surplus -= aplicarAhora;
         }
       }
-
-      // Si aún sobra dinero después de cubrir todos los adeudos
-      if (surplus > 0) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'El pago excede el total de todas las deudas pendientes del alumno.'
-        });
-      }
     }
 
-    // Por regla de negocio impuesta, el saldo a favor generado será siempre 0
-    const saldoAFavorGenerado = 0;
+    const saldoAFavorGenerado = surplus > 0 ? surplus : 0;
 
     // Delegar transacción al repositorio
     const resultadoPago = await PagosRepository.registrarPagoTransaccion({
