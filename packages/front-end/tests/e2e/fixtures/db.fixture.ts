@@ -48,3 +48,35 @@ export async function seedDbForAuth() {
     data: { usuarioId: user.usuarioId, rolId: rol.rolId }
   });
 }
+
+export async function seedDbForInscripcion() {
+  const nivel = await prisma.nivelEducativo.create({
+    data: { codigo: 'PRIMARIA', nombre: 'Primaria', orden: 1 }
+  });
+
+  const grado = await prisma.grado.create({
+    data: { nivelId: nivel.nivelId, numero: 1, nombre: '1er Grado' }
+  });
+
+  const ciclo = await prisma.cicloEscolar.create({
+    data: { 
+      nombre: '2026-2027', 
+      fechaInicio: new Date('2026-08-01T00:00:00.000Z'), 
+      fechaFin: new Date('2027-07-15T00:00:00.000Z'),
+      activo: true, 
+      abierto: true 
+    }
+  });
+
+  const grupo = await prisma.grupo.create({
+    data: { nivelId: nivel.nivelId, gradoId: grado.gradoId, cicloId: ciclo.cicloId, nombre: 'A', cupoMaximo: 30 }
+  });
+
+  const planPago = await prisma.planPago.create({
+    data: { nombre: 'Plan 10 Meses', meses: 10, montoMensual: 2000, activo: true }
+  });
+
+  const tutor = await prisma.tutor.create({
+    data: { nombreCompleto: 'Tutor de Prueba', telefono: '5551234567', correoElectronico: 'tutor@test.com' }
+  });
+}
