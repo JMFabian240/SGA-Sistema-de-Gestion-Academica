@@ -132,7 +132,7 @@ describe('PagosService (Unit)', () => {
       await expect(PagosService.registrarPago({
         alumnoId: 1, tutorId: 1, fechaPago: '2023-01-01', montoTotal: 1000, metodoPago: 'TRANSFERENCIA', requiereFactura: false, aplicadoASaldo: false,
         aplicaciones: [{ calendarioPagoId: 1, montoAplicado: 600, aplicadoA: 'CAPITAL' }]
-      }, 2)).rejects.toThrowError(new TRPCError({ code: 'BAD_REQUEST', message: 'El pago excede el total de todas las deudas pendientes del alumno.' }));
+      }, 2)).rejects.toThrowError(new TRPCError({ code: 'BAD_REQUEST', message: 'El monto aplicado al adeudo Test excede su saldo pendiente.' }));
     });
 
     it('debería aplicar automáticamente el excedente al siguiente adeudo pendiente', async () => {
@@ -165,6 +165,67 @@ describe('PagosService (Unit)', () => {
       
       // Tutor Update no debe llamarse porque saldo a favor es 0
       expect(prismaMock.tutor.update).not.toHaveBeenCalled();
+    });
+
+    it('debería registrar un pago parcial, dejando el adeudo en estado PARCIAL y restando el saldo pendiente', async () => {
+      const mockAdeudo = { calendarioPagoId: 1, montoOriginal: 1200, saldoPendiente: 1200, montoPagado: 0, estadoCobro: 'PENDIENTE' };
+      prismaMock.$transaction.mockImplementation(async (cb: any) => cb(prismaMock));
+      prismaMock.pago.create.mockResolvedValue({ pagoId: 100 } as any);
+      prismaMock.calendarioPago.findUnique.mockResolvedValue(mockAdeudo as any);
+      prismaMock.calendarioPago.findMany.mockResolvedValue([]);
+      prismaMock.aplicacionPago.create.mockResolvedValue({} as any);
+      prismaMock.calendarioPago.update.mockResolvedValue({} as any);
+
+      // Pagar 600 sobre deuda de 1200
+      await PagosService.registrarPago({
+        alumnoId: 1, tutorId: 1, fechaPago: '2023-02-01', montoTotal: 600, metodoPago: 'EFECTIVO', requiereFactura: false, aplicadoASaldo: false,
+        aplicaciones: [{ calendarioPagoId: 1, montoAplicado: 600, aplicadoA: 'CAPITAL' }]
+      }, 2);
+
+      // Verificamos que el adeudo queda ABONO
+      expect(prismaMock.calendarioPago.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { calendarioPagoId: 1 },
+        data: expect.objectContaining({
+          montoPagado: 600,
+          saldoPendiente: 600,
+          estadoCobro: 'ABONO'
+        })
+      }));
+    });
+
+    it('debería aplicar excedente como saldo a favor del tutor si no hay más adeudos', async () => {
+      const mockAdeudo = { calendarioPagoId: 1, montoOriginal: 1200, saldoPendiente: 1200, montoPagado: 0, estadoCobro: 'PENDIENTE' };
+      prismaMock.$transaction.mockImplementation(async (cb: any) => cb(prismaMock));
+      prismaMock.pago.create.mockResolvedValue({ pagoId: 101 } as any);
+      prismaMock.calendarioPago.findUnique.mockResolvedValue(mockAdeudo as any);
+      // findMany retorna vacío, significando que NO hay otros adeudos
+      prismaMock.calendarioPago.findMany.mockResolvedValue([]);
+      prismaMock.aplicacionPago.create.mockResolvedValue({} as any);
+      prismaMock.calendarioPago.update.mockResolvedValue({} as any);
+      prismaMock.tutor.update.mockResolvedValue({} as any);
+
+      // Pagar 1500 sobre deuda de 1200 (sobran 300)
+      await PagosService.registrarPago({
+        alumnoId: 1, tutorId: 1, fechaPago: '2023-03-01', montoTotal: 1500, metodoPago: 'TRANSFERENCIA', requiereFactura: false, aplicadoASaldo: false,
+        aplicaciones: [{ calendarioPagoId: 1, montoAplicado: 1200, aplicadoA: 'CAPITAL' }]
+      }, 2);
+
+      // Verificamos que el adeudo original se pagó completamente
+      expect(prismaMock.calendarioPago.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { calendarioPagoId: 1 },
+        data: expect.objectContaining({
+          estadoCobro: 'PAGADO',
+          saldoPendiente: 0
+        })
+      }));
+
+      // Verificamos que se incrementó el saldoAFavor del tutor en 300
+      expect(prismaMock.tutor.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { tutorId: 1 },
+        data: {
+          saldoAFavor: { increment: 300 }
+        }
+      }));
     });
   });
 

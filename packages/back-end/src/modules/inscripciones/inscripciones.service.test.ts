@@ -181,10 +181,12 @@ describe('InscripcionesService (Unit)', () => {
         inscripcionId: 1, planPagoId: 1
       });
 
+      // La calculadora de utilidades se encarga, verificaremos los argumentos que se le pasan a prisma
       expect(prismaMock.calendarioPago.createMany).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.arrayContaining([
-            expect.objectContaining({ concepto: 'Colegiatura Diciembre', montoOriginal: 4000 })
+            expect.objectContaining({ concepto: 'Colegiatura Diciembre', montoOriginal: 4000 }), // Doble
+            expect.objectContaining({ concepto: 'Colegiatura Julio', montoOriginal: 0, estadoCobro: 'PAGADO' }) // Cero
           ])
         })
       );
