@@ -29,6 +29,9 @@ vi.mock('../../../lib/trpc', () => {
         }
       }),
       grupos: {
+        getCiclos: {
+          useQuery: () => ({ data: [], isLoading: false })
+        },
         createCiclo: {
           useMutation: (options?: any) => ({
             mutate: (payload: any) => {

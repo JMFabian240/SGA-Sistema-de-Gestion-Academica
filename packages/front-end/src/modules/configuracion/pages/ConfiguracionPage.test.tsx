@@ -38,12 +38,27 @@ let loadingCiclos = false;
 vi.mock('../../../lib/trpc', () => {
   return {
     trpc: {
+      useUtils: () => ({
+        grupos: {
+          getCiclos: { invalidate: mockInvalidate },
+          getGrupos: { invalidate: mockInvalidate }
+        },
+        pagos: { getTarifas: { invalidate: mockInvalidate } },
+        configuracion: {
+          get: { invalidate: mockInvalidate },
+          getRecargos: { invalidate: mockInvalidate }
+        }
+      }),
       useContext: () => ({
         grupos: {
           getCiclos: { invalidate: mockInvalidate },
           getGrupos: { invalidate: mockInvalidate }
         },
-        pagos: { getTarifas: { invalidate: mockInvalidate } }
+        pagos: { getTarifas: { invalidate: mockInvalidate } },
+        configuracion: {
+          get: { invalidate: mockInvalidate },
+          getRecargos: { invalidate: mockInvalidate }
+        }
       }),
       grupos: {
         getCiclos: { useQuery: () => mockGetCiclos() },
@@ -59,7 +74,13 @@ vi.mock('../../../lib/trpc', () => {
         updateTarifa: { useMutation: () => ({ mutateAsync: mockUpdateTarifa }) }
       },
       configuracion: {
-        get: { useQuery: () => ({ data: { moduloFacturacion: false, notificacionesSMS: false }, isLoading: false }) }
+        get: { useQuery: () => ({ data: { moduloFacturacion: false, notificacionesSMS: false, recargosPorMora: 0 }, isLoading: false }) },
+        update: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+        getRecargos: { useQuery: () => ({ data: [], isLoading: false }) },
+        createRecargo: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+        updateRecargo: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+        deleteRecargo: { useMutation: () => ({ mutate: vi.fn(), isPending: false }) },
+        sincronizarRecargos: { useMutation: () => ({ mutate: vi.fn(), isLoading: false }) }
       }
     }
   };

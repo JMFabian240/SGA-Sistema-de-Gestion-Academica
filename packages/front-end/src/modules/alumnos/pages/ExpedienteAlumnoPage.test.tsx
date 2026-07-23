@@ -45,6 +45,14 @@ vi.mock('../components/VincularTutorModal', () => ({
   VincularTutorModal: () => <div data-testid="mock-vincular-tutor-modal" />
 }));
 
+vi.mock('../components/InscribirAlumnoModal', () => ({
+  InscribirAlumnoModal: () => <div data-testid="mock-inscribir-alumno-modal" />
+}));
+
+vi.mock('../components/AsignarPlanPagoModal', () => ({
+  AsignarPlanPagoModal: () => <div data-testid="mock-asignar-plan-modal" />
+}));
+
 const mockGetById = vi.fn();
 const mockUnlinkTutor = vi.fn();
 const mockUtilsInvalidate = vi.fn();
@@ -80,6 +88,9 @@ vi.mock('../../../lib/trpc', () => {
         },
         adjuntarComprobante: {
           useMutation: () => ({ mutateAsync: vi.fn(), isPending: false })
+        },
+        getEstadoCuenta: {
+          useQuery: (_: any, opts: any) => opts?.enabled ? { data: null, isLoading: false } : { data: null, isLoading: false }
         }
       }
     }

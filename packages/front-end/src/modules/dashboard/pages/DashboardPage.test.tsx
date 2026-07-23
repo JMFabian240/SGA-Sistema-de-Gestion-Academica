@@ -89,7 +89,7 @@ describe('DashboardPage Component', () => {
     );
 
     // Header
-    expect(screen.getByText('Panel Administrativo')).toBeInTheDocument();
+    expect(screen.getByText('Panel Principal')).toBeInTheDocument();
     
     // Tarjetas
     expect(screen.getByText('Total Alumnos')).toBeInTheDocument();

@@ -22,7 +22,8 @@ vi.mock('lucide-react', () => ({
   Calendar: () => <span data-testid="calendar-icon" />,
   Layers: () => <span data-testid="layers-icon" />,
   Trash2: () => <span data-testid="trash-icon" />,
-  LayoutGrid: () => <span data-testid="layout-grid-icon" />
+  LayoutGrid: () => <span data-testid="layout-grid-icon" />,
+  Edit2: () => <span data-testid="edit2-icon" />
 }));
 
 // Mock de modales
@@ -37,6 +38,14 @@ vi.mock('../components/GrupoFormModal', () => ({
 vi.mock('../components/AsignarMateriaModal', () => ({
   AsignarMateriaModal: ({ isOpen, onClose }: any) => isOpen ? (
     <div data-testid="asignar-materia-modal">
+      <button onClick={onClose}>Cerrar Modal</button>
+    </div>
+  ) : null
+}));
+
+vi.mock('../components/MateriaFormModal', () => ({
+  MateriaFormModal: ({ isOpen, onClose }: any) => isOpen ? (
+    <div data-testid="materia-form-modal">
       <button onClick={onClose}>Cerrar Modal</button>
     </div>
   ) : null
@@ -71,6 +80,7 @@ vi.mock('../../../lib/trpc', () => {
         getGrados: { useQuery: () => mockGetGrados() },
         getMaterias: { useQuery: () => mockGetMaterias() },
         getGrupos: { useQuery: () => mockGetGrupos() },
+        getDocentes: { useQuery: () => ({ data: [], isLoading: false }) },
         deleteGrupo: { useMutation: () => ({ mutate: mockDeleteGrupo }) },
         updateMateria: { useMutation: () => ({ mutate: mockUpdateMateria }) }
       },
