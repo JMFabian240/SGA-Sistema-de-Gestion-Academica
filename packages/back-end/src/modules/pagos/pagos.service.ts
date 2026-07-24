@@ -1,7 +1,11 @@
 import { TRPCError } from '@trpc/server';
-import fs from 'fs';
 import path from 'path';
 import { prisma, EstadoCobro } from '@sga/data-access';
+import { LocalStorageAdapter } from '../storage/StorageAdapter';
+import { CalculadoraPagos } from '../inscripciones/inscripciones.utils';
+import { RecalculoFinancieroDomain } from './recalculoFinanciero.domain';
+
+const storageAdapter = new LocalStorageAdapter();
 import type {
   CreateTarifaInput, UpdateTarifaInput,
   CreateCalendarioPagoInput, UpdateCalendarioPagoInput,
@@ -105,7 +109,6 @@ export class PagosService {
       const configGlobal = await tx.configuracionGlobal.findFirst({ where: { configuracionId: 1 } });
       const diaVencimiento = configGlobal?.diaVencimientoMensual || 1;
       
-      const { CalculadoraPagos } = require('../inscripciones/inscripciones.utils');
       const tarifasParaCalculadora = tarifas.map(t => ({ concepto: t.concepto, monto: Number(t.monto) }));
       const adeudosIdeales = CalculadoraPagos.generarCalendario(
         { meses: planPago.meses },
@@ -130,124 +133,36 @@ export class PagosService {
         }
       });
 
-      interface AppPoolItem {
-        pagoId: number;
-        montoAplicado: number;
-        aplicadoA: string;
-      }
-      
-      let appPool: AppPoolItem[] = [];
-      let excesoSinPagoId = 0; // Dinero sobrante que no tiene un pago asociado (ej. importación CSV)
+      const recalculo = RecalculoFinancieroDomain.conciliarAdeudos(adeudos, adeudosIdeales);
 
-      for (const adeudo of adeudos) {
-        // Buscar cuál debería ser el monto actual según la calculadora
-        const ideal = adeudosIdeales.find((a: any) => {
-          if (a.concepto === adeudo.concepto) return true;
-          // Si el CSV guardó "Colegiatura" y el ideal generó "Colegiatura Septiembre", los hacemos coincidir por mes
-          if (a.mes && adeudo.mes && a.mes === adeudo.mes && 
-              a.concepto.toUpperCase().includes('COLEGIATURA') && 
-              adeudo.concepto.toUpperCase().includes('COLEGIATURA')) {
-            return true;
-          }
-          return false;
+      if (recalculo.calendariosConAplicacionesBorradas.length > 0) {
+        await tx.aplicacionPago.deleteMany({
+          where: { calendarioPagoId: { in: recalculo.calendariosConAplicacionesBorradas } }
         });
-        if (!ideal) continue; // Si no hay ideal, no se recalcula
+      }
 
-        const nuevaTarifa = ideal.montoOriginal;
+      for (const app of recalculo.nuevasAplicaciones) {
+        await tx.aplicacionPago.create({
+          data: app
+        });
+      }
 
-        let sumAplicacionesFormales = 0;
-        for (const app of adeudo.aplicacionesPago) {
-          sumAplicacionesFormales += Number(app.montoAplicado);
-          appPool.push({
-             pagoId: app.pagoId,
-             montoAplicado: Number(app.montoAplicado),
-             aplicadoA: app.aplicadoA
-          });
-        }
-
-        const montoPagadoActual = Number(adeudo.montoPagado);
-        if (montoPagadoActual > sumAplicacionesFormales) {
-          excesoSinPagoId += (montoPagadoActual - sumAplicacionesFormales);
-        }
-
-        if (adeudo.aplicacionesPago.length > 0) {
-          await tx.aplicacionPago.deleteMany({
-            where: { calendarioPagoId: adeudo.calendarioPagoId }
-          });
-        }
-
-        let montoParaEsteAdeudo = 0;
-        let nuevasApps: AppPoolItem[] = [];
-        let nuevoPool: AppPoolItem[] = [];
-
-        // 1. Usar dinero sin pagoId primero (importado de CSV o arrastrado)
-        if (excesoSinPagoId > 0) {
-          if (excesoSinPagoId >= nuevaTarifa) {
-            montoParaEsteAdeudo += nuevaTarifa;
-            excesoSinPagoId -= nuevaTarifa;
-          } else {
-            montoParaEsteAdeudo += excesoSinPagoId;
-            excesoSinPagoId = 0;
-          }
-        }
-
-        // 2. Usar dinero formal (appPool) si aún falta
-        for (const app of appPool) {
-          const faltaParaLlenar = nuevaTarifa - montoParaEsteAdeudo;
-          if (faltaParaLlenar > 0) {
-            if (app.montoAplicado <= faltaParaLlenar) {
-              nuevasApps.push({ ...app });
-              montoParaEsteAdeudo += app.montoAplicado;
-            } else {
-              nuevasApps.push({
-                pagoId: app.pagoId,
-                montoAplicado: faltaParaLlenar,
-                aplicadoA: app.aplicadoA
-              });
-              montoParaEsteAdeudo += faltaParaLlenar;
-              nuevoPool.push({
-                pagoId: app.pagoId,
-                montoAplicado: app.montoAplicado - faltaParaLlenar,
-                aplicadoA: app.aplicadoA
-              });
-            }
-          } else {
-            nuevoPool.push(app);
-          }
-        }
-
-        appPool = nuevoPool;
-
-        for (const nuevaApp of nuevasApps) {
-          await tx.aplicacionPago.create({
-            data: {
-              pagoId: nuevaApp.pagoId,
-              calendarioPagoId: adeudo.calendarioPagoId,
-              montoAplicado: nuevaApp.montoAplicado,
-              aplicadoA: nuevaApp.aplicadoA
-            }
-          });
-        }
-
-        const saldoPendiente = Math.round((nuevaTarifa - montoParaEsteAdeudo) * 100) / 100;
-        let estadoCobro: EstadoCobro = saldoPendiente <= 0 ? EstadoCobro.PAGADO : EstadoCobro.PENDIENTE;
-        if (montoParaEsteAdeudo > 0 && saldoPendiente > 0) estadoCobro = EstadoCobro.ABONO;
-        
+      for (const ad of recalculo.adeudosACambiar) {
         await tx.calendarioPago.update({
-          where: { calendarioPagoId: adeudo.calendarioPagoId },
+          where: { calendarioPagoId: ad.calendarioPagoId },
           data: {
-            montoOriginal: nuevaTarifa,
-            montoPagado: montoParaEsteAdeudo,
-            saldoPendiente: saldoPendiente,
-            estadoCobro: estadoCobro,
-            liquidadoAt: estadoCobro === EstadoCobro.PAGADO ? new Date() : null,
+            montoOriginal: ad.montoOriginal,
+            montoPagado: ad.montoPagado,
+            saldoPendiente: ad.saldoPendiente,
+            estadoCobro: ad.estadoCobro,
+            liquidadoAt: ad.liquidadoAt,
             actualizadoEn: new Date()
           }
         });
       }
 
       // Si sobra dinero al final, va al saldo a favor
-      let saldoAFavorTotal = appPool.reduce((acc, curr) => acc + curr.montoAplicado, 0) + excesoSinPagoId;
+      let saldoAFavorTotal = recalculo.saldoAFavorTotal;
 
       if (saldoAFavorTotal > 0) {
         const alumno = await tx.alumno.findUnique({ 
@@ -262,7 +177,7 @@ export class PagosService {
             data: { saldoAFavor: { increment: saldoAFavorTotal } }
           });
           
-          for (const app of appPool) {
+          for (const app of recalculo.appPoolFinal) {
              await tx.movimientoSaldo.create({
                data: {
                  tutorId,
@@ -275,12 +190,13 @@ export class PagosService {
              });
           }
 
-          if (excesoSinPagoId > 0) {
+          if (recalculo.excesoSinPagoId > 0) {
              await tx.movimientoSaldo.create({
                data: {
                  tutorId,
                  tipo: 'INGRESO',
-                 monto: excesoSinPagoId,
+                 monto: recalculo.excesoSinPagoId,
+
                  descripcion: 'Saldo a favor generado por exceso en importe manual o CSV.',
                  creadoPor: usuarioId
                }
@@ -388,25 +304,20 @@ export class PagosService {
     // Si viene comprobante adjunto
     if (input.comprobanteBase64 && input.comprobanteNombre && input.comprobanteMime) {
       try {
-        const uploadsDir = path.join(process.cwd(), 'uploads', 'comprobantes');
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-
         // Limpiar el base64 si trae prefijo 'data:image/jpeg;base64,'
         const base64Data = input.comprobanteBase64.replace(/^data:([A-Za-z-+/]+);base64,/, '');
         const buffer = Buffer.from(base64Data, 'base64');
         const filename = `${Date.now()}-${input.comprobanteNombre}`;
-        const rutaCompleta = path.join(uploadsDir, filename);
+        const rutaRelativa = `uploads/comprobantes/${filename}`;
 
-        fs.writeFileSync(rutaCompleta, buffer);
+        await storageAdapter.saveFile(rutaRelativa, buffer);
 
         // Guardar el registro Documento en BD
         await prisma.documento.create({
           data: {
             tipoDocumento: 'COMPROBANTE_PAGO',
             nombreOriginal: input.comprobanteNombre,
-            rutaAlmacen: `uploads/comprobantes/${filename}`,
+            rutaAlmacen: rutaRelativa,
             mimeType: input.comprobanteMime,
             tamanoBytes: buffer.length,
             pagoId: resultadoPago.pagoId,
@@ -436,23 +347,18 @@ export class PagosService {
 
   static async adjuntarComprobante(input: AdjuntarComprobanteInput, subidoPorId: number) {
     try {
-      const uploadsDir = path.join(process.cwd(), 'uploads', 'comprobantes');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
       const base64Data = input.comprobanteBase64.replace(/^data:([A-Za-z-+/]+);base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
       const filename = `${Date.now()}-${input.comprobanteNombre}`;
-      const rutaCompleta = path.join(uploadsDir, filename);
+      const rutaRelativa = `uploads/comprobantes/${filename}`;
 
-      fs.writeFileSync(rutaCompleta, buffer);
+      await storageAdapter.saveFile(rutaRelativa, buffer);
 
       const documento = await prisma.documento.create({
         data: {
           tipoDocumento: 'COMPROBANTE_PAGO',
           nombreOriginal: input.comprobanteNombre,
-          rutaAlmacen: `uploads/comprobantes/${filename}`,
+          rutaAlmacen: rutaRelativa,
           mimeType: input.comprobanteMime,
           tamanoBytes: buffer.length,
           pagoId: input.pagoId,
@@ -480,8 +386,7 @@ export class PagosService {
     }
 
     try {
-      const rutaCompleta = path.join(process.cwd(), documento.rutaAlmacen);
-      const buffer = fs.readFileSync(rutaCompleta);
+      const buffer = await storageAdapter.getFile(documento.rutaAlmacen);
       const base64 = buffer.toString('base64');
       return {
         base64: `data:${documento.mimeType};base64,${base64}`,

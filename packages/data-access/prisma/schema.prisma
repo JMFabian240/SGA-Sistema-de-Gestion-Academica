@@ -337,6 +337,7 @@ model Alumno {
   solicitudesBeca     SolicitudBeca[]
   tutoresAlumnos      TutorAlumno[]
 
+  @@index([nombreCompleto])
   @@map("alumno")
 }
 

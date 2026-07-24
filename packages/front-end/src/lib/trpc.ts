@@ -1,8 +1,10 @@
 import { createTRPCReact } from '@trpc/react-query';
 import { createTRPCProxyClient, httpLink } from '@trpc/client';
+import { inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '../../../back-end/src/router';
 
 export const trpc = createTRPCReact<AppRouter>();
+export type RouterOutput = inferRouterOutputs<AppRouter>;
 
 export const trpcVanilla = createTRPCProxyClient<AppRouter>({
   links: [
