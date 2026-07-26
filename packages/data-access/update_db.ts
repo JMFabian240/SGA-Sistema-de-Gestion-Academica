@@ -1,1 +1,0 @@
-import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { await prisma.$executeRawUnsafe("UPDATE pago SET metodo_pago = 'DEPOSITO'::\"MetodoPago\" WHERE metodo_pago = 'EFECTIVO'::\"MetodoPago\""); console.log('Updated'); } main().finally(() => prisma.$disconnect());

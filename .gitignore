@@ -14,3 +14,19 @@ packages/back-end/server.bundle.js
 playwright-report/
 test-results/
 error_modal_*.png
+packages/e2e/playwright-report/
+
+# Archivos temporales y scripts ad-hoc
+scratch/
+packages/data-access/test*.ts
+packages/data-access/update_db.ts
+
+# Binarios y ejecutables externos
+*.exe
+
+# Scripts Python de herramientas externas (TestSprite, etc.)
+*.py
+
+# Artefactos de testing y automatización
+plan.json
+temp-icon.png
