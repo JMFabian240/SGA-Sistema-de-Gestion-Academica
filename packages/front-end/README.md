@@ -1,87 +1,100 @@
-# SGA - Front-end (Sistema de Gestión Académica)
+# @sga/front-end
 
-Este paquete contiene la nueva versión del front-end para el Sistema de Gestión Académica (SGA) del Colegio San Diego, reescrito desde cero utilizando una arquitectura moderna, escalable y con un enfoque modular.
+Capa de interfaz de usuario del Sistema de Gestión Académica del Colegio San Diego. SPA (Single Page Application) construida con React 18 y Vite 8, conectada de forma **tipada end-to-end** al backend mediante tRPC.
 
-## 🛠️ Tecnologías Principales (Tech Stack)
+> **Especificación Visual y de Arquitectura:** Para el desglose completo de los 8 módulos, la gestión dual de estado, el enrutamiento protegido RBAC y las herramientas institucionales (PDFs, recibos, QR), consulta [`docs/architecture/frontend-architecture.md`](../../docs/architecture/frontend-architecture.md).
 
-*   **Core:** React 19 + TypeScript + Vite
-*   **Estilos y UI:** Tailwind CSS v4, Lucide React (Iconos)
-*   **Gráficos:** Recharts
-*   **Enrutamiento:** React Router DOM v7
-*   **Estado Global:** Zustand
-*   **Comunicación Cliente-Servidor:** tRPC (`@trpc/client`, `@trpc/react-query`) + React Query
+---
 
-## 🏗️ Arquitectura del Proyecto
+## Stack Tecnológico
 
-El proyecto está organizado siguiendo un enfoque modular (inspirado en Feature-Sliced Design):
+| Tecnología | Uso |
+|---|---|
+| **React 18.3** + **TypeScript 6** | Núcleo de la UI |
+| **Vite 8.1** | Servidor de desarrollo y bundler de producción |
+| **Tailwind CSS v4** | Diseño y estilos |
+| **Lucide React** | Iconografía |
+| **tRPC Client** (`@trpc/react-query`) | Comunicación con el backend, tipada end-to-end |
+| **TanStack Query v4** | Caché y sincronización del estado del servidor |
+| **Zustand** | Estado global del cliente (sesión, permisos) |
+| **React Router DOM v7** | Enrutamiento y rutas protegidas por rol |
+| **React Hook Form** + **Zod** | Formularios validados con los mismos esquemas del backend |
+| **Recharts** | Gráficas del dashboard de cobranza |
+| **react-to-print** | Impresión directa de recibos de caja |
+| **html2pdf.js** | Exportación de boletas y Kardex a PDF |
+| **qrcode.react** | Códigos QR en comprobantes de pago |
 
-```text
+---
+
+## Arquitectura Modular
+
+El código se organiza por dominio de negocio en `src/modules/`, reflejando los módulos del backend:
+
+```
 src/
-├── assets/         # Imágenes estáticas y logos (e.g., escudo.png, logo.png)
-├── components/     # Componentes compartidos globales
-│   ├── layout/     # Componentes base del cascarón (Sidebar, Topbar)
-│   └── ui/         # Componentes base UI (Botones, Inputs genéricos)
-├── hooks/          # Custom hooks compartidos
-├── layouts/        # Contenedores estructurales de las páginas
-│   ├── AuthLayout  # Layout sin restricciones (usado para el login)
-│   └── MainLayout  # Layout protegido con barra lateral de navegación
-├── lib/            # Configuración de librerías de terceros (tRPC)
-├── modules/        # DOMINIO DE LA APLICACIÓN (Módulos independientes)
-│   ├── alumnos/    # Gestión de estudiantes matriculados
-│   ├── auth/       # Vistas de autenticación (Login)
-│   ├── dashboard/  # Panel de métricas y actividades recientes
-│   └── tutores/    # Gestión de padres/tutores de familia
-├── router/         # Configuración del árbol de rutas y protección (ProtectedRoute)
-├── store/          # Estado global usando Zustand (AuthStore)
-├── types/          # Tipados globales compartidos
-└── utils/          # Funciones y utilidades de ayuda general
+├── components/         # Componentes UI globales compartidos (Button, Modal, Table…)
+│   ├── layout/         # Sidebar, Layout principal y AuthLayout
+│   └── ui/             # Primitivos de interfaz (Badge, Input, Spinner…)
+├── lib/                # Configuración del cliente tRPC
+├── modules/            # Módulos por dominio (cada uno con components/, hooks/, pages/)
+│   ├── alumnos/        # Expediente, alta, inscripción, ciclo de vida escolar
+│   ├── auth/           # Login y recuperación de acceso
+│   ├── configuracion/  # Parámetros del colegio, ciclos y planes de pago
+│   ├── dashboard/      # KPIs, métricas y gráficas de cobranza
+│   ├── grupos/         # Asignación de grados, materias y docentes
+│   ├── pagos/          # Caja unificada, recibos, convenios y morosidad
+│   ├── tutores/        # Estado de cuenta familiar y datos fiscales
+│   └── usuarios/       # Cuentas y roles del personal operativo
+├── router/             # Árbol de rutas y ProtectedRoute (RBAC)
+├── store/              # useAuthStore (Zustand): sesión, token y permisos
+├── types/              # Tipos globales compartidos
+└── utils/              # Utilidades (ej. validación de CURP)
 ```
 
-## ✨ Funcionalidades Implementadas
+---
 
-1.  **Autenticación y Seguridad (`auth`)**
-    *   **Login Moderno:** Interfaz pulida con color `#001429` (azul marino), toogle para visualizar contraseña y estados de carga.
-    *   **Protección de Rutas (`ProtectedRoute`):** Redirección forzosa al `/auth/login` si el usuario no tiene una sesión activa (Token validado desde el localStorage).
-    *   **Gestión de Sesión:** Manejo de estado del usuario autenticado globalmente usando `useAuthStore` (Zustand).
+## Inicio Rápido
 
-2.  **Layouts y Navegación Dinámica (`layouts`)**
-    *   **Barra Lateral (Sidebar):** Menú lateral persistente que utiliza `NavLink` para marcar la ruta activa. Incluye una sección inferior de perfil dinámico (Nombre completo y Rol) y la acción de "Cerrar sesión".
+Asegúrate de que `@sga/back-end` esté corriendo antes de iniciar el frontend.
 
-3.  **Panel de Control (`dashboard`)**
-    *   Vista de resúmenes operativos basada en el rol del usuario (`DOCENTE` vs `ADMIN`).
-    *   **Métricas en vivo:** Extraídas desde el backend a través de tRPC.
-    *   **Gráfica (Mock):** Gráficos financieros integrados con `Recharts`.
-    *   **Actividad Reciente:** Historial rápido de acciones recientes en el sistema (Diseño UI).
+```bash
+# Desde la raíz del monorepo:
+npm run dev:front-end
 
-4.  **Gestión de Alumnos y Tutores (`alumnos`, `tutores`)**
-    *   Vistas de listado en formato de tablas estilizadas utilizando Tailwind CSS.
-    *   Extracción y visualización asíncrona de datos desde el backend utilizando `trpc.[modulo].getAll.useQuery()`.
+# Solo este paquete:
+npm run dev
+```
 
-## 🚀 Instalación y Ejecución
+Accede a [http://localhost:5173](http://localhost:5173).
 
-Al ser parte del entorno general del sistema SGA, el frontend requiere estar conectado al servidor (Backend) que expone la API tRPC.
+---
 
-1.  **Asegúrate de que el backend esté corriendo** en el puerto `3001` (por defecto). En la raíz del monorepo (`sga-monorepo`) ejecuta:
-    ```bash
-    npm run dev:back-end
-    ```
+## Pruebas
 
-2.  **Instala las dependencias del frontend** (si no lo has hecho):
-    ```bash
-    cd frontend-v2
-    npm install
-    ```
+```bash
+# Pruebas unitarias de componentes (Vitest + Testing Library):
+npm test
 
-3.  **Ejecuta el servidor de desarrollo (Vite):**
-    ```bash
-    npm run dev
-    ```
+# Ejecución única (sin modo watch):
+npm run test:run
+```
 
-4.  Ingresa a [http://localhost:5173](http://localhost:5173).
+---
 
-## ⚙️ Notas de Configuración (Troubleshooting)
+## Variables de Entorno
 
-*   **Error: "A React Element from an older version of React was rendered..."**
-    Si esto ocurre, se debe a múltiples copias de la dependencia `react` colisionando entre el backend/monorepo y el frontend. Está solucionado forzando un `dedupe: ['react', 'react-dom']` en la resolución interna de `vite.config.ts`.
-*   **Conexión fallida al Backend (Failed to Fetch):**
-    El cliente `trpc` (`src/lib/trpc.ts` y `src/App.tsx`) asume que el backend está corriendo en `http://localhost:3001/trpc`. Puedes sobrescribir esta ruta creando un archivo `.env` en la raíz de `front-end` e insertando: `VITE_API_URL=http://tu-url:puerto/trpc`.
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:3001/trpc` | URL del servidor tRPC del backend |
+
+Crea un archivo `.env` en la raíz de este paquete para sobreescribir en desarrollo:
+```env
+VITE_API_URL=http://localhost:3001/trpc
+```
+
+---
+
+## Notas de Troubleshooting
+
+- **Error "A React Element from an older version of React":** Causado por múltiples copias de `react`. Resuelto con `overrides` en `package.json` y `dedupe: ['react', 'react-dom']` en `vite.config.ts`.
+- **"Failed to Fetch" al conectar al backend:** Verifica que el backend esté corriendo en el puerto `3001` y que `VITE_API_URL` apunte a la URL correcta.

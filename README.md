@@ -1,61 +1,125 @@
-# SGA (Sistema de Gestión Académico)
+# SGA — Sistema de Gestión Académica
+### Colegio San Diego
 
-Este es un monorepo para el Sistema de Gestión Académico "SGA".
-Utiliza una arquitectura "Todo en Uno" con Tauri Sidecars para ser distribuido como un único instalable sin requerir Docker, Node.js ni PostgreSQL preinstalados en el equipo del usuario.
+Sistema de administración escolar **offline-first** distribuido como una aplicación de escritorio autónoma (sin requerir Docker, Node.js ni PostgreSQL preinstalados en el equipo). Opera en red LAN del colegio mediante una arquitectura **Todo-en-Uno** orquestada por Tauri.
 
-## Estructura de paquetes
+---
 
-- `@sga/front-end`: Interfaz de usuario (Vite + React + TypeScript).
-- `@sga/back-end`: Servidor HTTP (Fastify + tRPC). Se compila como ejecutable independiente (sidecar).
-- `@sga/data-access`: Acceso a datos (Prisma ORM). Único punto de conexión con la base de datos PostgreSQL.
-- `@sga/app-tauri`: Contenedor de escritorio (Tauri). Orquesta PostgreSQL y el backend como sidecars.
+## 🗂️ Estructura del Monorepo
 
-## Requisitos para desarrollo
+El código se organiza en `packages/*` bajo NPM Workspaces:
 
-1. **Node.js** (v18+)
-2. **Rust** y dependencias para Tauri (v2)
-3. **Base de Datos (Dos Opciones para Desarrollo):**
-   * **Opción A (Recomendada con Docker):** Debes tener Docker Desktop instalado.
-   * **Opción B (Sidecars Locales):** Si no usas Docker, debes obtener los binarios de PostgreSQL para tu sistema operativo (`initdb`, `postgres`, `pg_ctl`) y colocarlos en la carpeta `packages/app-tauri/src-tauri/binaries/` con el nombre de tu target triplet de Rust (ej: `initdb-x86_64-pc-windows-msvc.exe`).
+| Paquete | Descripción |
+|---|---|
+| `@sga/app-tauri` | Contenedor de escritorio (Tauri + Rust). Orquesta PostgreSQL y el backend como sidecars. |
+| `@sga/back-end` | Servidor HTTP (Fastify + tRPC + Zod). Compilado como ejecutable independiente (sidecar). |
+| `@sga/data-access` | Única fuente de verdad de la BD. Contiene `schema.prisma`, migraciones y el Singleton de Prisma Client. |
+| `@sga/front-end` | Capa de UI (React 18 + Vite 8 + Tailwind CSS v4 + tRPC Client). |
+| `@sga/e2e` | Pruebas de integración end-to-end con Playwright. |
 
-## Entorno de Desarrollo
+> **Documentación técnica detallada:** Consulta [`docs/architecture/`](./docs/architecture/) para la especificación profunda de cada capa.
 
-El proyecto está preparado para convivir dinámicamente entre desarrolladores que usan Docker y aquellos que prefieren binarios locales.
+---
 
-1. **Configuración de Variables de Entorno:**
-   Crea un archivo `.env` basado en `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-   **¡Importante para la Base de Datos!** 
-   * Si elegiste la **Opción A (Docker)**, agrega en tu terminal o en tu `.env` (si lo carga tu entorno) la variable `USE_DOCKER=true`. Esto le dirá a Tauri que ignore los binarios faltantes.
-   * Si elegiste la **Opción B (Binarios)**, asegúrate de que `USE_DOCKER` esté en `false` o no exista.
+## 📋 Requisitos para Desarrollo
 
-2. **Levantar la Base de Datos (Si usas Docker):**
-   ```bash
-   docker-compose up -d
-   ```
+1. **Node.js** v18+ y **npm** v10+
+2. **Rust** y dependencias para Tauri v2 (`cargo`, `rustup`)
+3. **Base de datos (dos opciones):**
+   - **Opción A — Docker (recomendada para desarrollo):** Instala Docker Desktop. El `docker-compose.yml` en la raíz levanta PostgreSQL automáticamente.
+   - **Opción B — Binarios portátiles:** Coloca los binarios de PostgreSQL 16 en `packages/app-tauri/src-tauri/pgsql/` y `packages/app-tauri/src-tauri/binaries/` según las instrucciones del [README de app-tauri](./packages/app-tauri/README.md).
 
-3. **Instalar dependencias y levantar la aplicación:**
-   ```bash
-   npm install
-   npm run dev:tauri
-   ```
+---
 
-## Compilación y Validación en Cascada
+## 🚀 Inicio Rápido (Desarrollo)
 
-Este proyecto cuenta con un flujo de tipado y construcción en cascada. Al realizar modificaciones en el backend o en el esquema de base de datos, debes ejecutar la validación completa para comprobar que no se rompan las importaciones o el frontend:
-
+### 1. Clonar y configurar variables de entorno
 ```bash
-npm run validate
+git clone <url-del-repo>
+cd sga
+cp .env.example .env
+# Editar .env con las credenciales de la base de datos
 ```
 
-### Flujo de Trabajo para Modificaciones
-1. **Modificar Esquema**: Si cambias `packages/data-access/prisma/schema.prisma`, corre `npm run db:generate` para actualizar el cliente.
-2. **Backend**: Ajusta la lógica en repositorios/servicios.
-3. **Frontend**: tRPC propagará los tipos. Verifica errores de TypeScript corriendo `npm run validate`.
-4. **Sidecar de Tauri**: Si modificas el backend y vas a compilar la app de Tauri, recuerda regenerar el binario ejecutable en el backend con:
-   ```bash
-   npm run build:sidecar --workspace=@sga/back-end
-   ```
+### 2. Instalar dependencias
+```bash
+npm install
+```
 
+### 3. Levantar la base de datos
+```bash
+# Opción A (Docker):
+docker-compose up -d
+
+# Opción B (binarios portátiles):
+# Asegúrate de tener los binarios en src-tauri/binaries/
+```
+
+### 4. Ejecutar migraciones y generar el cliente Prisma
+```bash
+npm run db:migrate
+npm run db:generate
+```
+
+### 5. Iniciar el servidor de desarrollo
+```bash
+# Solo backend + frontend (sin Tauri):
+npm run dev
+
+# Con Tauri (ventana de escritorio):
+npm run dev:tauri
+```
+
+---
+
+## 🛠️ Scripts Principales
+
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Inicia backend + frontend en modo desarrollo |
+| `npm run dev:tauri` | Inicia la app completa con ventana de escritorio Tauri |
+| `npm run validate` | Valida la cadena completa: genera Prisma → compila backend → compila frontend |
+| `npm run db:generate` | Regenera el cliente Prisma después de cambios en `schema.prisma` |
+| `npm run db:migrate` | Aplica las migraciones pendientes a la base de datos |
+| `npm run db:studio` | Abre Prisma Studio para inspeccionar la BD |
+| `npm run test:e2e` | Ejecuta las pruebas E2E con Playwright |
+
+---
+
+## 🔄 Flujo de Trabajo para Modificaciones
+
+```
+1. Cambiar schema.prisma
+       │
+       ▼
+2. npm run db:generate  (regenera el Prisma Client)
+       │
+       ▼
+3. Ajustar repositorios / servicios en @sga/back-end
+       │
+       ▼
+4. El cliente tRPC propaga los tipos al frontend automáticamente
+       │
+       ▼
+5. npm run validate  (compila todo y verifica errores de TypeScript)
+       │
+       ▼
+6. (Si vas a compilar Tauri) npm run build:sidecar --workspace=@sga/back-end
+```
+
+---
+
+## 📁 Estructura de Documentación
+
+```
+docs/
+├── architecture/       # Especificaciones técnicas profundas por capa
+│   ├── backend-architecture.md
+│   ├── database-architecture.md
+│   └── frontend-architecture.md
+├── design/             # Mockups, diagramas y casos de uso
+├── test-plans/         # Planes y scripts de pruebas
+└── resources/          # Plantillas, datos y materiales de referencia
+spec/
+└── spec.md             # Especificación general del proyecto (fuente de verdad)
+```
