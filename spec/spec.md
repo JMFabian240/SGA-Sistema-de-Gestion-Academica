@@ -40,8 +40,11 @@ graph TD
 El código se organiza en `packages/*` mediante NPM Workspaces:
 *   `@sga/app-tauri`: Configuración en Rust para compilar el ejecutable de escritorio y gestionar sidecars.
 *   `@sga/back-end`: Lógica de negocio, rutas protegidas por tRPC, validación con Zod.
+    *   **Especificación Arquitectónica Detallada:** Para consultar el modelo por capas (`Router -> Service -> Repository -> Domain`) y el desglose individual de sus 15 módulos y algoritmos (ej. recargos de $400, cálculo financiero, ciclo de vida), revisar [backend-architecture.md](file:///c:/Users/josem/Documents/San_Diego/sga/docs/architecture/backend-architecture.md).
 *   `@sga/data-access`: **Única fuente de verdad de la base de datos**. Contiene `schema.prisma`, migraciones y expone el *Singleton* del Prisma Client.
+    *   **Especificación del Modelo Relacional:** Para consultar el diagrama ER global, las reglas de integridad monetaria (`Decimal(12, 2)`), borrado suave (`eliminadoEn`) y la especificación técnica de sus 26 modelos y 8 enums agrupados en 6 dominios, revisar [database-architecture.md](file:///c:/Users/josem/Documents/San_Diego/sga/docs/architecture/database-architecture.md).
 *   `@sga/front-end` (o `front`): Capa de UI con React.
+    *   **Especificación Visual y de Arquitectura Cliente:** Para consultar el stack LAN (React 18, Vite 8, Tailwind v4, tRPC Client), la arquitectura modular por dominio (`src/modules/*`), la gestión dual de estado (`Zustand` / `TanStack Query`), rutas protegidas RBAC y herramientas institucionales (impresión directa de recibos, QR, PDF de boletas), revisar [frontend-architecture.md](file:///c:/Users/josem/Documents/San_Diego/sga/docs/architecture/frontend-architecture.md).
 *   `@sga/e2e`: Pruebas de integración end-to-end.
 
 ### Dependencias externas

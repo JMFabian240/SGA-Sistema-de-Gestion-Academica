@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { EstadoCobro } from '@sga/data-access';
 import { RecalculoFinancieroDomain, AdeudoActual, AdeudoIdeal } from './recalculoFinanciero.domain';
 
