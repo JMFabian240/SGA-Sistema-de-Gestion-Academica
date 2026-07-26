@@ -1,5 +1,7 @@
 # Especificación Técnica y Funcional: Sistema de Gestión Académica (SGA) Colegio San Diego
 
+> **Meta-Regla de Edición:** Queda estrictamente prohibido agregar nuevas secciones o puntos "en pila" (*append* general o amontonados al final del archivo). Toda nueva adición a este documento debe categorizarse e insertarse obligatoriamente dentro de la sección lógica que le corresponde (1 al 7) para preservar el orden y la coherencia estructural.
+
 ## 1. Contexto general
 
 *   **Propósito del proyecto:** El Sistema de Gestión Académica (SGA) resuelve el problema de la fragmentación y vulnerabilidad de datos causados por llevar la administración del Colegio San Diego (~200 familias) mediante múltiples hojas de Excel manuales. Existe para centralizar el control escolar, automatizar la cobranza, garantizar la integridad histórica de calificaciones y finanzas, y proveer una fuente única de verdad para toda la institución escolar.
@@ -51,6 +53,11 @@ Al ser un sistema diseñado para operar *Offline*, las dependencias externas son
 *   **Motor:** PostgreSQL.
 *   **Regla estricta:** Solo el paquete `@sga/data-access` puede conectarse a la BD. El frontend tiene estrictamente prohibido importar el Prisma Client.
 *   **Modelo de datos:** Relacional. Todas las tablas deben usar nombres en singular (ej. `Alumno`). Se prohíbe el uso de `DELETE` duro; todo registro eliminable debe implementar *Soft Delete* (`eliminadoEn: DateTime?`).
+*   **Diagrama Entidad-Relación Conceptual:** La estructura base gira en torno a: `Tutor (1) -> (N) Alumno -> (N) Inscripción -> (N) Grupo`. Los aspectos financieros vinculan `Tutor (1) -> (N) Pago -> (N) Concepto`, y los académicos `Alumno (1) -> (N) Calificación`.
+
+### Autenticación y Concurrencia
+*   **Sesiones LAN:** Las sesiones de los nodos secundarios (Navegador) se gestionan mediante JWT, incorporando caducidad por inactividad para garantizar la seguridad en equipos compartidos.
+*   **Control de Concurrencia:** Las operaciones simultáneas de escritura (ej. múltiples docentes subiendo calificaciones al mismo tiempo) utilizan bloqueo optimista (Optimistic Locking) para prevenir inconsistencias de datos.
 
 ---
 
@@ -70,6 +77,8 @@ Al ser un sistema diseñado para operar *Offline*, las dependencias externas son
 *   **Bloqueo por Adeudo:** Alumnos morosos son restringidos automáticamente; se bloquea la captura de sus calificaciones/exámenes y la visualización de su boleta hasta saldar deudas.
 *   **Exclusión Mutua de Becas:** La "Beca de Hermanos" (30% fijo) y las "Promociones Estacionales de Inscripción" (por matriz de descuentos) son mutuamente excluyentes; no se pueden apilar.
 *   **Autorización de Becas:** Si un "Gestor" asigna una beca, se genera en estado de "Solicitud Pendiente" y no altera montos hasta que la "Administradora" la apruebe.
+*   **Inmutabilidad de Periodos Cerrados:** Una vez que un ciclo escolar o bimestre finaliza oficialmente, el sistema congela esos registros. Modificar calificaciones o adeudos pasados requiere permisos especiales de la Administradora y genera alertas en bitácora.
+*   **Corte de Caja Diario:** Todo pago procesado en el día debe conciliarse mediante un flujo de "Cierre de Caja", blindando las transacciones auditadas contra modificaciones futuras.
 
 ### Flujos críticos
 1.  **Wizard de Nuevo Ingreso:** Paso 1 (Seleccionar/Crear Tutor) -> Paso 2 (Crear Alumno) -> Paso 3 (Definir Contactos Autorizados) -> Paso 4 (Generar primer adeudo de inscripción y colegiaturas según plan 10/12 meses). Esto previene alumnos "huérfanos" sin facturación.
@@ -84,7 +93,19 @@ Al ser un sistema diseñado para operar *Offline*, las dependencias externas son
     *   **Base de datos:** Modelos en Prisma en `PascalCase` singular.
     *   **UI/CSS:** Tailwind CSS. Exclusivo uso de colores institucionales definidos en el Design System (`Navy`: `bg-[#001429]`, `Crimson`: `bg-[#CC0000]`). Layout sin header superior (solo Sidebar izquierdo y panel central). **Todos los formularios de creación/edición deben abrirse como Modales superpuestos con fondo borroso (`backdrop-blur`)**.
 *   **Estructura de Commits:** No detallada estrictamente aún, pero se recomienda estándar *Conventional Commits* en el monorepo.
-*   **Testing:** Existe módulo `@sga/e2e` para UI tests end-to-end.
+### Estrategia y Plan de Pruebas
+Dado que el SGA maneja información financiera y académica crítica, la estrategia de calidad (QA) abarca tres niveles:
+
+1.  **Pruebas Unitarias (Unit Tests):**
+    *   **Propósito:** Validar el comportamiento aislado de funciones puras, lógica de negocio compleja (ej. cálculo exacto de recargos) y reglas de validación.
+    *   **Ubicación:** Co-ubicadas junto al código fuente en cada paquete. Ej. `packages/back-end/src/modules/**/*.test.ts` (como el cálculo financiero).
+2.  **Pruebas de Aceptación / Integración:**
+    *   **Propósito:** Validar el flujo de la información desde los resolvers de tRPC hasta la inserción correcta en la base de datos (Postgres).
+    *   **Ubicación:** Carpetas específicas de tests dentro del backend, evaluando módulos completos.
+3.  **Pruebas End-to-End (E2E):**
+    *   **Propósito:** Simular el comportamiento real del usuario final operando la interfaz gráfica.
+    *   **Ubicación:** En el paquete dedicado `@sga/e2e`.
+    *   **Alcance:** Flujos críticos como el Wizard de Inscripción, el Corte de Caja y la Transición de Ciclo.
 
 ---
 
@@ -98,6 +119,9 @@ Al ser un sistema diseñado para operar *Offline*, las dependencias externas son
     *   `npm run dev:tauri` para correr el entorno de escritorio completo (Frontend + orquestación Rust).
     *   `npm run db:generate` y `npm run db:migrate` para aplicar cambios en Prisma.
 *   **Entornos:** No existe división clásica Nube (Staging vs Prod). Todo es entorno Local/On-Premise. El código de desarrollo corre en la PC del programador, y la "Producción" será el binario `.exe` final entregado en la PC de la Administradora del colegio.
+*   **Actualizaciones (OTA):** El empaquetado de Tauri incluirá configuración para actualizaciones automáticas, permitiendo desplegar nuevas versiones al equipo de la Administradora sin requerir intervención técnica in situ.
+*   **Health Checks de Arranque:** El orquestador Tauri implementa validaciones al inicio para asegurar que los sidecars (BD y backend) levanten correctamente, mostrando errores amigables si puertos están ocupados.
+*   **Recuperación ante Desastres (Disaster Recovery):** Debe existir un procedimiento documentado y visible en la UI para restaurar el sistema a partir de los `.zip` (respaldos en la nube) ante cualquier fallo catastrófico del hardware principal.
 
 ---
 
@@ -108,7 +132,10 @@ Al ser un sistema diseñado para operar *Offline*, las dependencias externas son
     *   *¿Por qué tRPC en vez de REST?* Para aprovechar el Monorepo TypeScript y tener seguridad de tipos de extremo a extremo sin tener que definir contratos OpenAPI manualmente.
     *   *¿Por qué PostgreSQL Portable?* Porque requiere cero configuración y conocimientos de sistemas por parte del usuario final (la directora de la escuela).
 *   **Deuda técnica / Conocida:** El sistema depende del empaquetamiento robusto del binario de Postgres y Fastify dentro del instalador Tauri. Garantizar el ciclo de vida (startup/shutdown seguro de los sidecars al cerrar la app) es el reto de infraestructura principal actualmente.
-*   **Roadmap:** Fase actual enfocada en la creación del modelo de datos (`@sga/data-access`) y los CRUDs administrativos básicos (Gestión de Alumnos y Tutores), previo a los módulos financieros y académicos.
+*   **Roadmap (Hitos del Proyecto):**
+    *   *Fase 1 (MVP)*: Modelado de BD (`@sga/data-access`), Sistema de Autenticación, Roles, y CRUDs administrativos (Alumnos, Tutores, Grupos).
+    *   *Fase 2 (Financiera)*: Caja unificada, automatización de recargos ($400), convenios, corte de caja y generación de recibos PDF.
+    *   *Fase 3 (Académica)*: Registro de calificaciones, generación de boletas, bitácoras de auditoría, y wizard de transición masiva de ciclo.
 
 ---
 

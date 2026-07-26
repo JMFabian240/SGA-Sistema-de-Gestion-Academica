@@ -135,6 +135,7 @@ Al encontrar errores, investiga en el siguiente orden lógico:
 - **Ingeniería Inversa**: Si existe código sin documentar, utiliza las skills de diseño para generar requerimientos retrospectivamente.
 - Artefactos de diseño en `docs/design/` → consultar antes de implementar.
 - Documentación generada en `docs/generated/`.
+- **Mantenimiento de especificaciones (`spec.md`)**: Queda estrictamente prohibido agregar nuevas secciones o puntos "en pila" (*append* general o amontonados al final del archivo). Todo nuevo contenido DEBE categorizarse e insertarse obligatoriamente dentro de la sección lógica que le corresponde en el documento.
 
 ### Uso de Skills
 - Consultar `.agents/skills/[categoria]-[skill]/SKILL.md` antes de tocar archivos asociados.
