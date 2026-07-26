@@ -1,0 +1,23 @@
+@startuml SEQ_Recargo_Manual
+actor Administrador
+participant "CalendarioPagoPage\n(UI)" as UI
+participant "PagosRouter\n(tRPC)" as Router
+database "Recargo / LogAuditoria\n(PostgreSQL)" as DB
+
+Administrador -> UI: Clic en "Aplicar Recargo Manual"
+activate UI
+UI -> Router: aplicarRecargoManual(idCalendario, monto, motivo)
+activate Router
+Router -> DB: create(RecargoManual)
+activate DB
+DB --> Router: Recargo registrado
+deactivate DB
+Router -> DB: insert(LogAuditoria, { accion: 'RECARGO_MANUAL', motivo })
+activate DB
+DB --> Router: Log guardado
+deactivate DB
+Router --> UI: { success: true }
+UI --> Administrador: Saldo de cuota actualizado
+deactivate Router
+deactivate UI
+@enduml

@@ -1,0 +1,18 @@
+@startuml RB_Ventana_Inscripcion
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "PromocionesPage\n(UI)" as UI
+control "PromocionesRouter\n(tRPC)" as Router
+entity "VentanaInscripcionTemprana\n(PostgreSQL)" as BD
+
+Actor --> UI : Clic en "Guardar Ventana"
+UI --> Router : crearVentanaTemprana(datos)
+Router --> BD : validarTraslapeFechas()
+BD --> Router : Estado de rango
+Router --> BD : create(VentanaInscripcionTemprana)
+BD --> Router : Éxito
+Router --> UI : OK
+UI --> Actor : Muestra confirmación
+@enduml

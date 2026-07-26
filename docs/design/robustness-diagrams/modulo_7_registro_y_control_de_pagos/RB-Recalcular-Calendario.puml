@@ -1,0 +1,19 @@
+@startuml RB_Recalcular_Calendario
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "CalendarioPagoPage\n(UI)" as UI
+control "PagosRouter\n(tRPC)" as Router
+entity "CalendarioPago / Pago\n(PostgreSQL)" as BD
+
+Actor --> UI : Recalcular Calendario
+UI --> Router : recalcularCalendarioAlumno(idAlumno)
+Router --> BD : findMany(CalendarioPago)
+BD --> Router : Historial actual
+Router --> Router : Reconcilia sumas y saldos
+Router --> BD : updateMany(CalendarioPago)
+BD --> Router : Éxito
+Router --> UI : OK
+UI --> Actor : Calendario concilio
+@enduml

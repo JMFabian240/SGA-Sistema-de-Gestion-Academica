@@ -1,0 +1,29 @@
+@startuml SEQ_Ventana_Inscripcion
+actor Administrador
+participant "PromocionesPage\n(UI)" as UI
+participant "PromocionesRouter\n(tRPC)" as Router
+database "VentanaInscripcionTemprana\n(PostgreSQL)" as DB
+
+Administrador -> UI: Clic en "Guardar Ventana Temprana"
+activate UI
+UI -> Router: crearVentanaTemprana(datos)
+activate Router
+Router -> DB: validarTraslapeFechas(datos.inicio, datos.fin)
+activate DB
+DB --> Router: Resultado de traslape
+deactivate DB
+
+alt Traslape Existente
+    Router --> UI: Error: "Rango de fechas en conflicto"
+    UI --> Administrador: Alerta de conflicto de fechas
+else Fechas Ok
+    Router -> DB: create(VentanaInscripcionTemprana)
+    activate DB
+    DB --> Router: Ventana Creada OK
+    deactivate DB
+    Router --> UI: { success: true }
+    UI --> Administrador: Ventana configurada y activa
+end
+deactivate Router
+deactivate UI
+@enduml

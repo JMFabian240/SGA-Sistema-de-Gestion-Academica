@@ -1,0 +1,29 @@
+@startuml SEQ_Inicializar_Grupos
+actor Administrador
+participant "GruposPage\n(UI)" as UI
+participant "GruposRouter\n(tRPC)" as Router
+database "Grupo / Grado\n(PostgreSQL)" as DB
+
+Administrador -> UI: Clic en "Inicializar Grupos"
+activate UI
+UI -> Router: inicializarGrupos(cicloId, grados[])
+activate Router
+Router -> DB: findMany(Grupo, { where: { cicloId } })
+activate DB
+DB --> Router: Grupos Existentes
+deactivate DB
+
+alt Grupos Ya Existen
+    Router --> UI: Error: "Grupos ya inicializados"
+    UI --> Administrador: Muestra alerta de duplicidad
+else Ok
+    Router -> DB: createMany(Grupo)
+    activate DB
+    DB --> Router: Insertados OK
+    deactivate DB
+    Router --> UI: { success: true }
+    UI --> Administrador: Notificación de éxito
+end
+deactivate Router
+deactivate UI
+@enduml

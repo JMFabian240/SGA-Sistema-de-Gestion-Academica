@@ -17,6 +17,8 @@ rectangle "Módulo 4: Gestión de Alumnos" {
   usecase "Transición Masiva de Ciclo (RF-35)" as UC_TransicionMasiva
   usecase "Excluir Alumno de Transición (RF-41)" as UC_ExcluirTransicion
   usecase "Gestionar Grupos Académicos (RF-42)" as UC_GestionarGrupos
+  usecase "Inicializar Grupos Masivamente (RF-42b)" as UC_InicializarGrupos
+  usecase "Cerrar Ciclo por Grupo (RF-42c)" as UC_CierreGrupo
 
   UC_TransicionMasiva <.. UC_ExcluirTransicion : <<extend>>
 }
@@ -32,6 +34,8 @@ Admin --> UC_ProcesarReingreso
 Admin --> UC_GestionarCiclos
 Admin --> UC_TransicionMasiva
 Admin --> UC_GestionarGrupos
+Admin --> UC_InicializarGrupos
+Admin --> UC_CierreGrupo
 
 Gestor --> UC_RegistrarWizard
 Gestor --> UC_RegistrarMitadCiclo
@@ -42,4 +46,6 @@ Gestor --> UC_BajaDefinitiva
 Gestor --> UC_RevertirBajaTemporal
 Gestor --> UC_ProcesarReingreso
 Gestor --> UC_TransicionMasiva
+Gestor --> UC_InicializarGrupos
+Gestor --> UC_CierreGrupo
 @enduml

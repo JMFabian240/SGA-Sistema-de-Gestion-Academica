@@ -1,0 +1,16 @@
+@startuml RB_Control_Asistencia
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Docente" as Actor
+boundary "AsistenciaPage\n(UI)" as UI
+control "AcademicoRouter\n(tRPC)" as Router
+entity "Asistencia / Alumno\n(PostgreSQL)" as BD
+
+Actor --> UI : Seleccionar grupo/fecha y marcar
+UI --> Router : registrarAsistencia(registros[])
+Router --> BD : upsertMany(Asistencia)
+BD --> Router : Guardado OK
+Router --> UI : OK (éxito)
+UI --> Actor : Lista de asistencia lista
+@enduml

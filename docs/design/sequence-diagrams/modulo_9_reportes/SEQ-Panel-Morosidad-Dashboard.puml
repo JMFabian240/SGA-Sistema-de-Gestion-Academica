@@ -1,0 +1,26 @@
+@startuml SEQ_Panel_Morosidad_Dashboard
+actor Administrador
+participant "DashboardPage\n(UI)" as UI
+participant "DashboardRouter\n(tRPC)" as Router
+database "CalendarioPago / Tutor\n(PostgreSQL)" as DB
+
+Administrador -> UI: Abrir Dashboard Principal
+activate UI
+UI -> Router: obtenerTopDeudores()
+activate Router
+Router -> DB: aggregate(CalendarioPago, groupBy: tutorId)
+activate DB
+DB --> Router: Adeudos por familia
+deactivate DB
+
+UI -> Router: obtenerCuentasPendientes()
+Router -> DB: findMany(CalendarioPago, { where: { vencido: true } })
+activate DB
+DB --> Router: Cuentas pendientes
+deactivate DB
+
+Router --> UI: { topDeudores[], totalVencido }
+deactivate Router
+UI --> Administrador: Renderiza widgets de morosidad y KPIs
+deactivate UI
+@enduml

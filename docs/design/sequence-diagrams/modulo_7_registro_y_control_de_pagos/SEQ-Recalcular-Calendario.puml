@@ -1,0 +1,24 @@
+@startuml SEQ_Recalcular_Calendario
+actor Administrador
+participant "CalendarioPagoPage\n(UI)" as UI
+participant "PagosRouter\n(tRPC)" as Router
+database "CalendarioPago / Pago\n(PostgreSQL)" as DB
+
+Administrador -> UI: Clic en "Recalcular Calendario"
+activate UI
+UI -> Router: recalcularCalendarioAlumno(idAlumno)
+activate Router
+Router -> DB: findMany(CalendarioPago)
+activate DB
+DB --> Router: Adeudos y saldos actuales
+deactivate DB
+Router -> Router: conciliarPagosDescuentosRecargos()
+Router -> DB: updateMany(CalendarioPago, saldosConciliados)
+activate DB
+DB --> Router: Saldos actualizados OK
+deactivate DB
+Router --> UI: { success: true }
+UI --> Administrador: Calendario reconciliado en pantalla
+deactivate Router
+deactivate UI
+@enduml

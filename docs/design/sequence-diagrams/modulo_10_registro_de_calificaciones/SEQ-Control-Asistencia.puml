@@ -1,0 +1,27 @@
+@startuml SEQ_Control_Asistencia
+actor Docente
+participant "AsistenciaPage\n(UI)" as UI
+participant "AcademicoRouter\n(tRPC)" as Router
+database "Asistencia / Alumno\n(PostgreSQL)" as DB
+
+Docente -> UI: Seleccionar grupo, materia y fecha
+activate UI
+UI -> Router: obtenerListaAsistencia(grupoMateriaId, fecha)
+activate Router
+Router -> DB: findMany(Alumno)
+activate DB
+DB --> Router: Alumnos inscritos
+deactivate DB
+Router --> UI: Lista de alumnos para toma de asistencia
+
+Docente -> UI: Marcar presentes/ausentes y "Guardar"
+UI -> Router: registrarAsistencia(grupoMateriaId, fecha, registros[])
+Router -> DB: upsertMany(Asistencia)
+activate DB
+DB --> Router: Asistencias persistidas OK
+deactivate DB
+Router --> UI: { success: true }
+UI --> Docente: Asistencia guardada y lista oficial generable
+deactivate Router
+deactivate UI
+@enduml

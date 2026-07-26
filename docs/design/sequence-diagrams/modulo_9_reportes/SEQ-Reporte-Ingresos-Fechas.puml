@@ -1,0 +1,20 @@
+@startuml SEQ_Reporte_Ingresos_Fechas
+actor Administrador
+participant "ReportesPage\n(UI)" as UI
+participant "ReportesRouter\n(tRPC)" as Router
+database "Pago / DetallePago\n(PostgreSQL)" as DB
+
+Administrador -> UI: Seleccionar fechas inicio y fin
+activate UI
+UI -> Router: obtenerReporteIngresos(fechaInicio, fechaFin)
+activate Router
+Router -> DB: findMany(Pago, { where: { fecha: range } })
+activate DB
+DB --> Router: Pagos en rango
+deactivate DB
+Router -> Router: agruparPorConceptoYMetodo()
+Router --> UI: { totalRecaudado, desglose[] }
+deactivate Router
+UI --> Administrador: Renderiza tabla de ingresos y botones exportar
+deactivate UI
+@enduml

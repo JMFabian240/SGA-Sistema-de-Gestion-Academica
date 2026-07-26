@@ -1,0 +1,17 @@
+@startuml RB_Reporte_Ingresos_Fechas
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "ReportesPage\n(UI)" as UI
+control "ReportesRouter\n(tRPC)" as Router
+entity "Pago / DetallePago\n(PostgreSQL)" as BD
+
+Actor --> UI : Seleccionar fechas y "Generar"
+UI --> Router : obtenerReporteIngresos(rango)
+Router --> BD : consultarPagosEnRango()
+BD --> Router : Registros de pago
+Router --> Router : totalizarPorConcepto()
+Router --> UI : Reporte consolidado
+UI --> Actor : Tabla financiera exportable
+@enduml

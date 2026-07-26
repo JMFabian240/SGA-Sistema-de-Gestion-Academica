@@ -67,6 +67,8 @@
 | RF-40 | El usuario autorizado (Administrador/Gestor) debe registrar alumnos de nuevo ingreso mediante un flujo guiado (Wizard) que permita seleccionar a un tutor existente o registrar uno nuevo, seguido de la captura de los datos del alumno y la generación de su primer adeudo, unificando el proceso. | Usuario |
 | RF-41 | El usuario autorizado (Administrador/Gestor) debe excluir individualmente a alumnos específicos del panel interactivo de transición de ciclo masiva, deseleccionando sus registros, para gestionar casos de repetición de grado o bajas programadas. | Usuario |
 | RF-42 | El usuario autorizado (Administrador/Gestor) debe gestionar los grupos académicos, organizándolos por grado y grupo (secciones A, B, etc.) para Preescolar/Primaria y por número de semestre para Bachillerato, para mantener la estructura organizativa de las clases en el sistema. | Usuario |
+| RF-42b | El usuario autorizado (Administrador/Gestor) debe inicializar de forma masiva los grados y grupos seleccionados para un ciclo escolar, seleccionando el ciclo y los grados, para crear la estructura de grupos lectivos en el sistema. | Usuario |
+| RF-42c | El usuario autorizado (Administrador/Gestor) debe ejecutar el cierre de ciclo escolar por grupo individual, seleccionando un grupo concluido, para procesar la graduación o promoción académica de los alumnos de ese grupo. | Usuario |
 
 ### Módulo 5 — Gestión de Becas y Promociones
 
@@ -84,6 +86,7 @@
 | RF-52 | El sistema debe retirar la beca automáticamente, detectando 3 meses consecutivos de adeudo, para recalcular montos sin descuento previo a un cambio académico. | Sistema |
 | RF-53 | El usuario autorizado (Administrador/Gestor) debe configurar una promoción por inscripción temprana, ingresando fechas y beneficio, para aplicarla a pagos puntuales. | Usuario |
 | RF-54 | El sistema debe otorgar automáticamente la 'Beca por tiempo de inscripción' a los alumnos, detectando que el pago de su inscripción se liquida durante el periodo promocional configurado (ej. enero y febrero), para aplicar el beneficio sin intervención manual. | Sistema |
+| RF-54b | El administrador debe configurar ventanas de inscripción temprana, definiendo fechas de vigencia y descuentos, para aplicar de forma automática promociones a inscripciones y pagos realizados en dicho plazo. | Usuario |
 
 ### Módulo 6 — Gestión de Colegiaturas y Conceptos
 
@@ -109,6 +112,10 @@
 | RF-66 | El usuario autorizado (Administrador/Gestor) debe aplicar manualmente la suspensión de servicio a un alumno con rezago acumulado, cambiando su estatus a 'Baja Temporal' o restringiendo sus evaluaciones desde el panel del alumno, para suspender sus privilegios académicos de forma discrecional. | Usuario |
 | RF-67 | El sistema debe suspender la generación automática de colegiaturas del alumno al registrar que su estatus cambió a 'Baja Temporal' (por suspensión manual), para mantener intacto el adeudo previo. | Sistema |
 | RF-68 | El sistema debe generar alertas visuales automáticas y resúmenes de morosidad, detectando vencimientos próximos o pérdida de becas, para informar al personal en el Panel Principal. | Sistema |
+| RF-68b | El usuario autorizado (Administrador/Gestor) debe registrar cargos extraordinarios (talleres, materiales adicionales, excursiones o multas), ingresando concepto, monto y fecha de vencimiento, para agregarlos al calendario de pagos. | Usuario |
+| RF-68c | El usuario autorizado (Administrador/Gestor) debe aplicar recargos manuales por morosidad sobre un adeudo vencido, ingresando el monto personalizado y justificando el ajuste, para reflejar penalizaciones ad-hoc. | Usuario |
+| RF-68d | El usuario autorizado (Administrador/Gestor) debe solicitar el recálculo del calendario de pagos de un alumno, ejecutando la auditoría del expediente, para sincronizar saldos pendientes, condonaciones y convenios. | Usuario |
+| RF-68e | El sistema debe almacenar de forma persistente y local en el servidor LAN los archivos de comprobante de pago subidos, utilizando el adaptador de almacenamiento local en disco, y permitir su visualización en Base64. | Sistema |
 
 ### Módulo 8 — Historial de Pagos
 
@@ -128,6 +135,8 @@
 | RF-75 | El usuario autorizado (Administrador/Gestor) debe consultar la lista de alumnos según estado de pago (deudores o pagados), filtrando por mes y estatus de cobro, para visualizar los adeudos consolidados por familia y días de retraso o confirmar los cobros liquidados. | Usuario |
 | RF-76 | El usuario autorizado (Administrador/Gestor) debe consultar la lista de alumnos con examen restringido, indicando el periodo de evaluación, para identificar a los afectados por adeudos. | Usuario |
 | RF-77 | El usuario autorizado (Administrador/Gestor) debe generar un reporte de requerimientos de facturación, solicitando el listado, para exportar los datos fiscales de los padres aplicables. | Usuario |
+| RF-77b | El usuario autorizado (Administrador/Gestor) debe consultar el panel de morosidad en el dashboard, ingresando a la vista principal, para visualizar el Top 5 de deudores y la relación de cuentas pendientes por cobrar. | Usuario |
+| RF-77c | El usuario autorizado (Administrador/Gestor) debe consultar y exportar el reporte de ingresos por rango de fechas personalizable, seleccionando fecha inicial y final, para auditar la recaudación de periodos específicos. | Usuario |
 
 ### Módulo 10 — Registro de Calificaciones
 
@@ -140,6 +149,7 @@
 | RF-82 | El usuario autorizado (Administrador/Gestor/Docente) debe registrar la calificación de clubes extracurriculares, ingresando la nota del periodo en el club correspondiente, para su inclusión separada en la boleta. | Usuario |
 | RF-83 | El usuario autorizado (Administrador/Gestor/Docente) debe registrar la evaluación de la materia Taller, ingresando una escala cualitativa (A/NA), para guardarla en el historial sin afectar promedios numéricos. | Usuario |
 | RF-84 | El usuario autorizado (Administrador/Gestor/Docente) debe modificar una calificación registrada, ingresando la corrección (nueva calificación) y el motivo (ej. error de captura, revisión de examen), para actualizar la boleta y registrar el cambio en la bitácora. | Usuario |
+| RF-84b | El usuario autorizado (Administrador/Gestor/Docente) debe registrar y consultar la asistencia diaria de los alumnos por grupo y materia, para emitir la lista oficial institucional de asistencia del periodo. | Usuario |
 
 ### Módulo 11 — Generación y Consulta de Boletas
 
@@ -162,6 +172,7 @@
 |---|---|---|
 | RF-90 | El administrador debe modificar los umbrales de morosidad, ingresando la cantidad de días o meses para alertas y bajas, para flexibilizar la política de cobranza de la institución. | Usuario |
 | RF-91 | El administrador debe modificar los días de anticipación para las notificaciones SMTP, ingresando los nuevos umbrales numéricos, para personalizar el calendario de avisos. | Usuario |
+| RF-91b | El usuario autorizado (Administrador/Gestor) debe procesar importaciones masivas de datos estructurados desde archivos Excel o CSV (catálogos de grados/grupos, inscripciones, saldos iniciales y pagos históricos), para regularizar o inicializar el sistema de forma transaccional. | Usuario |
 
 ### Módulo 14 — Notificaciones Automatizadas
 

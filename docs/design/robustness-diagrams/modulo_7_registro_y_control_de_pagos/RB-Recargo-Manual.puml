@@ -1,0 +1,18 @@
+@startuml RB_Recargo_Manual
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "CalendarioPagoPage\n(UI)" as UI
+control "PagosRouter\n(tRPC)" as Router
+entity "Recargo / LogAuditoria\n(PostgreSQL)" as BD
+
+Actor --> UI : Aplicar Recargo Manual
+UI --> Router : aplicarRecargoManual()
+Router --> BD : create(RecargoManual)
+BD --> Router : Recargo guardado
+Router --> BD : create(LogAuditoria)
+BD --> Router : Auditoría registrada
+Router --> UI : OK
+UI --> Actor : Saldo incrementado
+@enduml

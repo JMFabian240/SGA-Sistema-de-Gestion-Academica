@@ -6,8 +6,10 @@ actor "Administrador" as Admin
 rectangle "Módulo 13: Configuración de Sistema" {
   usecase "Modificar Umbrales de Morosidad (RF-90)" as UC_ModificarUmbrales
   usecase "Modificar Anticipación SMTP (RF-91)" as UC_ModificarSMTP
+  usecase "Importar Datos Masivamente [Excel/CSV] (RF-91b)" as UC_ImportacionMasiva
 }
 
 Admin --> UC_ModificarUmbrales
 Admin --> UC_ModificarSMTP
+Admin --> UC_ImportacionMasiva
 @enduml

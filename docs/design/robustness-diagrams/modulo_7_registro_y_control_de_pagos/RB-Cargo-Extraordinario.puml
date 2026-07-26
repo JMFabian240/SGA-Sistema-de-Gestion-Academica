@@ -1,0 +1,18 @@
+@startuml RB_Cargo_Extraordinario
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "FinanzasAlumnoPage\n(UI)" as UI
+control "PagosRouter\n(tRPC)" as Router
+entity "Cargo / CalendarioPago\n(PostgreSQL)" as BD
+
+Actor --> UI : Registrar Cargo Extraordinario
+UI --> Router : crearCargoExtraordinario()
+Router --> BD : insert(Cargo)
+BD --> Router : Cargo guardado
+Router --> BD : update(CalendarioPago)
+BD --> Router : Saldo reconciliado
+Router --> UI : OK
+UI --> Actor : Muestra adeudo añadido
+@enduml

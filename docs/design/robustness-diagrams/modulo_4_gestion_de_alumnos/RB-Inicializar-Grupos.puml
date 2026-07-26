@@ -1,0 +1,18 @@
+@startuml RB_Inicializar_Grupos
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "GruposPage\n(UI)" as UI
+control "GruposRouter\n(tRPC)" as Router
+entity "Grupo / Grado\n(PostgreSQL)" as BD
+
+Actor --> UI : Clic en "Inicializar Grupos"
+UI --> Router : inicializarGrupos(cicloId, grados[])
+Router --> BD : findMany(Grupo)
+BD --> Router : Verificación de duplicidad
+Router --> BD : createMany(Grupo)
+BD --> Router : Grupos creados
+Router --> UI : OK (exito)
+UI --> Actor : Muestra confirmación
+@enduml

@@ -13,6 +13,7 @@ rectangle "Módulo 10: Registro de Calificaciones" {
   usecase "Registrar Calificación Extracurricular [Especiales] (RF-82)" as UC_Extracurricular
   usecase "Registrar Evaluación de Talleres [A/NA] (RF-83)" as UC_Talleres
   usecase "Modificar Calificación (RF-84)" as UC_ModificarNota
+  usecase "Registrar y Consultar Asistencia Escolar (RF-84b)" as UC_Asistencia
 }
 
 Admin --> UC_Preescolar
@@ -22,6 +23,7 @@ Admin --> UC_Bachillerato
 Admin --> UC_Extracurricular
 Admin --> UC_Talleres
 Admin --> UC_ModificarNota
+Admin --> UC_Asistencia
 
 Gestor --> UC_Preescolar
 Gestor --> UC_Primaria
@@ -30,6 +32,7 @@ Gestor --> UC_Bachillerato
 Gestor --> UC_Extracurricular
 Gestor --> UC_Talleres
 Gestor --> UC_ModificarNota
+Gestor --> UC_Asistencia
 
 Docente --> UC_Preescolar
 Docente --> UC_Primaria
@@ -38,4 +41,5 @@ Docente --> UC_Bachillerato
 Docente --> UC_Extracurricular
 Docente --> UC_Talleres
 Docente --> UC_ModificarNota
+Docente --> UC_Asistencia
 @enduml

@@ -1,0 +1,23 @@
+@startuml SEQ_Cargo_Extraordinario
+actor Administrador
+participant "FinanzasAlumnoPage\n(UI)" as UI
+participant "PagosRouter\n(tRPC)" as Router
+database "Cargo / CalendarioPago\n(PostgreSQL)" as DB
+
+Administrador -> UI: Registrar Cargo Extraordinario
+activate UI
+UI -> Router: crearCargoExtraordinario(idAlumno, concepto, monto, fecha)
+activate Router
+Router -> DB: create(CargoExtraordinario)
+activate DB
+DB --> Router: Cargo insertado
+deactivate DB
+Router -> DB: recalcularSaldoPendiente(idAlumno)
+activate DB
+DB --> Router: Saldo actualizado
+deactivate DB
+Router --> UI: { success: true }
+UI --> Administrador: Cargo reflejado en calendario
+deactivate Router
+deactivate UI
+@enduml

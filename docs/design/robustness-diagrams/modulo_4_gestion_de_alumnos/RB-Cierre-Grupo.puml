@@ -1,0 +1,18 @@
+@startuml RB_Cierre_Grupo
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "GruposPage\n(UI)" as UI
+control "GruposRouter\n(tRPC)" as Router
+entity "Grupo / Calificacion\n(PostgreSQL)" as BD
+
+Actor --> UI : Clic en "Cerrar Ciclo del Grupo"
+UI --> Router : cerrarCicloGrupo(grupoId)
+Router --> BD : validarCalificacionesCompletas()
+BD --> Router : Estado de calificaciones
+Router --> BD : update(Grupo, cerrado=true)
+BD --> Router : Éxito
+Router --> UI : OK (grupo cerrado)
+UI --> Actor : Muestra confirmación
+@enduml

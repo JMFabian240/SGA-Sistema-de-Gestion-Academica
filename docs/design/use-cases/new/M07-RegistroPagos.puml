@@ -12,10 +12,15 @@ rectangle "Módulo 7: Registro y Control de Pagos" {
   usecase "Suspender Servicio de Alumno [Manual] (RF-66)" as UC_SuspenderServicio
   usecase "Registrar Múltiples Conceptos (RF-61)" as UC_MultiConceptos
   usecase "Adjuntar Comprobante Digital (RF-62)" as UC_AdjuntarComprobante
+  usecase "Registrar Cargo Extraordinario (RF-68b)" as UC_CargoExtra
+  usecase "Aplicar Recargo Manual (RF-68c)" as UC_RecargoManual
+  usecase "Recalcular Calendario de Pagos (RF-68d)" as UC_RecalcularCalendario
+  usecase "Almacenar Comprobante Offline LAN (RF-68e)" as UC_StorageOffline
 
   UC_RegistrarPago <.. UC_MultiConceptos : <<extend>>
   UC_RegistrarPago .down.> UC_AdjuntarComprobante : <<include>>
   UC_RegistrarAdelantado .down.> UC_AdjuntarComprobante : <<include>>
+  UC_AdjuntarComprobante .down.> UC_StorageOffline : <<include>>
 }
 
 Admin --> UC_RegistrarPago
@@ -23,10 +28,16 @@ Admin --> UC_RegistrarConvenio
 Admin --> UC_RegistrarAdelantado
 Admin --> UC_ModificarRecargo
 Admin --> UC_SuspenderServicio
+Admin --> UC_CargoExtra
+Admin --> UC_RecargoManual
+Admin --> UC_RecalcularCalendario
 
 Gestor --> UC_RegistrarPago
 Gestor --> UC_RegistrarConvenio
 Gestor --> UC_RegistrarAdelantado
 Gestor --> UC_ModificarRecargo
 Gestor --> UC_SuspenderServicio
+Gestor --> UC_CargoExtra
+Gestor --> UC_RecargoManual
+Gestor --> UC_RecalcularCalendario
 @enduml

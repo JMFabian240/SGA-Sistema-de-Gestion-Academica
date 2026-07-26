@@ -11,6 +11,8 @@ rectangle "Módulo 9: Reportes" {
   usecase "Consultar Lista de Alumnos por Estado de Pago (RF-75)" as UC_ReporteDeudoresPagados
   usecase "Consultar Lista de Exámenes Restringidos (RF-76)" as UC_ExamenesRestringidos
   usecase "Generar Reporte de Facturación (RF-77)" as UC_ReporteFacturacion
+  usecase "Consultar Panel de Morosidad Dashboard (RF-77b)" as UC_PanelMorosidad
+  usecase "Consultar Reporte de Ingresos por Fechas (RF-77c)" as UC_ReporteRangoFechas
 }
 
 Admin --> UC_ReporteDiario
@@ -19,6 +21,8 @@ Admin --> UC_ReporteCiclo
 Admin --> UC_ReporteDeudoresPagados
 Admin --> UC_ExamenesRestringidos
 Admin --> UC_ReporteFacturacion
+Admin --> UC_PanelMorosidad
+Admin --> UC_ReporteRangoFechas
 
 Gestor --> UC_ReporteDiario
 Gestor --> UC_ReporteMensual
@@ -26,4 +30,6 @@ Gestor --> UC_ReporteCiclo
 Gestor --> UC_ReporteDeudoresPagados
 Gestor --> UC_ExamenesRestringidos
 Gestor --> UC_ReporteFacturacion
+Gestor --> UC_PanelMorosidad
+Gestor --> UC_ReporteRangoFechas
 @enduml

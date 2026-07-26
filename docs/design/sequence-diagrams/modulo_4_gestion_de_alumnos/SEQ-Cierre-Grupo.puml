@@ -1,0 +1,29 @@
+@startuml SEQ_Cierre_Grupo
+actor Administrador
+participant "GruposPage\n(UI)" as UI
+participant "GruposRouter\n(tRPC)" as Router
+database "Grupo / Calificacion\n(PostgreSQL)" as DB
+
+Administrador -> UI: Clic en "Cerrar Ciclo del Grupo"
+activate UI
+UI -> Router: cerrarCicloGrupo(grupoId)
+activate Router
+Router -> DB: validarCalificacionesCompletas(grupoId)
+activate DB
+DB --> Router: Estado de evaluaciones
+deactivate DB
+
+alt Calificaciones Incompletas
+    Router --> UI: Error: "Calificaciones pendientes"
+    UI --> Administrador: Muestra lista de pendientes
+else Completo
+    Router -> DB: update(Grupo, { cerrado: true })
+    activate DB
+    DB --> Router: Grupo Cerrado OK
+    deactivate DB
+    Router --> UI: { success: true }
+    UI --> Administrador: Notificación de grupo cerrado
+end
+deactivate Router
+deactivate UI
+@enduml

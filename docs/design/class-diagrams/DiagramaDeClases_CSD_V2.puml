@@ -546,6 +546,57 @@ class ReporteBitacora {
 }
 
 ' =========================================================
+'  IMPORTACIONES, STORAGE Y NUEVAS FEATURES
+' =========================================================
+
+class ImportacionesService {
+  + procesarImportacionCatalogo(buffer: Buffer): ImportResult
+  + procesarImportacionInscripciones(buffer: Buffer): ImportResult
+  + procesarImportacionPagos(buffer: Buffer): ImportResult
+  + procesarImportacionSaldos(buffer: Buffer): ImportResult
+}
+
+class LocalStorageAdapter {
+  - baseDir: String
+  + saveFile(filePath: String, data: Buffer): Promise<String>
+  + getFile(filePath: String): Promise<Buffer>
+  + deleteFile(filePath: String): Promise<void>
+}
+
+class CargoExtraordinario {
+  - idCargoExtraordinario: Int
+  - concepto: String
+  - monto: Decimal
+  - fechaVencimiento: Date
+  + registrarCargo(idAlumno: Int): void
+}
+
+class RecargoManual {
+  - idRecargoManual: Int
+  - montoPersonalizado: Decimal
+  - motivo: String
+  + aplicarRecargo(idCalendarioPago: Int): void
+}
+
+class Asistencia {
+  - idAsistencia: Int
+  - idAlumno: Int
+  - idGrupoMateria: Int
+  - fecha: Date
+  - presente: Boolean
+  + registrarAsistencia(): void
+}
+
+class VentanaInscripcionTemprana {
+  - idVentana: Int
+  - nombre: String
+  - fechaInicio: Date
+  - fechaFin: Date
+  - descuentoPorcentaje: Decimal
+  + validarVigencia(fechaPago: Date): Boolean
+}
+
+' =========================================================
 '  RELACIONES - Académico
 ' =========================================================
 
@@ -653,5 +704,13 @@ RegistroBitacora ..> PermisoModulo : audita
 RegistroBitacora ..> Calificacion : audita
 RegistroBitacora ..> SolicitudBeca : audita
 RegistroBitacora ..> Cargo : audita
+RegistroBitacora ..> RecargoManual : audita
+
+ImportacionesService ..> ConfiguracionGlobal : Use
+LocalStorageAdapter ..> ComprobanteDigital : administra
+Alumno "1" -- "0..*" CargoExtraordinario
+Alumno "1" -- "0..*" Asistencia
+Grupo "1" -- "0..*" Asistencia
+CicloEscolar "1" -- "0..*" VentanaInscripcionTemprana
 
 @enduml

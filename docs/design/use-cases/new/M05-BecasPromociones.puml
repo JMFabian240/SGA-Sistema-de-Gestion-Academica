@@ -12,6 +12,7 @@ rectangle "Módulo 5: Gestión de Becas y Promociones" {
   usecase "Gestionar Solicitudes de Beca (RF-48)" as UC_GestionarSolicitudes
   usecase "Retirar Beca de Alumno (RF-50)" as UC_RetirarBeca
   usecase "Configurar Promoción Inscripción Temprana (RF-53)" as UC_ConfigurarPromocion
+  usecase "Configurar Ventana de Inscripción Temprana (RF-54b)" as UC_ConfigurarVentana
 }
 
 Admin --> UC_RegistrarBeca
@@ -21,9 +22,11 @@ Admin --> UC_AsignarBeca
 Admin --> UC_GestionarSolicitudes
 Admin --> UC_RetirarBeca
 Admin --> UC_ConfigurarPromocion
+Admin --> UC_ConfigurarVentana
 
 Gestor --> UC_ConsultarBecas
 Gestor --> UC_AsignarBeca
 Gestor --> UC_RetirarBeca
 Gestor --> UC_ConfigurarPromocion
+Gestor --> UC_ConfigurarVentana
 @enduml

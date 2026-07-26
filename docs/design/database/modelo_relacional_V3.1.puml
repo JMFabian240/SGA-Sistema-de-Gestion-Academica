@@ -111,6 +111,16 @@ title Modelo Relacional — Base de Datos "Colegio San Diego" (PostgreSQL)
     actualizado_en : TIMESTAMPTZ
   }
 
+  entity configuracion_recargo {
+    PK(id) : SERIAL
+    --
+    concepto_pago : VARCHAR(100)
+    monto : NUMERIC(12,2)
+    dias_gracia : INT
+    activo : BOOLEAN
+    creado_en / actualizado_en : TIMESTAMPTZ
+  }
+
   entity log_auditoria {
     PK(log_id) : BIGSERIAL
     --
@@ -136,6 +146,15 @@ title Modelo Relacional — Base de Datos "Colegio San Diego" (PostgreSQL)
     nombre : VARCHAR(60)
     rvoe : VARCHAR(40)
     orden : INT
+    creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
+  }
+
+  entity grado {
+    PK(grado_id) : SERIAL
+    --
+    FK(nivel_id) : INT
+    numero : INT
+    nombre : VARCHAR(50)
     creado_en / actualizado_en / eliminado_en : TIMESTAMPTZ
   }
 
@@ -494,6 +513,11 @@ usuario |o..o{ log_auditoria
 ' =====================================================================
 ' RELACIONES — 3. Estructura Académica
 ' =====================================================================
+nivel_educativo ||--o{ grado
+grado ||--o{ grupo
+grado ||--o{ alumno
+grado ||--o{ inscripcion_ciclo
+grado ||--o{ materia
 nivel_educativo ||--o{ grupo
 ciclo_escolar ||--o{ grupo
 grupo ||--o{ grupo_materia

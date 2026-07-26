@@ -1,0 +1,17 @@
+@startuml RB_Panel_Morosidad_Dashboard
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "DashboardPage\n(UI)" as UI
+control "DashboardRouter\n(tRPC)" as Router
+entity "CalendarioPago / Tutor\n(PostgreSQL)" as BD
+
+Actor --> UI : Abrir Dashboard
+UI --> Router : obtenerTopDeudores()
+UI --> Router : obtenerCuentasPendientes()
+Router --> BD : agruparAdeudosPorFamilia()
+BD --> Router : Lista Top 5 y totales
+Router --> UI : KPIs financieros
+UI --> Actor : Muestra widgets de morosidad
+@enduml

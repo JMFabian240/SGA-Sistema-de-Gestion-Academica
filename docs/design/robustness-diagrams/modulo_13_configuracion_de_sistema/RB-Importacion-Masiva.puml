@@ -1,0 +1,20 @@
+@startuml RB_Importacion_Masiva
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "ImportacionesPage\n(UI)" as UI
+control "ImportacionesRouter\n(tRPC)" as Router
+control "ExcelCSVParser\n(Lib)" as Parser
+entity "PostgreSQL\n(DB)" as BD
+
+Actor --> UI : Selecciona archivo y "Importar"
+UI --> Router : procesarImportacion(file)
+Router --> Parser : parseBuffer(file)
+Parser --> Router : Filas[]
+Router --> Router : validarFormato()
+Router --> BD : $transaction(insertMany)
+BD --> Router : Commit OK
+Router --> UI : Resultado de importación
+UI --> Actor : Resumen de registros guardados
+@enduml

@@ -1,0 +1,25 @@
+@startuml SEQ_Storage_Offline_Comprobante
+actor Administrador
+participant "CajaPage\n(UI)" as UI
+participant "PagosRouter\n(tRPC)" as Router
+participant "StorageAdapter\n(FS Local)" as Storage
+database "Documento\n(PostgreSQL)" as DB
+
+Administrador -> UI: Subir archivo comprobante (PDF/Img)
+activate UI
+UI -> Router: adjuntarComprobante(pagoId, fileBuffer, fileName)
+activate Router
+Router -> Storage: saveFile(uuidFileName, fileBuffer)
+activate Storage
+Storage --> Router: localPath (en servidor LAN)
+deactivate Storage
+
+Router -> DB: create(Documento, { ruta: localPath, pagoId })
+activate DB
+DB --> Router: Documento guardado OK
+deactivate DB
+Router --> UI: { success: true, localPath }
+UI --> Administrador: Comprobante adjuntado al pago
+deactivate Router
+deactivate UI
+@enduml

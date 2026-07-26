@@ -1,0 +1,33 @@
+@startuml SEQ_Importacion_Masiva
+actor Administrador
+participant "ImportacionesPage\n(UI)" as UI
+participant "ImportacionesRouter\n(tRPC)" as Router
+participant "ExcelCSVParser\n(Lib)" as Parser
+database "PostgreSQL\n(DB)" as DB
+
+Administrador -> UI: Seleccionar archivo y tipo de importación
+activate UI
+UI -> Router: procesarImportacion(type, fileBuffer)
+activate Router
+Router -> Parser: parseBuffer(fileBuffer)
+activate Parser
+Parser --> Router: Filas estructuradas[]
+deactivate Parser
+
+Router -> Router: validarFormatoYReferencias(Filas[])
+
+alt Error de Validación
+    Router --> UI: Error: Fila X con formato incorrecto
+    UI --> Administrador: Reporte de errores para corrección
+else Filas Válidas
+    Router -> DB: $transaction(insertMany(filas))
+    activate DB
+    DB --> Router: Transacción Commit OK
+    deactivate DB
+    Router -> DB: create(LogAuditoria, { accion: 'IMPORTACION_MASIVA' })
+    Router --> UI: { success: true, count: N }
+    UI --> Administrador: Muestra resumen de registros importados
+end
+deactivate Router
+deactivate UI
+@enduml

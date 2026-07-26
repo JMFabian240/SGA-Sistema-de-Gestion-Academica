@@ -7,7 +7,7 @@
 *   **Propósito del proyecto:** El Sistema de Gestión Académica (SGA) resuelve el problema de la fragmentación y vulnerabilidad de datos causados por llevar la administración del Colegio San Diego (~200 familias) mediante múltiples hojas de Excel manuales. Existe para centralizar el control escolar, automatizar la cobranza, garantizar la integridad histórica de calificaciones y finanzas, y proveer una fuente única de verdad para toda la institución escolar.
 *   **Estado actual:** En desarrollo inicial ("Año Cero"). Fase de construcción de arquitectura y módulos fundacionales.
 *   **Alcance:**
-    *   **SÍ INCLUYE:** Control de expedientes de alumnos y tutores, caja unificada de cobranza (múltiples conceptos), automatización de recargos ($400 MXN), reglas de becas/promociones, registro de calificaciones (historial/Kardex), generación de boletas PDF, notificaciones locales por correo (SMTP) preventivas, reportes locales exportables (Excel/CSV), bitácora de auditoría estricta y arquitectura Offline-LAN.
+    *   **SÍ INCLUYE:** Control de expedientes de alumnos y tutores, caja unificada de cobranza (múltiples conceptos y cargos extraordinarios), automatización de recargos y aplicación de recargos manuales, herramientas de recálculo y auditoría de calendarios, importación masiva de datos desde Excel/CSV (catálogos, inscripciones y saldos), carga y almacenamiento local offline de comprobantes digitales (PDF/imagen), reglas de becas, promociones y ventanas de inscripción temprana, gestión granular de ciclos por grupo (inicialización y cierre de ciclo), registro de calificaciones e historial académico (Kardex), control de asistencia por grupo/materia, generación de boletas PDF, notificaciones locales por correo (SMTP), panel analítico de morosidad en el dashboard, reportes locales exportables (Excel/CSV), bitácora de auditoría estricta y arquitectura Offline-LAN.
     *   **NO INCLUYE EXPLÍCITAMENTE:** Portal web accesible desde internet para padres, despliegue en la nube (AWS/Azure/Vercel), integraciones con SAT para timbrado de facturación electrónica, envío de alertas vía SMS o WhatsApp, ni aplicación móvil nativa para Android/iOS.
 
 ---
@@ -68,20 +68,25 @@ Al ser un sistema diseñado para operar *Offline*, las dependencias externas son
 
 ### Casos de uso / Features principales
 *   **Seguridad:** Bitácora inmutable visible solo por Root. Roles estrictos (Administradora, Gestor, Docente).
-*   **Control Escolar:** Wizard de inscripción, panel interactivo para transición masiva de ciclo (aprobación de pase de año), gestión de grupos y ciclos (anuales y semestrales paralelos).
-*   **Caja y Cobranza:** Caja unificada para pago de múltiples conceptos a la vez (inscripción, colegiatura, material). Registro de saldos a favor (crédito) y pagos por adelantado.
+*   **Control Escolar:** Wizard de inscripción, panel interactivo para transición masiva de ciclo (aprobación de pase de año), gestión de grupos y ciclos (anuales y semestrales paralelos), inicialización masiva y cierre granular por grupo, ventanas de inscripción temprana con promociones aplicables y control diario de asistencia escolar por grupo/materia con listas institucionales exportables.
+*   **Caja y Cobranza:** Caja unificada para pago de múltiples conceptos a la vez (inscripción, colegiatura, material). Registro de saldos a favor (crédito), pagos por adelantado, emisión de cargos extraordinarios (talleres, material adicional, multas), expediente digital offline para carga y visualización de comprobantes adjuntos (imágenes/PDF en base64), aplicación de recargos manuales por morosidad y procedimientos de recálculo y auditoría del calendario de pagos.
 *   **Calificaciones:** Historial académico perpetuo. Registro cualitativo (Preescolar) y numérico por periodo. Generación de boletas dinámicas en PDF.
+*   **Analítica y Carga Masiva:** Módulo de importación masiva de datos estructurados desde Excel/CSV (catálogos de grupos y tarifas, inscripciones, saldos iniciales y pagos históricos) y panel interactivo en Dashboard con indicadores financieros de morosidad (Top 5 deudores y cuentas pendientes).
 
 ### Reglas de negocio críticas (No obvias)
 *   **Recargos Automáticos:** Se aplica un recargo fijo e inapelable de **$400 MXN** transcurridos **5 días hábiles** de gracia posteriores a la fecha original de vencimiento.
+*   **Recargos Manuales y Auditoría:** Además del recargo automático por morosidad, el personal autorizado puede aplicar recargos manuales o condonaciones con monto personalizado; cualquier ajuste sobre el calendario de pagos detona un recálculo y genera un registro en la bitácora de auditoría.
 *   **Convenios de Pago:** Si un padre de familia firma un convenio por rezago, el sistema **congela** la generación de nuevos recargos ($400) mientras el convenio esté vigente, pero conserva el adeudo original.
 *   **Plazo de Inscripción:** Los conceptos relacionados a inscripción (y materiales) tienen un plazo duro de máximo **60 días naturales** para liquidarse. El sistema avisa 5 días antes de cumplirse el plazo.
 *   **Máquina de Estados de Alumnos:** `Activo`, `Baja Temporal`, `Baja Definitiva`, `Egresado` y `Transición Pendiente`. Reingresar a un alumno inactivo reactiva su expediente sin crear registros duplicados.
+*   **Cierre Granular por Grupo:** El cierre de ciclo escolar puede realizarse de forma selectiva por grupo individual una vez terminadas las evaluaciones del periodo, permitiendo transiciones graduales sin requerir que todo el nivel educativo haya finalizado al mismo tiempo.
+*   **Ventanas de Inscripción Temprana:** Al crear una ventana de inscripción, las tarifas promocionales vinculadas se aplican automáticamente a cualquier inscripción y pago que ocurra dentro de las fechas de inicio y fin configuradas.
 *   **Bloqueo por Adeudo:** Alumnos morosos son restringidos automáticamente; se bloquea la captura de sus calificaciones/exámenes y la visualización de su boleta hasta saldar deudas.
 *   **Exclusión Mutua de Becas:** La "Beca de Hermanos" (30% fijo) y las "Promociones Estacionales de Inscripción" (por matriz de descuentos) son mutuamente excluyentes; no se pueden apilar.
 *   **Autorización de Becas:** Si un "Gestor" asigna una beca, se genera en estado de "Solicitud Pendiente" y no altera montos hasta que la "Administradora" la apruebe.
 *   **Inmutabilidad de Periodos Cerrados:** Una vez que un ciclo escolar o bimestre finaliza oficialmente, el sistema congela esos registros. Modificar calificaciones o adeudos pasados requiere permisos especiales de la Administradora y genera alertas en bitácora.
 *   **Corte de Caja Diario:** Todo pago procesado en el día debe conciliarse mediante un flujo de "Cierre de Caja", blindando las transacciones auditadas contra modificaciones futuras.
+*   **Importación del 'Año Cero':** La importación masiva desde CSV/Excel valida transaccionalmente la integridad del catálogo y la asociación Tutor-Alumno; si se detecta un formato erróneo en el archivo, se aborta la importación para garantizar la consistencia en la red local.
 
 ### Flujos críticos
 1.  **Wizard de Nuevo Ingreso:** Paso 1 (Seleccionar/Crear Tutor) -> Paso 2 (Crear Alumno) -> Paso 3 (Definir Contactos Autorizados) -> Paso 4 (Generar primer adeudo de inscripción y colegiaturas según plan 10/12 meses). Esto previene alumnos "huérfanos" sin facturación.

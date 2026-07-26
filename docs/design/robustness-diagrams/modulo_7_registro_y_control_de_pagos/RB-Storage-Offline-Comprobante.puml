@@ -1,0 +1,19 @@
+@startuml RB_Storage_Offline_Comprobante
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Administrador" as Actor
+boundary "CajaPage\n(UI)" as UI
+control "PagosRouter\n(tRPC)" as Router
+control "StorageAdapter\n(FS Local)" as Storage
+entity "Documento\n(PostgreSQL)" as BD
+
+Actor --> UI : Subir archivo comprobante
+UI --> Router : adjuntarComprobante(fileBuffer)
+Router --> Storage : saveFile(uuidName, buffer)
+Storage --> Router : Ruta local LAN
+Router --> BD : create(Documento)
+BD --> Router : Guardado OK
+Router --> UI : OK (adjunto listado)
+UI --> Actor : Comprobante disponible offline
+@enduml
